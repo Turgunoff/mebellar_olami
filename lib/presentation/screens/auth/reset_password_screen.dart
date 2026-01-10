@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_theme.dart';
+import '../../../providers/auth_provider.dart';
 import '../../widgets/custom_button.dart';
-import 'verify_code_screen.dart';
+import 'login_screen.dart';
 
 /// Parolni yangilash ekrani - Nabolen Style
+/// 2 bosqich: OTP kiritish -> Yangi parol
 class ResetPasswordScreen extends StatefulWidget {
-  final String email;
+  final String phone;
 
   const ResetPasswordScreen({
     super.key,
-    required this.email,
+    required this.phone,
   });
 
   @override
@@ -20,42 +24,121 @@ class ResetPasswordScreen extends StatefulWidget {
 
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
+  
+  // OTP controllerlari (5 xonali)
+  final List<TextEditingController> _otpControllers = List.generate(
+    5,
+    (index) => TextEditingController(),
+  );
+  final List<FocusNode> _otpFocusNodes = List.generate(
+    5,
+    (index) => FocusNode(),
+  );
+  
+  // Parol controllerlari
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  bool _isLoading = false;
+  
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-
+  
+  // Qaysi bosqichda (1 = OTP, 2 = Password)
+  int _currentStep = 1;
+  
   // Parol talablari
   bool _hasMinLength = false;
   bool _hasUppercase = false;
   bool _hasNumber = false;
-  bool _hasSpecialChar = false;
+  
+  // Resend timer
+  int _resendSeconds = 60;
+  bool _canResend = false;
 
   @override
   void initState() {
     super.initState();
     _passwordController.addListener(_checkPasswordStrength);
+    _startResendTimer();
   }
 
   void _checkPasswordStrength() {
     final password = _passwordController.text;
     setState(() {
-      _hasMinLength = password.length >= 8;
+      _hasMinLength = password.length >= 6;
       _hasUppercase = password.contains(RegExp(r'[A-Z]'));
       _hasNumber = password.contains(RegExp(r'[0-9]'));
-      _hasSpecialChar = password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
     });
+  }
+
+  void _startResendTimer() {
+    Future.doWhile(() async {
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) return false;
+      setState(() {
+        _resendSeconds--;
+        if (_resendSeconds <= 0) {
+          _canResend = true;
+        }
+      });
+      return _resendSeconds > 0;
+    });
+  }
+
+  Future<void> _resendCode() async {
+    if (!_canResend) return;
+    
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.forgotPassword(widget.phone);
+
+    if (success && mounted) {
+      setState(() {
+        _resendSeconds = 60;
+        _canResend = false;
+      });
+      _startResendTimer();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Yangi kod yuborildi'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    }
   }
 
   @override
   void dispose() {
+    for (var controller in _otpControllers) {
+      controller.dispose();
+    }
+    for (var node in _otpFocusNodes) {
+      node.dispose();
+    }
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleSubmit() async {
+  /// 5 xonali OTP kodi
+  String get _otpCode => _otpControllers.map((c) => c.text).join();
+
+  /// 1-Bosqich: OTP tekshirish
+  void _handleVerifyOtp() {
+    if (_otpCode.length != 5) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Iltimos, to\'liq 5 xonali kodni kiriting'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+    
+    // 2-bosqichga o'tish
+    setState(() => _currentStep = 2);
+  }
+
+  /// 2-Bosqich: Yangi parolni saqlash
+  Future<void> _handleResetPassword() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (_passwordController.text != _confirmPasswordController.text) {
@@ -68,19 +151,29 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    final authProvider = context.read<AuthProvider>();
+    authProvider.clearError();
 
-    await Future.delayed(const Duration(seconds: 1));
+    final success = await authProvider.resetPassword(
+      phone: widget.phone,
+      code: _otpCode,
+      newPassword: _passwordController.text,
+    );
 
-    if (mounted) {
-      setState(() => _isLoading = false);
-      Navigator.push(
+    if (success && mounted) {
+      // Muvaffaqiyat ekraniga o'tish
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (context) => VerifyCodeScreen(
-            email: widget.email,
-            isPasswordReset: true,
-          ),
+          builder: (context) => _PasswordResetSuccessScreen(),
+        ),
+        (route) => false,
+      );
+    } else if (mounted && authProvider.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authProvider.errorMessage!),
+          backgroundColor: AppColors.error,
         ),
       );
     }
@@ -94,7 +187,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (_currentStep > 1) {
+              setState(() => _currentStep--);
+            } else {
+              Navigator.pop(context);
+            }
+          },
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -109,126 +208,277 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           ),
         ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      body: Consumer<AuthProvider>(
+        builder: (context, authProvider, child) {
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Form(
+                key: _formKey,
+                child: _currentStep == 1
+                    ? _buildStep1OTP(authProvider)
+                    : _buildStep2Password(authProvider),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// 1-Bosqich: OTP kiritish
+  Widget _buildStep1OTP(AuthProvider authProvider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const SizedBox(height: 40),
+        // Sarlavha
+        const Text(
+          'Kodni kiriting',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+          ),
+        ).animate().fadeIn().slideY(begin: -0.1),
+        const SizedBox(height: 12),
+        Text(
+          '${widget.phone} ga yuborilgan\n5 xonali kodni kiriting',
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 14,
+            height: 1.5,
+          ),
+          textAlign: TextAlign.center,
+        ).animate().fadeIn(delay: 100.ms),
+        const SizedBox(height: 16),
+        // Info banner
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.secondary.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.info_outline_rounded,
+                color: AppColors.primary,
+                size: 20,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Kodni backend konsoldan ko\'ring',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+        ).animate().fadeIn(delay: 150.ms),
+        const SizedBox(height: 40),
+        // 5 xonali OTP input
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            5,
+            (index) => Container(
+              width: 56,
+              height: 64,
+              margin: EdgeInsets.only(left: index == 0 ? 0 : 10),
+              child: TextFormField(
+                controller: _otpControllers[index],
+                focusNode: _otpFocusNodes[index],
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                maxLength: 1,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
+                decoration: InputDecoration(
+                  counterText: '',
+                  filled: true,
+                  fillColor: AppColors.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: AppColors.lightGrey),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: AppColors.lightGrey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                  ),
+                ),
+                onChanged: (value) {
+                  if (value.isNotEmpty && index < 4) {
+                    _otpFocusNodes[index + 1].requestFocus();
+                  } else if (value.isEmpty && index > 0) {
+                    _otpFocusNodes[index - 1].requestFocus();
+                  }
+                },
+              ),
+            ).animate().fadeIn(delay: (200 + index * 50).ms).scale(),
+          ),
+        ),
+        const SizedBox(height: 30),
+        // Qayta yuborish
+        GestureDetector(
+          onTap: _canResend ? _resendCode : null,
+          child: RichText(
+            text: TextSpan(
+              style: const TextStyle(fontSize: 14),
               children: [
-                const SizedBox(height: 20),
-                // Sarlavha
-                const Text(
-                  'Parolni tiklash',
+                TextSpan(
+                  text: _canResend ? 'Kodni qayta yuborish' : 'Qayta yuborish ',
                   style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
+                    color: _canResend ? AppColors.primary : AppColors.textSecondary,
+                    fontWeight: _canResend ? FontWeight.w600 : FontWeight.normal,
                   ),
-                ).animate().fadeIn().slideX(begin: -0.1),
-                const SizedBox(height: 10),
-                const Text(
-                  'Hisobingizni himoya qilish uchun kuchli va\nxavfsiz parol o\'rnating.',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
-                    height: 1.5,
-                  ),
-                ).animate().fadeIn(delay: 100.ms),
-                const SizedBox(height: 40),
-                // Yangi parol
-                _buildTextField(
-                  controller: _passwordController,
-                  label: 'Yangi parol',
-                  hint: '••••••••••••',
-                  obscureText: _obscurePassword,
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() => _obscurePassword = !_obscurePassword);
-                    },
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      color: AppColors.textSecondary,
-                      size: 22,
+                ),
+                if (!_canResend)
+                  TextSpan(
+                    text: '(${_resendSeconds}s)',
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  validator: (value) {
-                    if (value?.isEmpty ?? true) {
-                      return 'Parolni kiriting';
-                    }
-                    if (value!.length < 8) {
-                      return 'Parol kamida 8 ta belgidan iborat bo\'lishi kerak';
-                    }
-                    return null;
-                  },
-                ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1),
-                const SizedBox(height: 20),
-                // Parolni tasdiqlash
-                _buildTextField(
-                  controller: _confirmPasswordController,
-                  label: 'Parolni tasdiqlash',
-                  hint: '••••••••••••',
-                  obscureText: _obscureConfirmPassword,
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
-                    },
-                    icon: Icon(
-                      _obscureConfirmPassword
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      color: AppColors.textSecondary,
-                      size: 22,
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value?.isEmpty ?? true) {
-                      return 'Parolni tasdiqlang';
-                    }
-                    return null;
-                  },
-                ).animate().fadeIn(delay: 300.ms).slideX(begin: -0.1),
-                const SizedBox(height: 24),
-                // Parol talablari
-                const Text(
-                  'Parolingiz quyidagilardan iborat bo\'lishi kerak:',
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ).animate().fadeIn(delay: 400.ms),
-                const SizedBox(height: 14),
-                _buildRequirement('Kamida 8 ta belgi', _hasMinLength)
-                    .animate()
-                    .fadeIn(delay: 450.ms),
-                _buildRequirement('Kamida 1 ta katta harf (A-Z)', _hasUppercase)
-                    .animate()
-                    .fadeIn(delay: 500.ms),
-                _buildRequirement('Kamida 1 ta raqam (0-9)', _hasNumber)
-                    .animate()
-                    .fadeIn(delay: 550.ms),
-                _buildRequirement(
-                  'Kamida 1 ta maxsus belgi (!@#\$...)',
-                  _hasSpecialChar,
-                ).animate().fadeIn(delay: 600.ms),
-                const SizedBox(height: 40),
-                // Tasdiqlash tugmasi
-                CustomButton(
-                  text: 'Tasdiqlash',
-                  width: double.infinity,
-                  isLoading: _isLoading,
-                  onPressed: _handleSubmit,
-                ).animate().fadeIn(delay: 700.ms).slideY(begin: 0.2),
-                const SizedBox(height: 40),
               ],
             ),
           ),
-        ),
-      ),
+        ).animate().fadeIn(delay: 400.ms),
+        const SizedBox(height: 60),
+        // Davom etish tugmasi
+        CustomButton(
+          text: 'Davom etish',
+          width: double.infinity,
+          isLoading: authProvider.isLoading,
+          onPressed: _handleVerifyOtp,
+        ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.2),
+        const SizedBox(height: 40),
+      ],
+    );
+  }
+
+  /// 2-Bosqich: Yangi parol
+  Widget _buildStep2Password(AuthProvider authProvider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 20),
+        // Sarlavha
+        const Text(
+          'Yangi parol',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+          ),
+        ).animate().fadeIn().slideX(begin: -0.1),
+        const SizedBox(height: 10),
+        const Text(
+          'Hisobingizni himoya qilish uchun\nkuchli va xavfsiz parol o\'rnating.',
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 14,
+            height: 1.5,
+          ),
+        ).animate().fadeIn(delay: 100.ms),
+        const SizedBox(height: 40),
+        // Yangi parol
+        _buildTextField(
+          controller: _passwordController,
+          label: 'Yangi parol',
+          hint: '••••••••••••',
+          obscureText: _obscurePassword,
+          suffixIcon: IconButton(
+            onPressed: () {
+              setState(() => _obscurePassword = !_obscurePassword);
+            },
+            icon: Icon(
+              _obscurePassword
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              color: AppColors.textSecondary,
+              size: 22,
+            ),
+          ),
+          validator: (value) {
+            if (value?.isEmpty ?? true) {
+              return 'Parolni kiriting';
+            }
+            if (value!.length < 6) {
+              return 'Parol kamida 6 ta belgidan iborat bo\'lishi kerak';
+            }
+            return null;
+          },
+        ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1),
+        const SizedBox(height: 20),
+        // Parolni tasdiqlash
+        _buildTextField(
+          controller: _confirmPasswordController,
+          label: 'Parolni tasdiqlash',
+          hint: '••••••••••••',
+          obscureText: _obscureConfirmPassword,
+          suffixIcon: IconButton(
+            onPressed: () {
+              setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+            },
+            icon: Icon(
+              _obscureConfirmPassword
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              color: AppColors.textSecondary,
+              size: 22,
+            ),
+          ),
+          validator: (value) {
+            if (value?.isEmpty ?? true) {
+              return 'Parolni tasdiqlang';
+            }
+            return null;
+          },
+        ).animate().fadeIn(delay: 300.ms).slideX(begin: -0.1),
+        const SizedBox(height: 24),
+        // Parol talablari
+        const Text(
+          'Parolingiz quyidagilardan iborat bo\'lishi kerak:',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ).animate().fadeIn(delay: 400.ms),
+        const SizedBox(height: 14),
+        _buildRequirement('Kamida 6 ta belgi', _hasMinLength)
+            .animate()
+            .fadeIn(delay: 450.ms),
+        _buildRequirement('Kamida 1 ta katta harf (A-Z)', _hasUppercase)
+            .animate()
+            .fadeIn(delay: 500.ms),
+        _buildRequirement('Kamida 1 ta raqam (0-9)', _hasNumber)
+            .animate()
+            .fadeIn(delay: 550.ms),
+        const SizedBox(height: 40),
+        // Tasdiqlash tugmasi
+        CustomButton(
+          text: 'Parolni yangilash',
+          width: double.infinity,
+          isLoading: authProvider.isLoading,
+          onPressed: _handleResetPassword,
+        ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2),
+        const SizedBox(height: 40),
+      ],
     );
   }
 
@@ -325,6 +575,77 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Parol muvaffaqiyatli yangilandi ekrani
+class _PasswordResetSuccessScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Spacer(),
+              // Success icon
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: AppColors.success.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_circle_rounded,
+                  size: 80,
+                  color: AppColors.success,
+                ),
+              ).animate().scale(delay: 200.ms),
+              const SizedBox(height: 32),
+              const Text(
+                'Parol yangilandi! 🎉',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+                textAlign: TextAlign.center,
+              ).animate().fadeIn(delay: 400.ms),
+              const SizedBox(height: 12),
+              const Text(
+                'Parolingiz muvaffaqiyatli o\'zgartirildi.\nEndi yangi parol bilan kirishingiz mumkin.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: AppColors.textSecondary,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ).animate().fadeIn(delay: 500.ms),
+              const Spacer(),
+              // Kirish tugmasi
+              CustomButton(
+                text: 'Kirish',
+                width: double.infinity,
+                onPressed: () {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(isFromOnboarding: true),
+                    ),
+                    (route) => false,
+                  );
+                },
+              ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2),
+              const SizedBox(height: 40),
+            ],
+          ),
+        ),
       ),
     );
   }

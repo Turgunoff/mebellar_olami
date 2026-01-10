@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_theme.dart';
+import '../../../providers/auth_provider.dart';
 import '../../widgets/custom_button.dart';
 import 'reset_password_screen.dart';
 
 /// Parolni unutdim ekrani - Nabolen Style
+/// 3 bosqichli: Telefon -> OTP -> Yangi parol
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
@@ -15,30 +19,53 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  bool _isLoading = false;
+  final _phoneController = TextEditingController();
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
+  /// Formatlangan telefon raqami
+  String get _formattedPhone {
+    String phone = _phoneController.text.trim();
+    if (!phone.startsWith('+')) {
+      phone = '+998$phone';
+    }
+    return phone;
+  }
+
   Future<void> _handleSubmit() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_phoneController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Telefon raqamini kiriting'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
 
-    setState(() => _isLoading = true);
+    final authProvider = context.read<AuthProvider>();
+    authProvider.clearError();
 
-    await Future.delayed(const Duration(seconds: 1));
+    final success = await authProvider.forgotPassword(_formattedPhone);
 
-    if (mounted) {
-      setState(() => _isLoading = false);
+    if (success && mounted) {
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => ResetPasswordScreen(
-            email: _emailController.text.trim(),
+            phone: _formattedPhone,
           ),
+        ),
+      );
+    } else if (mounted && authProvider.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authProvider.errorMessage!),
+          backgroundColor: AppColors.error,
         ),
       );
     }
@@ -67,73 +94,92 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
         ),
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 20),
-                // Sarlavha
-                const Text(
-                  'Parolni tiklash',
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ).animate().fadeIn().slideX(begin: -0.1),
-                const SizedBox(height: 10),
-                const Text(
-                  'Email manzilingizni kiriting. Biz sizga\nparolni tiklash uchun kod yuboramiz.',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
-                    height: 1.5,
-                  ),
-                ).animate().fadeIn(delay: 100.ms),
-                const SizedBox(height: 40),
-                // Email
-                _buildTextField(
-                  controller: _emailController,
-                  label: 'Email',
-                  hint: 'example@gmail.com',
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value?.isEmpty ?? true) {
-                      return 'Email kiriting';
-                    }
-                    if (!value!.contains('@')) {
-                      return 'Yaroqli email kiriting';
-                    }
-                    return null;
-                  },
-                ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1),
-                const Spacer(),
-                // Yuborish tugmasi
-                CustomButton(
-                  text: 'Kod yuborish',
-                  width: double.infinity,
-                  isLoading: _isLoading,
-                  onPressed: _handleSubmit,
-                ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2),
-                const SizedBox(height: 40),
-              ],
+      body: Consumer<AuthProvider>(
+        builder: (context, authProvider, child) {
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 20),
+                    // Sarlavha
+                    const Text(
+                      'Parolni tiklash',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ).animate().fadeIn().slideX(begin: -0.1),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Telefon raqamingizni kiriting.\nBiz sizga parolni tiklash kodini yuboramiz.',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                        height: 1.5,
+                      ),
+                    ).animate().fadeIn(delay: 100.ms),
+                    const SizedBox(height: 40),
+                    // Telefon raqami
+                    _buildPhoneField(
+                      controller: _phoneController,
+                      label: 'Telefon raqami',
+                    ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1),
+                    const SizedBox(height: 16),
+                    // Info banner
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.info_outline_rounded,
+                            color: AppColors.primary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Kodni backend konsoldan ko\'ring',
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ).animate().fadeIn(delay: 250.ms),
+                    const Spacer(),
+                    // Yuborish tugmasi
+                    CustomButton(
+                      text: 'Kod yuborish',
+                      width: double.infinity,
+                      isLoading: authProvider.isLoading,
+                      onPressed: _handleSubmit,
+                    ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2),
+                    const SizedBox(height: 40),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildTextField({
+  /// Telefon raqami uchun maxsus input
+  Widget _buildPhoneField({
     required TextEditingController controller,
     required String label,
-    required String hint,
-    TextInputType keyboardType = TextInputType.text,
-    String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,17 +195,47 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const SizedBox(height: 10),
         TextFormField(
           controller: controller,
-          keyboardType: keyboardType,
-          validator: validator,
+          keyboardType: TextInputType.phone,
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
+          ],
           style: const TextStyle(
             color: AppColors.textPrimary,
             fontSize: 15,
           ),
           decoration: InputDecoration(
-            hintText: hint,
+            hintText: '90 123 45 67',
             hintStyle: TextStyle(
               color: AppColors.textSecondary.withValues(alpha: 0.6),
               fontSize: 15,
+            ),
+            prefixIcon: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      '🇺🇿 +998',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 1,
+                    height: 24,
+                    color: AppColors.lightGrey,
+                  ),
+                ],
+              ),
             ),
             filled: true,
             fillColor: AppColors.surface,

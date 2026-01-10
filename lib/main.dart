@@ -7,6 +7,7 @@ import 'providers/auth_provider.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/orders_provider.dart';
 import 'presentation/screens/onboarding/onboarding_screen.dart';
+import 'presentation/screens/main_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,8 +42,80 @@ class MebellarOlamiApp extends StatelessWidget {
         title: 'Mebellar Olami',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        home: const OnboardingScreen(),
+        home: const _AuthWrapper(),
       ),
     );
+  }
+}
+
+/// Auth holatini tekshiruvchi wrapper
+class _AuthWrapper extends StatefulWidget {
+  const _AuthWrapper();
+
+  @override
+  State<_AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<_AuthWrapper> {
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    final authProvider = context.read<AuthProvider>();
+    await authProvider.checkAuthStatus();
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Logo
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: const Icon(
+                  Icons.weekend_rounded,
+                  size: 50,
+                  color: AppColors.white,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const CircularProgressIndicator(
+                color: AppColors.primary,
+                strokeWidth: 3,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final authProvider = context.watch<AuthProvider>();
+
+    // Agar foydalanuvchi tizimga kirgan bo'lsa - MainScreen
+    if (authProvider.isLoggedIn) {
+      return const MainScreen();
+    }
+
+    // Aks holda - OnboardingScreen
+    return const OnboardingScreen();
   }
 }
