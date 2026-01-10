@@ -7,6 +7,7 @@ import 'providers/auth_provider.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/orders_provider.dart';
 import 'providers/user_provider.dart';
+import 'providers/product_provider.dart';
 import 'presentation/screens/onboarding/onboarding_screen.dart';
 import 'presentation/screens/auth/welcome_screen.dart';
 import 'presentation/screens/main_screen.dart';
@@ -40,6 +41,7 @@ class MebellarOlamiApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => FavoritesProvider()),
         ChangeNotifierProvider(create: (_) => OrdersProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => ProductProvider()),
       ],
       child: MaterialApp(
         title: 'Mebellar Olami',

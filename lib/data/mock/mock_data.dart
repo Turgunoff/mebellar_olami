@@ -2,7 +2,7 @@ import '../models/product_model.dart';
 import '../models/order_model.dart';
 
 /// Mock ma'lumotlar sinfi
-/// Kelajakda Go/PostgreSQL backend bilan almashtiriladi
+/// Backend ishlamagan paytda fallback sifatida ishlatiladi
 class MockData {
   MockData._();
 
@@ -74,18 +74,16 @@ class MockData {
     ),
   ];
 
-  /// Mahsulotlar
+  /// Mahsulotlar (yangi strukturada)
   static const List<ProductModel> products = [
     // Yotoqxona - Karavotlar
     ProductModel(
       id: 'prod_1',
       name: 'Premium Karavot "Milano"',
       price: 4500000,
-      description: 'Zamonaviy italyan dizaynidagi premium karavot. Yumshoq bosh qismi va mustahkam yog\'och ramkasi. O\'lchamlari: 180x200 sm. Matras alohida sotiladi.',
-      category: 'Karavotlar',
+      description: 'Zamonaviy italyan dizaynidagi premium karavot. Yumshoq bosh qismi va mustahkam yog\'och ramkasi.',
       categoryId: 'cat_1_1',
-      imageUrl: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600',
-      colors: ['633E33', 'D6CFC4', '1E1E20'],
+      images: ['https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600'],
       rating: 4.8,
       isPopular: true,
     ),
@@ -93,11 +91,9 @@ class MockData {
       id: 'prod_2',
       name: 'Klassik Karavot "Royal"',
       price: 6200000,
-      description: 'Hashamatli klassik uslubdagi karavot. Qo\'lda ishlangan o\'ymakorlik elementlari. Premium sifatli eman yog\'ochidan yasalgan.',
-      category: 'Karavotlar',
+      description: 'Hashamatli klassik uslubdagi karavot. Premium sifatli eman yog\'ochidan yasalgan.',
       categoryId: 'cat_1_1',
-      imageUrl: 'https://images.unsplash.com/photo-1617325247661-675ab4b64ae2?w=600',
-      colors: ['633E33', '8B4513'],
+      images: ['https://images.unsplash.com/photo-1617325247661-675ab4b64ae2?w=600'],
       rating: 4.9,
       isNew: true,
     ),
@@ -106,24 +102,22 @@ class MockData {
       id: 'prod_3',
       name: 'Ko\'zguyli Shkaf "Elegance"',
       price: 3800000,
-      description: 'Katta ko\'zguli zamonaviy shkaf. 4 ta bo\'lim va ko\'p xonali ichki tuzilishi. O\'lchamlari: 200x240x60 sm.',
-      category: 'Shkaflar',
+      description: 'Katta ko\'zguli zamonaviy shkaf. 4 ta bo\'lim va ko\'p xonali ichki tuzilishi.',
       categoryId: 'cat_1_2',
-      imageUrl: 'https://images.unsplash.com/photo-1558997519-83ea9252edf8?w=600',
-      colors: ['FFFFFF', '633E33'],
+      images: ['https://images.unsplash.com/photo-1558997519-83ea9252edf8?w=600'],
       rating: 4.7,
       isPopular: true,
     ),
-    // Yashash xonasi - Divanlar
+    // Yashash xonasi - Divanlar (Chegirmali)
     ProductModel(
       id: 'prod_4',
       name: 'Burchak Divan "Comfort Plus"',
-      price: 7500000,
-      description: 'Keng oilalar uchun ideal burchak divani. Yumshoq to\'ldirma va chidamli matoli qoplama. Yotish funksiyasi mavjud.',
-      category: 'Divanlar',
+      price: 8500000,
+      discountPrice: 6800000, // 20% chegirma
+      description: 'Keng oilalar uchun ideal burchak divani. Yotish funksiyasi mavjud.',
       categoryId: 'cat_2_1',
-      imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600',
-      colors: ['D6CFC4', '633E33', '6B6B6B'],
+      images: ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600'],
+      specs: {'Material': 'Velvet', 'O\'lcham': '280x180 sm'},
       rating: 4.9,
       isPopular: true,
       isNew: true,
@@ -132,24 +126,22 @@ class MockData {
       id: 'prod_5',
       name: 'Ikki kishilik Divan "Nordic"',
       price: 4200000,
-      description: 'Skandinav uslubidagi zamonaviy divan. Yengil va chiroyli dizayn. Premium mato qoplamasi.',
-      category: 'Divanlar',
+      description: 'Skandinav uslubidagi zamonaviy divan. Premium mato qoplamasi.',
       categoryId: 'cat_2_1',
-      imageUrl: 'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=600',
-      colors: ['D6CFC4', '1E1E20', '8B5A4A'],
+      images: ['https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=600'],
       rating: 4.6,
       isNew: true,
     ),
-    // Yashash xonasi - Stollar
+    // Yashash xonasi - Stollar (Chegirmali)
     ProductModel(
       id: 'prod_6',
       name: 'Kofe stoli "Marble"',
-      price: 1800000,
-      description: 'Tabiiy marmar ustki qismi va metall oyoqlari. Zamonaviy minimalist dizayn. Diametr: 80 sm.',
-      category: 'Stollar',
+      price: 2400000,
+      discountPrice: 1920000, // 20% chegirma
+      description: 'Tabiiy marmar ustki qismi va metall oyoqlari.',
       categoryId: 'cat_2_2',
-      imageUrl: 'https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=600',
-      colors: ['FFFFFF', '633E33'],
+      images: ['https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=600'],
+      specs: {'Material': 'Marmar + Metall', 'Diametr': '80 sm'},
       rating: 4.5,
       isPopular: true,
     ),
@@ -158,24 +150,22 @@ class MockData {
       id: 'prod_7',
       name: 'Kreslo "Vintage"',
       price: 2400000,
-      description: 'Retro uslubidagi qulay kreslo. Yumshoq to\'ldirma va mustahkam yog\'och ramkasi.',
-      category: 'Kresollar',
+      description: 'Retro uslubidagi qulay kreslo. Mustahkam yog\'och ramkasi.',
       categoryId: 'cat_2_3',
-      imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600',
-      colors: ['633E33', 'D6CFC4', '6B6B6B'],
+      images: ['https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600'],
       rating: 4.7,
       isNew: true,
     ),
-    // Oshxona
+    // Oshxona (Chegirmali)
     ProductModel(
       id: 'prod_8',
       name: 'Oshxona to\'plami "Family"',
-      price: 3200000,
-      description: 'Stol va 6 ta stuldan iborat to\'plam. Kengaytirilishi mumkin stol. Oila uchun ideal.',
-      category: 'Oshxona stollari',
+      price: 4200000,
+      discountPrice: 3570000, // 15% chegirma
+      description: 'Stol va 6 ta stuldan iborat to\'plam. Oila uchun ideal.',
       categoryId: 'cat_3_1',
-      imageUrl: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=600',
-      colors: ['FFFFFF', '8B4513'],
+      images: ['https://images.unsplash.com/photo-1617806118233-18e1de247200?w=600'],
+      specs: {'Stullar': '6 dona', 'Stol o\'lchami': '160x90 sm'},
       rating: 4.8,
       isPopular: true,
     ),
@@ -184,22 +174,19 @@ class MockData {
       id: 'prod_9',
       name: 'Ofis stoli "Executive"',
       price: 2800000,
-      description: 'Professional ofis stoli. Ko\'p tortmali va kabel boshqaruvi. O\'lchamlari: 160x80 sm.',
-      category: 'Ofis stollari',
+      description: 'Professional ofis stoli. Ko\'p tortmali.',
       categoryId: 'cat_4_1',
-      imageUrl: 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=600',
-      colors: ['633E33', 'FFFFFF'],
+      images: ['https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=600'],
       rating: 4.6,
     ),
     ProductModel(
       id: 'prod_10',
       name: 'Ergonomik Kreslo "ProSit"',
-      price: 3500000,
-      description: 'To\'liq sozlanishi mumkin ergonomik ofis kreslosi. Bel qismi qo\'llab-quvvatlaydi. 8 soatlik ishlash uchun ideal.',
-      category: 'Ofis kreslosari',
+      price: 3800000,
+      description: 'To\'liq sozlanishi mumkin ergonomik ofis kreslosi.',
       categoryId: 'cat_4_2',
-      imageUrl: 'https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=600',
-      colors: ['1E1E20', '633E33'],
+      images: ['https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=600'],
+      specs: {'Kafolat': '5 yil', 'Yuk sig\'imi': '150 kg'},
       rating: 4.9,
       isPopular: true,
       isNew: true,
@@ -209,22 +196,18 @@ class MockData {
       id: 'prod_11',
       name: 'Bog\' to\'plami "Garden Lounge"',
       price: 5600000,
-      description: 'Suv va quyoshga chidamli bog\' mebellari to\'plami. 2 kreslo, 1 divan va kofe stoli.',
-      category: 'Bog\' mebellari',
+      description: 'Suv va quyoshga chidamli bog\' mebellari to\'plami.',
       categoryId: 'cat_5',
-      imageUrl: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=600',
-      colors: ['6B6B6B', 'D6CFC4'],
+      images: ['https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=600'],
       rating: 4.5,
     ),
     ProductModel(
       id: 'prod_12',
       name: 'Osilgan Kreslo "Cocoon"',
       price: 1900000,
-      description: 'Zamonaviy osilgan kreslo. Dam olish uchun ideal. Ichki va tashqi joylar uchun.',
-      category: 'Bog\' mebellari',
+      description: 'Zamonaviy osilgan kreslo. Dam olish uchun ideal.',
       categoryId: 'cat_5',
-      imageUrl: 'https://images.unsplash.com/photo-1520038410233-7141be7e6f97?w=600',
-      colors: ['FFFFFF', '633E33'],
+      images: ['https://images.unsplash.com/photo-1520038410233-7141be7e6f97?w=600'],
       rating: 4.8,
       isNew: true,
     ),
@@ -242,14 +225,14 @@ class MockData {
   static List<ProductModel> getProductsByCategory(String categoryId) =>
       products.where((p) => p.categoryId == categoryId).toList();
 
-  /// Namuna buyurtmalar (Foydalanuvchi tizimga kirgandan keyin)
+  /// Namuna buyurtmalar
   static List<OrderModel> sampleOrders = [
     OrderModel(
       id: 'order_1',
       productId: 'prod_4',
       productName: 'Burchak Divan "Comfort Plus"',
       productImage: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600',
-      totalPrice: 7500000,
+      totalPrice: 6800000,
       status: OrderStatus.delivered,
       date: DateTime.now().subtract(const Duration(days: 15)),
       selectedColor: 'D6CFC4',
@@ -262,7 +245,7 @@ class MockData {
       productId: 'prod_10',
       productName: 'Ergonomik Kreslo "ProSit"',
       productImage: 'https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=600',
-      totalPrice: 3500000,
+      totalPrice: 3800000,
       status: OrderStatus.processing,
       date: DateTime.now().subtract(const Duration(days: 2)),
       selectedColor: '1E1E20',
@@ -275,7 +258,7 @@ class MockData {
       productId: 'prod_6',
       productName: 'Kofe stoli "Marble"',
       productImage: 'https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=600',
-      totalPrice: 1800000,
+      totalPrice: 1920000,
       status: OrderStatus.newOrder,
       date: DateTime.now(),
       selectedColor: 'FFFFFF',

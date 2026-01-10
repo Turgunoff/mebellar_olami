@@ -1,45 +1,109 @@
-/// Mahsulot modeli
+/// Mahsulot modeli (MVP uchun moslashuvchan)
 class ProductModel {
   final String id;
+  final String? categoryId;
   final String name;
-  final double price;
   final String description;
-  final String category;
-  final String categoryId;
-  final String imageUrl;
-  final List<String> colors;
+  final double price;
+  final double? discountPrice;
+  final List<String> images;
+  final Map<String, dynamic> specs;
+  final List<Map<String, dynamic>> variants;
   final double rating;
   final bool isNew;
   final bool isPopular;
+  final DateTime? createdAt;
 
   const ProductModel({
     required this.id,
+    this.categoryId,
     required this.name,
-    required this.price,
     required this.description,
-    required this.category,
-    required this.categoryId,
-    required this.imageUrl,
-    required this.colors,
-    required this.rating,
+    required this.price,
+    this.discountPrice,
+    required this.images,
+    this.specs = const {},
+    this.variants = const [],
+    this.rating = 4.5,
     this.isNew = false,
     this.isPopular = false,
+    this.createdAt,
   });
 
-  /// JSON dan model yaratish (kelajakda backend uchun)
+  /// Chegirma foizi (masalan: 20)
+  int get discountPercent {
+    if (discountPrice == null || discountPrice! <= 0 || price <= 0) {
+      return 0;
+    }
+    return ((price - discountPrice!) / price * 100).round();
+  }
+
+  /// Chegirma bormi
+  bool get hasDiscount => discountPrice != null && discountPrice! > 0 && discountPrice! < price;
+
+  /// Asosiy rasm
+  String get imageUrl => images.isNotEmpty ? images.first : '';
+
+  /// Ranglar ro'yxati (variants dan)
+  List<String> get colors {
+    return variants
+        .where((v) => v['colorCode'] != null)
+        .map((v) => v['colorCode'] as String)
+        .toList();
+  }
+
+  /// Aktual narx (chegirmali yoki oddiy)
+  double get actualPrice => hasDiscount ? discountPrice! : price;
+
+  /// JSON dan model yaratish (Backend response)
   factory ProductModel.fromJson(Map<String, dynamic> json) {
+    // Images massivini parse qilish
+    List<String> parseImages(dynamic imagesData) {
+      if (imagesData == null) return [];
+      if (imagesData is List) {
+        return imagesData.map((e) => e.toString()).toList();
+      }
+      return [];
+    }
+
+    // Specs parse qilish
+    Map<String, dynamic> parseSpecs(dynamic specsData) {
+      if (specsData == null) return {};
+      if (specsData is Map) {
+        return Map<String, dynamic>.from(specsData);
+      }
+      return {};
+    }
+
+    // Variants parse qilish
+    List<Map<String, dynamic>> parseVariants(dynamic variantsData) {
+      if (variantsData == null) return [];
+      if (variantsData is List) {
+        return variantsData
+            .map((v) => v is Map ? Map<String, dynamic>.from(v) : <String, dynamic>{})
+            .toList();
+      }
+      return [];
+    }
+
     return ProductModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      price: (json['price'] as num).toDouble(),
-      description: json['description'] as String,
-      category: json['category'] as String,
-      categoryId: json['category_id'] as String,
-      imageUrl: json['image_url'] as String,
-      colors: List<String>.from(json['colors'] as List),
-      rating: (json['rating'] as num).toDouble(),
+      id: json['id']?.toString() ?? '',
+      categoryId: json['category_id']?.toString(),
+      name: json['name']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      discountPrice: json['discount_price'] != null 
+          ? (json['discount_price'] as num?)?.toDouble() 
+          : null,
+      images: parseImages(json['images']),
+      specs: parseSpecs(json['specs']),
+      variants: parseVariants(json['variants']),
+      rating: (json['rating'] as num?)?.toDouble() ?? 4.5,
       isNew: json['is_new'] as bool? ?? false,
       isPopular: json['is_popular'] as bool? ?? false,
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'].toString())
+          : null,
     );
   }
 
@@ -47,13 +111,14 @@ class ProductModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name,
-      'price': price,
-      'description': description,
-      'category': category,
       'category_id': categoryId,
-      'image_url': imageUrl,
-      'colors': colors,
+      'name': name,
+      'description': description,
+      'price': price,
+      'discount_price': discountPrice,
+      'images': images,
+      'specs': specs,
+      'variants': variants,
       'rating': rating,
       'is_new': isNew,
       'is_popular': isPopular,
@@ -63,29 +128,33 @@ class ProductModel {
   /// Nusxa olish (copyWith)
   ProductModel copyWith({
     String? id,
-    String? name,
-    double? price,
-    String? description,
-    String? category,
     String? categoryId,
-    String? imageUrl,
-    List<String>? colors,
+    String? name,
+    String? description,
+    double? price,
+    double? discountPrice,
+    List<String>? images,
+    Map<String, dynamic>? specs,
+    List<Map<String, dynamic>>? variants,
     double? rating,
     bool? isNew,
     bool? isPopular,
+    DateTime? createdAt,
   }) {
     return ProductModel(
       id: id ?? this.id,
-      name: name ?? this.name,
-      price: price ?? this.price,
-      description: description ?? this.description,
-      category: category ?? this.category,
       categoryId: categoryId ?? this.categoryId,
-      imageUrl: imageUrl ?? this.imageUrl,
-      colors: colors ?? this.colors,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      price: price ?? this.price,
+      discountPrice: discountPrice ?? this.discountPrice,
+      images: images ?? this.images,
+      specs: specs ?? this.specs,
+      variants: variants ?? this.variants,
       rating: rating ?? this.rating,
       isNew: isNew ?? this.isNew,
       isPopular: isPopular ?? this.isPopular,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }

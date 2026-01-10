@@ -9,17 +9,19 @@ import '../../providers/auth_provider.dart';
 import '../../providers/favorites_provider.dart';
 import 'login_dialog.dart';
 
-/// Mahsulot kartasi widgeti - Nabolen Style
+/// Mahsulot kartasi widgeti - Nabolen Style (Discount support)
 class ProductCard extends StatelessWidget {
   final ProductModel product;
   final VoidCallback? onTap;
   final bool showFavoriteButton;
+  final bool isCompact;
 
   const ProductCard({
     super.key,
     required this.product,
     this.onTap,
     this.showFavoriteButton = true,
+    this.isCompact = false,
   });
 
   @override
@@ -46,6 +48,7 @@ class ProductCard extends StatelessWidget {
               flex: 3,
               child: Stack(
                 children: [
+                  // Rasm
                   ClipRRect(
                     borderRadius: BorderRadius.vertical(
                       top: Radius.circular(AppTheme.borderRadius),
@@ -73,30 +76,14 @@ class ProductCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Yangi/Mashhur badge
-                  if (product.isNew)
-                    Positioned(
-                      top: 10,
-                      left: 10,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Text(
-                          'Yangi',
-                          style: TextStyle(
-                            color: AppColors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
+
+                  // Badge (Yangi yoki Chegirma)
+                  Positioned(
+                    top: 10,
+                    left: 10,
+                    child: _buildBadge(),
+                  ),
+
                   // Sevimli tugmasi
                   if (showFavoriteButton)
                     Positioned(
@@ -107,6 +94,7 @@ class ProductCard extends StatelessWidget {
                 ],
               ),
             ),
+
             // Ma'lumotlar
             Expanded(
               flex: 2,
@@ -130,21 +118,100 @@ class ProductCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    // Narx
-                    Text(
-                      product.price.toCurrency(),
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+
+                    // Narxlar
+                    _buildPriceSection(),
                   ],
                 ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Badge (Yangi yoki Chegirma)
+  Widget _buildBadge() {
+    // Chegirma bo'lsa - chegirma foizini ko'rsatish
+    if (product.hasDiscount) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.error,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          '-${product.discountPercent}%',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+    }
+
+    // Yangi mahsulot
+    if (product.isNew) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: const Text(
+          'Yangi',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  /// Narxlar (chegirmali va oddiy)
+  Widget _buildPriceSection() {
+    if (product.hasDiscount) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Eski narx (o'chirilgan)
+          Text(
+            product.price.toCurrency(),
+            style: TextStyle(
+              color: AppColors.textSecondary.withValues(alpha: 0.7),
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              decoration: TextDecoration.lineThrough,
+              decorationColor: AppColors.textSecondary.withValues(alpha: 0.7),
+            ),
+          ),
+          const SizedBox(height: 2),
+          // Yangi narx
+          Text(
+            product.discountPrice!.toCurrency(),
+            style: const TextStyle(
+              color: AppColors.error,
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Oddiy narx
+    return Text(
+      product.price.toCurrency(),
+      style: const TextStyle(
+        color: AppColors.primary,
+        fontSize: 15,
+        fontWeight: FontWeight.bold,
       ),
     );
   }
@@ -191,7 +258,178 @@ class _FavoriteButton extends StatelessWidget {
         child: Icon(
           isFavorite ? Icons.favorite : Icons.favorite_border_rounded,
           size: 20,
-          color: isFavorite ? AppColors.primary : AppColors.textSecondary,
+          color: isFavorite ? AppColors.error : AppColors.textSecondary,
+        ),
+      ),
+    );
+  }
+}
+
+/// Gorizontal mahsulot kartasi (Yangi kelganlar uchun)
+class HorizontalProductCard extends StatelessWidget {
+  final ProductModel product;
+  final VoidCallback? onTap;
+  final double width;
+
+  const HorizontalProductCard({
+    super.key,
+    required this.product,
+    this.onTap,
+    this.width = 160,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: width,
+        margin: const EdgeInsets.only(right: 16),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.textPrimary.withValues(alpha: 0.06),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Rasm
+            Expanded(
+              flex: 3,
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
+                    child: CachedNetworkImage(
+                      imageUrl: product.imageUrl,
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        color: AppColors.secondary.withValues(alpha: 0.3),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        color: AppColors.secondary.withValues(alpha: 0.3),
+                        child: const Icon(Icons.image_not_supported_outlined),
+                      ),
+                    ),
+                  ),
+
+                  // Badge
+                  if (product.hasDiscount)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.error,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '-${product.discountPercent}%',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    )
+                  else if (product.isNew)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'Yangi',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            // Ma'lumotlar
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Nomi
+                    Expanded(
+                      child: Text(
+                        product.name,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          height: 1.2,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+
+                    // Narx
+                    if (product.hasDiscount) ...[
+                      Text(
+                        product.price.toCurrency(),
+                        style: TextStyle(
+                          color: AppColors.textSecondary.withValues(alpha: 0.6),
+                          fontSize: 10,
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ),
+                      Text(
+                        product.discountPrice!.toCurrency(),
+                        style: const TextStyle(
+                          color: AppColors.error,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ] else
+                      Text(
+                        product.price.toCurrency(),
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

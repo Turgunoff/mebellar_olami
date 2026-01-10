@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../data/mock/mock_data.dart';
 import '../../../data/models/product_model.dart';
+import '../../../providers/product_provider.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/category_card.dart';
 import '../product/product_detail_screen.dart';
@@ -27,6 +29,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _startBannerAutoScroll();
+    // Mahsulotlarni yuklash
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProductProvider>().fetchAll();
+    });
   }
 
   void _startBannerAutoScroll() {
@@ -59,59 +65,67 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  List<ProductModel> get _filteredProducts {
+  List<ProductModel> _getFilteredProducts(ProductProvider productProvider) {
+    // Backenddan kelgan mahsulotlar
+    final products = productProvider.popularProducts.isNotEmpty
+        ? productProvider.popularProducts
+        : MockData.popularProducts;
+
     if (_selectedCategoryId == null) {
-      return MockData.popularProducts;
+      return products;
     }
-    return MockData.products
-        .where((p) => p.categoryId.startsWith(_selectedCategoryId!.split('_').take(2).join('_')))
-        .toList();
+
+    // Kategoriya bo'yicha filtrlash
+    final categoryPrefix = _selectedCategoryId!.split('_').take(2).join('_');
+    return products.where((p) {
+      final productCat = p.categoryId ?? '';
+      return productCat.startsWith(categoryPrefix);
+    }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
+    final productProvider = context.watch<ProductProvider>();
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // Header
-            SliverToBoxAdapter(
-              child: _buildHeader(),
-            ),
-            // Qidiruv
-            SliverToBoxAdapter(
-              child: _buildSearchBar(),
-            ),
-            // Banner
-            SliverToBoxAdapter(
-              child: _buildPromoBanner(),
-            ),
-            // Kategoriyalar sarlavhasi
-            SliverToBoxAdapter(
-              child: _buildSectionHeader('Kategoriyalar'),
-            ),
-            // Kategoriyalar (Gorizontal)
-            SliverToBoxAdapter(
-              child: _buildCategoriesRow(),
-            ),
-            // Mashhur mahsulotlar sarlavhasi
-            SliverToBoxAdapter(
-              child: _buildSectionHeader(
-                _selectedCategoryId == null ? 'Mashhur mahsulotlar' : 'Mahsulotlar',
-                showAll: true,
+        child: RefreshIndicator(
+          onRefresh: () => productProvider.fetchAll(),
+          color: AppColors.primary,
+          child: CustomScrollView(
+            slivers: [
+              // Header
+              SliverToBoxAdapter(child: _buildHeader()),
+              // Qidiruv
+              SliverToBoxAdapter(child: _buildSearchBar()),
+              // Banner
+              SliverToBoxAdapter(child: _buildPromoBanner()),
+
+              // ===== YANGI KELGANLAR (Gorizontal) =====
+              SliverToBoxAdapter(child: _buildSectionHeader('Yangi kelganlar')),
+              SliverToBoxAdapter(child: _buildNewArrivalsRow(productProvider)),
+
+              // ===== KATEGORIYALAR =====
+              SliverToBoxAdapter(child: _buildSectionHeader('Kategoriyalar')),
+              SliverToBoxAdapter(child: _buildCategoriesRow()),
+
+              // ===== OMMABOP MAHSULOTLAR (Grid) =====
+              SliverToBoxAdapter(
+                child: _buildSectionHeader(
+                  _selectedCategoryId == null ? 'Ommabop' : 'Mahsulotlar',
+                  showAll: true,
+                ),
               ),
-            ),
-            // Mahsulotlar (Grid)
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: _buildProductsGrid(),
-            ),
-            // Pastki bo'shliq
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 100),
-            ),
-          ],
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                sliver: _buildProductsGrid(productProvider),
+              ),
+
+              // Pastki bo'shliq
+              const SliverToBoxAdapter(child: SizedBox(height: 100)),
+            ],
+          ),
         ),
       ),
     );
@@ -129,10 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Text(
                 'Assalomu alaykum! 👋',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
               ).animate().fadeIn(duration: 400.ms),
               const SizedBox(height: 4),
               const Text(
@@ -259,9 +270,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         width: double.infinity,
                         height: double.infinity,
                         fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: AppColors.secondary,
-                        ),
+                        placeholder: (context, url) =>
+                            Container(color: AppColors.secondary),
                         errorWidget: (context, url, error) => Container(
                           color: AppColors.secondary,
                           child: const Icon(Icons.image_not_supported),
@@ -358,6 +368,48 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Yangi kelganlar (Gorizontal ListView)
+  Widget _buildNewArrivalsRow(ProductProvider productProvider) {
+    // Loading holati
+    if (productProvider.isLoadingNew) {
+      return SizedBox(
+        height: 240,
+        child: Center(
+          child: CircularProgressIndicator(
+            color: AppColors.primary,
+            strokeWidth: 2,
+          ),
+        ),
+      );
+    }
+
+    // Backenddan yoki MockData dan olish
+    final newProducts = productProvider.newArrivals.isNotEmpty
+        ? productProvider.newArrivals
+        : MockData.newProducts;
+
+    if (newProducts.isEmpty) {
+      return const SizedBox(height: 20);
+    }
+
+    return SizedBox(
+      height: 260,
+      child: ListView.builder(
+        padding: const EdgeInsets.only(left: 20, right: 4),
+        scrollDirection: Axis.horizontal,
+        itemCount: newProducts.length,
+        itemBuilder: (context, index) {
+          final product = newProducts[index];
+          return HorizontalProductCard(
+            product: product,
+            width: 170,
+            onTap: () => _navigateToProduct(product),
+          ).animate().fadeIn(delay: (60 * index).ms).slideX(begin: 0.1);
+        },
+      ),
+    );
+  }
+
   /// Bo'lim sarlavhasi
   Widget _buildSectionHeader(String title, {bool showAll = false}) {
     return Padding(
@@ -421,8 +473,65 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Mahsulotlar (Grid)
-  SliverGrid _buildProductsGrid() {
-    final products = _filteredProducts;
+  Widget _buildProductsGrid(ProductProvider productProvider) {
+    // Loading holati
+    if (productProvider.isLoadingPopular) {
+      return SliverToBoxAdapter(
+        child: SizedBox(
+          height: 200,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator(
+                  color: AppColors.primary,
+                  strokeWidth: 3,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Mahsulotlar yuklanmoqda...',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final products = _getFilteredProducts(productProvider);
+
+    // Bo'sh holat
+    if (products.isEmpty) {
+      return SliverToBoxAdapter(
+        child: SizedBox(
+          height: 200,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.inventory_2_outlined,
+                  size: 48,
+                  color: AppColors.textSecondary.withValues(alpha: 0.5),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Mahsulotlar topilmadi',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return SliverGrid(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -431,18 +540,16 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisSpacing: 16,
         childAspectRatio: 0.72,
       ),
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          final product = products[index];
-          return ProductCard(
-            product: product,
-            onTap: () => _navigateToProduct(product),
-          ).animate().fadeIn(delay: (80 * index).ms).scale(
-                begin: const Offset(0.95, 0.95),
-              );
-        },
-        childCount: products.length,
-      ),
+      delegate: SliverChildBuilderDelegate((context, index) {
+        final product = products[index];
+        return ProductCard(
+              product: product,
+              onTap: () => _navigateToProduct(product),
+            )
+            .animate()
+            .fadeIn(delay: (80 * index).ms)
+            .scale(begin: const Offset(0.95, 0.95));
+      }, childCount: products.length),
     );
   }
 }

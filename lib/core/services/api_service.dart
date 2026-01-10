@@ -226,6 +226,95 @@ class ApiService {
   }
 
   // ============================================
+  // PRODUCTS ENDPOINTS
+  // ============================================
+
+  /// Barcha mahsulotlarni olish
+  Future<ProductsApiResponse> getProducts({String? category}) async {
+    _log('🛋️ Fetching products... category=$category');
+    final endpoint = category != null 
+        ? '/products?category=$category' 
+        : '/products';
+    return await getProducts_(endpoint);
+  }
+
+  /// Yangi mahsulotlarni olish
+  Future<ProductsApiResponse> getNewArrivals() async {
+    _log('🆕 Fetching new arrivals...');
+    return await getProducts_('/products/new');
+  }
+
+  /// Mashhur mahsulotlarni olish
+  Future<ProductsApiResponse> getPopularProducts() async {
+    _log('⭐ Fetching popular products...');
+    return await getProducts_('/products/popular');
+  }
+
+  /// Products GET helper
+  Future<ProductsApiResponse> getProducts_(String endpoint) async {
+    final url = '$baseUrl$endpoint';
+    _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    _log('📤 GET: $url');
+
+    try {
+      final response = await _client.get(
+        Uri.parse(url),
+        headers: _headers,
+      );
+
+      _log('📥 Status Code: ${response.statusCode}');
+      _log('📥 Response Body: ${response.body}');
+      _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      return _handleProductsResponse(response);
+    } catch (e, stackTrace) {
+      _log('❌ Error: $e');
+      _log('❌ StackTrace: $stackTrace');
+      return ProductsApiResponse(
+        success: false,
+        message: 'Server bilan bog\'lanib bo\'lmadi: $e',
+        products: [],
+        count: 0,
+      );
+    }
+  }
+
+  /// Products response handler
+  ProductsApiResponse _handleProductsResponse(http.Response response) {
+    if (response.body.isEmpty) {
+      return ProductsApiResponse(
+        success: false,
+        message: 'Server bo\'sh javob qaytardi',
+        products: [],
+        count: 0,
+      );
+    }
+
+    try {
+      final data = jsonDecode(response.body);
+      final productsList = (data['products'] as List?)
+              ?.map((p) => p as Map<String, dynamic>)
+              .toList() ??
+          [];
+
+      return ProductsApiResponse(
+        success: data['success'] ?? false,
+        message: data['message'] ?? '',
+        products: productsList,
+        count: data['count'] ?? 0,
+      );
+    } catch (e) {
+      _log('❌ JSON parse error: $e');
+      return ProductsApiResponse(
+        success: false,
+        message: 'Server javobini o\'qib bo\'lmadi',
+        products: [],
+        count: 0,
+      );
+    }
+  }
+
+  // ============================================
   // USER PROFILE ENDPOINTS
   // ============================================
 
@@ -453,5 +542,25 @@ class ApiResponse {
   @override
   String toString() {
     return 'ApiResponse(success: $success, message: $message, statusCode: $statusCode, token: ${token != null ? "***" : null}, user: $user)';
+  }
+}
+
+/// Products API javob modeli
+class ProductsApiResponse {
+  final bool success;
+  final String message;
+  final List<Map<String, dynamic>> products;
+  final int count;
+
+  ProductsApiResponse({
+    required this.success,
+    required this.message,
+    required this.products,
+    required this.count,
+  });
+
+  @override
+  String toString() {
+    return 'ProductsApiResponse(success: $success, message: $message, count: $count)';
   }
 }
