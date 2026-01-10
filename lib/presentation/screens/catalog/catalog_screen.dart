@@ -51,7 +51,9 @@ class _CatalogScreenState extends State<CatalogScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(_showProducts ? (_selectedCategory?.name ?? 'Katalog') : 'Katalog'),
+        title: Text(
+          _showProducts ? (_selectedCategory?.name ?? 'Katalog') : 'Katalog',
+        ),
         backgroundColor: AppColors.background,
         surfaceTintColor: Colors.transparent,
         leading: _showProducts
@@ -88,7 +90,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 const SizedBox(height: 16),
                 const Text(
                   'Kategoriyalar topilmadi',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 16,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextButton.icon(
@@ -171,13 +176,15 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 _selectedCategory = category;
                 _showProducts = true;
               });
-              context.read<ProductProvider>().fetchProducts(category: category.id);
+              context.read<ProductProvider>().fetchProducts(
+                category: category.id,
+              );
             }
           },
           children: hasSubCategories
               ? category.subCategories
-                  .map((sub) => _buildSubCategoryItem(sub, category))
-                  .toList()
+                    .map((sub) => _buildSubCategoryItem(sub, category))
+                    .toList()
               : [],
         ),
       ),
@@ -201,14 +208,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
             width: 48,
             height: 48,
             fit: BoxFit.cover,
-            placeholder: (context, url) => const Icon(
-              Icons.category_outlined,
-              color: AppColors.primary,
-            ),
-            errorWidget: (context, url, error) => const Icon(
-              Icons.category_outlined,
-              color: AppColors.primary,
-            ),
+            placeholder: (context, url) =>
+                const Icon(Icons.category_outlined, color: AppColors.primary),
+            errorWidget: (context, url, error) =>
+                const Icon(Icons.category_outlined, color: AppColors.primary),
           ),
         ),
       );
@@ -221,15 +224,15 @@ class _CatalogScreenState extends State<CatalogScreen> {
         color: AppColors.secondary.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Icon(
-        Icons.category_outlined,
-        color: AppColors.primary,
-      ),
+      child: const Icon(Icons.category_outlined, color: AppColors.primary),
     );
   }
 
   /// Sub-kategoriya elementi
-  Widget _buildSubCategoryItem(CategoryModel subCategory, CategoryModel parent) {
+  Widget _buildSubCategoryItem(
+    CategoryModel subCategory,
+    CategoryModel parent,
+  ) {
     return InkWell(
       onTap: () => _onSubCategoryTap(subCategory, parent),
       borderRadius: BorderRadius.circular(12),
@@ -328,7 +331,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 const SizedBox(height: 18),
                 const Text(
                   'Mahsulotlar topilmadi',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 16,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextButton.icon(
@@ -349,7 +355,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
@@ -380,18 +389,20 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 itemBuilder: (context, index) {
                   final product = products[index];
                   return ProductCard(
-                    product: product,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ProductDetailScreen(product: product),
-                        ),
-                      );
-                    },
-                  ).animate().fadeIn(delay: (40 * index).ms).scale(
-                        begin: const Offset(0.95, 0.95),
-                      );
+                        product: product,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ProductDetailScreen(product: product),
+                            ),
+                          );
+                        },
+                      )
+                      .animate()
+                      .fadeIn(delay: (40 * index).ms)
+                      .scale(begin: const Offset(0.95, 0.95));
                 },
               ),
             ),
