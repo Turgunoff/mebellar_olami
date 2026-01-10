@@ -50,7 +50,7 @@ class CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasChildren = category.children.isNotEmpty;
+    final hasChildren = category.subCategories.isNotEmpty;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -105,7 +105,7 @@ class CategoryCard extends StatelessWidget {
                       if (hasChildren) ...[
                         const SizedBox(height: 4),
                         Text(
-                          '${category.children.length} ta turkum',
+                          '${category.subCategories.length} ta turkum',
                           style: const TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 13,

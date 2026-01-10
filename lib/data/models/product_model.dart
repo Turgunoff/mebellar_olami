@@ -2,6 +2,7 @@
 class ProductModel {
   final String id;
   final String? categoryId;
+  final String category; // Kategoriya nomi (UI uchun)
   final String name;
   final String description;
   final double price;
@@ -17,6 +18,7 @@ class ProductModel {
   const ProductModel({
     required this.id,
     this.categoryId,
+    this.category = '',
     required this.name,
     required this.description,
     required this.price,
@@ -39,7 +41,8 @@ class ProductModel {
   }
 
   /// Chegirma bormi
-  bool get hasDiscount => discountPrice != null && discountPrice! > 0 && discountPrice! < price;
+  bool get hasDiscount =>
+      discountPrice != null && discountPrice! > 0 && discountPrice! < price;
 
   /// Asosiy rasm
   String get imageUrl => images.isNotEmpty ? images.first : '';
@@ -80,7 +83,10 @@ class ProductModel {
       if (variantsData == null) return [];
       if (variantsData is List) {
         return variantsData
-            .map((v) => v is Map ? Map<String, dynamic>.from(v) : <String, dynamic>{})
+            .map(
+              (v) =>
+                  v is Map ? Map<String, dynamic>.from(v) : <String, dynamic>{},
+            )
             .toList();
       }
       return [];
@@ -89,11 +95,12 @@ class ProductModel {
     return ProductModel(
       id: json['id']?.toString() ?? '',
       categoryId: json['category_id']?.toString(),
+      category: json['category']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      discountPrice: json['discount_price'] != null 
-          ? (json['discount_price'] as num?)?.toDouble() 
+      discountPrice: json['discount_price'] != null
+          ? (json['discount_price'] as num?)?.toDouble()
           : null,
       images: parseImages(json['images']),
       specs: parseSpecs(json['specs']),
@@ -112,6 +119,7 @@ class ProductModel {
     return {
       'id': id,
       'category_id': categoryId,
+      'category': category,
       'name': name,
       'description': description,
       'price': price,
@@ -129,6 +137,7 @@ class ProductModel {
   ProductModel copyWith({
     String? id,
     String? categoryId,
+    String? category,
     String? name,
     String? description,
     double? price,
@@ -144,6 +153,7 @@ class ProductModel {
     return ProductModel(
       id: id ?? this.id,
       categoryId: categoryId ?? this.categoryId,
+      category: category ?? this.category,
       name: name ?? this.name,
       description: description ?? this.description,
       price: price ?? this.price,
@@ -159,29 +169,36 @@ class ProductModel {
   }
 }
 
-/// Kategoriya modeli
+/// Kategoriya modeli (Backend API bilan mos)
 class CategoryModel {
   final String id;
   final String name;
   final String? parentId;
-  final String iconName;
-  final List<CategoryModel> children;
+  final String iconUrl; // Backend: icon_url
+  final String iconName; // Lokal ikon nomi (fallback)
+  final int productCount;
+  final List<CategoryModel> subCategories; // Backend: sub_categories
 
   const CategoryModel({
     required this.id,
     required this.name,
     this.parentId,
-    required this.iconName,
-    this.children = const [],
+    this.iconUrl = '',
+    this.iconName = 'category',
+    this.productCount = 0,
+    this.subCategories = const [],
   });
 
+  /// Backend API dan kelgan JSON ni parse qilish
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
     return CategoryModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      parentId: json['parent_id'] as String?,
-      iconName: json['icon_name'] as String,
-      children: (json['children'] as List?)
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      parentId: json['parent_id']?.toString(),
+      iconUrl: json['icon_url']?.toString() ?? '',
+      iconName: json['icon_name']?.toString() ?? 'category',
+      productCount: (json['product_count'] as int?) ?? 0,
+      subCategories: (json['sub_categories'] as List?)
               ?.map((e) => CategoryModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -193,8 +210,37 @@ class CategoryModel {
       'id': id,
       'name': name,
       'parent_id': parentId,
+      'icon_url': iconUrl,
       'icon_name': iconName,
-      'children': children.map((e) => e.toJson()).toList(),
+      'product_count': productCount,
+      'sub_categories': subCategories.map((e) => e.toJson()).toList(),
     };
+  }
+
+  /// Sub-kategoriyalar bormi
+  bool get hasSubCategories => subCategories.isNotEmpty;
+
+  /// Ikon URL mavjudmi
+  bool get hasIconUrl => iconUrl.isNotEmpty;
+
+  /// copyWith
+  CategoryModel copyWith({
+    String? id,
+    String? name,
+    String? parentId,
+    String? iconUrl,
+    String? iconName,
+    int? productCount,
+    List<CategoryModel>? subCategories,
+  }) {
+    return CategoryModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      parentId: parentId ?? this.parentId,
+      iconUrl: iconUrl ?? this.iconUrl,
+      iconName: iconName ?? this.iconName,
+      productCount: productCount ?? this.productCount,
+      subCategories: subCategories ?? this.subCategories,
+    );
   }
 }
