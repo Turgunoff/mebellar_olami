@@ -1,76 +1,66 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_theme.dart';
-import '../../../providers/auth_provider.dart';
-import '../../../providers/orders_provider.dart';
 import '../../widgets/custom_button.dart';
-import '../main_screen.dart';
-import 'signup_screen.dart';
-import 'forgot_password_screen.dart';
+import 'login_screen.dart';
+import 'verify_code_screen.dart';
 
-/// Kirish ekrani - Nabolen Style
-class LoginScreen extends StatefulWidget {
-  final bool isFromOnboarding;
-
-  const LoginScreen({
-    super.key,
-    this.isFromOnboarding = false,
-  });
+/// Ro'yxatdan o'tish ekrani - Nabolen Style
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
-  bool _rememberMe = false;
+  bool _agreeTerms = false;
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
+  Future<void> _handleSignUp() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (!_agreeTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Iltimos, foydalanish shartlariga rozilik bildiring'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
 
-    try {
-      final authProvider = context.read<AuthProvider>();
-      final success = await authProvider.login(
-        phone: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
+    // Verify code ekraniga o'tish
+    await Future.delayed(const Duration(milliseconds: 500));
 
-      if (success && mounted) {
-        context.read<OrdersProvider>().loadOrders();
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const MainScreen()),
-          (route) => false,
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Kirish muvaffaqiyatsiz'),
-            backgroundColor: AppColors.error,
+    if (mounted) {
+      setState(() => _isLoading = false);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => VerifyCodeScreen(
+            email: _emailController.text.trim(),
+            name: _nameController.text.trim(),
+            password: _passwordController.text,
           ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+        ),
+      );
     }
   }
 
@@ -81,26 +71,21 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: widget.isFromOnboarding
-            ? IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    size: 18,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              )
-            : IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close_rounded, color: AppColors.textPrimary),
-              ),
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              size: 18,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -113,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 20),
                 // Sarlavha
                 const Text(
-                  'Kirish',
+                  'Akkount yaratish',
                   style: TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 32,
@@ -122,14 +107,27 @@ class _LoginScreenState extends State<LoginScreen> {
                 ).animate().fadeIn().slideX(begin: -0.1),
                 const SizedBox(height: 10),
                 const Text(
-                  'Salom! Siz bilan qayta uchrashganimizdan\nxursandmiz!',
+                  'Ma\'lumotlaringizni kiriting yoki ijtimoiy\ntarmoq orqali ro\'yxatdan o\'ting.',
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 14,
                     height: 1.5,
                   ),
                 ).animate().fadeIn(delay: 100.ms),
-                const SizedBox(height: 40),
+                const SizedBox(height: 36),
+                // Ism
+                _buildTextField(
+                  controller: _nameController,
+                  label: 'Ism',
+                  hint: 'Ismingizni kiriting',
+                  validator: (value) {
+                    if (value?.isEmpty ?? true) {
+                      return 'Ismni kiriting';
+                    }
+                    return null;
+                  },
+                ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1),
+                const SizedBox(height: 20),
                 // Email
                 _buildTextField(
                   controller: _emailController,
@@ -140,9 +138,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (value?.isEmpty ?? true) {
                       return 'Email kiriting';
                     }
+                    if (!value!.contains('@')) {
+                      return 'Yaroqli email kiriting';
+                    }
                     return null;
                   },
-                ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1),
+                ).animate().fadeIn(delay: 300.ms).slideX(begin: -0.1),
                 const SizedBox(height: 20),
                 // Parol
                 _buildTextField(
@@ -166,85 +167,74 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (value?.isEmpty ?? true) {
                       return 'Parolni kiriting';
                     }
+                    if (value!.length < 6) {
+                      return 'Parol kamida 6 ta belgidan iborat bo\'lishi kerak';
+                    }
                     return null;
                   },
-                ).animate().fadeIn(delay: 300.ms).slideX(begin: -0.1),
-                const SizedBox(height: 16),
-                // Eslab qolish va Parolni unutdim
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Remember me
-                    GestureDetector(
-                      onTap: () {
-                        setState(() => _rememberMe = !_rememberMe);
-                      },
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 22,
-                            height: 22,
-                            decoration: BoxDecoration(
-                              color: _rememberMe ? AppColors.primary : Colors.transparent,
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: _rememberMe ? AppColors.primary : AppColors.lightGrey,
-                                width: 2,
-                              ),
-                            ),
-                            child: _rememberMe
-                                ? const Icon(
-                                    Icons.check,
-                                    size: 16,
-                                    color: AppColors.white,
-                                  )
-                                : null,
+                ).animate().fadeIn(delay: 400.ms).slideX(begin: -0.1),
+                const SizedBox(height: 20),
+                // Shartlarga rozilik
+                GestureDetector(
+                  onTap: () {
+                    setState(() => _agreeTerms = !_agreeTerms);
+                  },
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: _agreeTerms ? AppColors.primary : Colors.transparent,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: _agreeTerms ? AppColors.primary : AppColors.lightGrey,
+                            width: 2,
                           ),
-                          const SizedBox(width: 10),
-                          const Text(
-                            'Eslab qolish',
-                            style: TextStyle(
+                        ),
+                        child: _agreeTerms
+                            ? const Icon(
+                                Icons.check,
+                                size: 16,
+                                color: AppColors.white,
+                              )
+                            : null,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: RichText(
+                          text: TextSpan(
+                            style: const TextStyle(
                               color: AppColors.textSecondary,
                               fontSize: 14,
                             ),
+                            children: [
+                              const TextSpan(text: 'Men '),
+                              TextSpan(
+                                text: 'Foydalanish shartlari',
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: AppColors.primary,
+                                ),
+                              ),
+                              const TextSpan(text: 'ga roziman'),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                    // Forgot password
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const ForgotPasswordScreen(),
-                          ),
-                        );
-                      },
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: const Text(
-                        'Parolni unutdingizmi?',
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ),
-                  ],
-                ).animate().fadeIn(delay: 400.ms),
+                    ],
+                  ),
+                ).animate().fadeIn(delay: 500.ms),
                 const SizedBox(height: 30),
-                // Kirish tugmasi
+                // Ro'yxatdan o'tish tugmasi
                 CustomButton(
-                  text: 'Kirish',
+                  text: 'Ro\'yxatdan o\'tish',
                   width: double.infinity,
                   isLoading: _isLoading,
-                  onPressed: _handleLogin,
-                ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.1),
+                  onPressed: _handleSignUp,
+                ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.1),
                 const SizedBox(height: 30),
                 // Yoki
                 Row(
@@ -253,7 +243,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
-                        'Yoki kirish',
+                        'Yoki ro\'yxatdan o\'tish',
                         style: TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 13,
@@ -262,35 +252,35 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const Expanded(child: Divider(color: AppColors.lightGrey)),
                   ],
-                ).animate().fadeIn(delay: 600.ms),
+                ).animate().fadeIn(delay: 700.ms),
                 const SizedBox(height: 24),
                 // Ijtimoiy tarmoqlar
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _buildSocialButton(
-                      icon: 'G',
+                      icon: Icons.g_mobiledata,
                       onTap: () {},
                     ),
                     const SizedBox(width: 16),
                     _buildSocialButton(
-                      icon: '',
+                      icon: Icons.apple,
                       onTap: () {},
                     ),
                     const SizedBox(width: 16),
                     _buildSocialButton(
-                      icon: 'f',
+                      icon: Icons.facebook,
                       onTap: () {},
                     ),
                   ],
-                ).animate().fadeIn(delay: 700.ms),
+                ).animate().fadeIn(delay: 800.ms),
                 const SizedBox(height: 40),
-                // Ro'yxatdan o'tish
+                // Kirish
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                      'Akkauntingiz yo\'qmi? ',
+                      'Akkauntingiz bormi? ',
                       style: TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 14,
@@ -301,12 +291,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const SignUpScreen(),
+                            builder: (context) => const LoginScreen(isFromOnboarding: true),
                           ),
                         );
                       },
                       child: const Text(
-                        'Ro\'yxatdan o\'tish',
+                        'Kirish',
                         style: TextStyle(
                           color: AppColors.primary,
                           fontSize: 14,
@@ -317,7 +307,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ],
-                ).animate().fadeIn(delay: 800.ms),
+                ).animate().fadeIn(delay: 900.ms),
                 const SizedBox(height: 30),
               ],
             ),
@@ -390,18 +380,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildSocialButton({
-    required String icon,
+    required IconData icon,
     required VoidCallback onTap,
   }) {
-    IconData iconData;
-    if (icon == 'G') {
-      iconData = Icons.g_mobiledata;
-    } else if (icon == '') {
-      iconData = Icons.apple;
-    } else {
-      iconData = Icons.facebook;
-    }
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -413,8 +394,8 @@ class _LoginScreenState extends State<LoginScreen> {
           border: Border.all(color: AppColors.lightGrey),
         ),
         child: Icon(
-          iconData,
-          size: icon == 'G' ? 36 : 28,
+          icon,
+          size: icon == Icons.g_mobiledata ? 36 : 28,
           color: AppColors.textPrimary,
         ),
       ),

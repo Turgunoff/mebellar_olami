@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_theme.dart';
 import '../../../core/utils/extensions.dart';
 import '../../../data/models/order_model.dart';
 import '../../../providers/auth_provider.dart';
@@ -10,7 +11,7 @@ import '../../../providers/favorites_provider.dart';
 import '../../widgets/custom_button.dart';
 import '../auth/login_screen.dart';
 
-/// Profil ekrani
+/// Profil ekrani - Nabolen Style
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -22,7 +23,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    // Buyurtmalarni yuklash
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = context.read<AuthProvider>();
       if (authProvider.isLoggedIn) {
@@ -52,7 +52,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildGuestView(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(36),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -60,21 +60,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: AppColors.accent.withValues(alpha: 0.1),
+                color: AppColors.secondary.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.person_outline_rounded,
-                size: 60,
-                color: AppColors.accent,
+                size: 56,
+                color: AppColors.primary,
               ),
             ).animate().scale(curve: Curves.elasticOut),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
             const Text(
-              'Buyurtmalaringizni boshqaring',
+              'Buyurtmalaringizni\nboshqaring',
               style: TextStyle(
-                color: AppColors.primary,
-                fontSize: 22,
+                color: AppColors.textPrimary,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
@@ -83,13 +83,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const Text(
               'Buyurtmalar tarixini ko\'rish va\nboshqarish uchun tizimga kiring',
               style: TextStyle(
-                color: AppColors.textGrey,
+                color: AppColors.textSecondary,
                 fontSize: 14,
-                height: 1.5,
+                height: 1.6,
               ),
               textAlign: TextAlign.center,
             ).animate().fadeIn(delay: 200.ms),
-            const SizedBox(height: 32),
+            const SizedBox(height: 36),
             CustomButton(
               text: 'Tizimga kirish',
               icon: Icons.login_rounded,
@@ -112,7 +112,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// Foydalanuvchi ko'rinishi
   Widget _buildUserView(BuildContext context, AuthProvider authProvider) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -121,19 +121,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
               .animate()
               .fadeIn()
               .slideY(begin: -0.1),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
           // Buyurtmalarim
           const Text(
             'Buyurtmalarim',
             style: TextStyle(
-              color: AppColors.primary,
-              fontSize: 18,
+              color: AppColors.textPrimary,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           _buildOrdersList(),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
           // Sozlamalar
           _buildSettingsSection(context, authProvider),
         ],
@@ -144,13 +144,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// Profil kartasi
   Widget _buildProfileCard(AuthProvider authProvider) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppTheme.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.08),
+            color: AppColors.textPrimary.withValues(alpha: 0.06),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -162,15 +162,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             width: 70,
             height: 70,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.accent,
-                  AppColors.accent.withValues(alpha: 0.7),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+            decoration: const BoxDecoration(
+              gradient: AppColors.primaryGradient,
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -186,7 +179,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 18),
           // Ma'lumotlar
           Expanded(
             child: Column(
@@ -195,7 +188,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Text(
                   authProvider.userName ?? 'Foydalanuvchi',
                   style: const TextStyle(
-                    color: AppColors.primary,
+                    color: AppColors.textPrimary,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -204,21 +197,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Text(
                   authProvider.userPhone ?? '',
                   style: const TextStyle(
-                    color: AppColors.textGrey,
+                    color: AppColors.textSecondary,
                     fontSize: 14,
                   ),
                 ),
               ],
             ),
           ),
-          // Tahrirlash tugmasi
-          IconButton(
-            onPressed: () {
-              // Profil tahrirlash
-            },
-            icon: const Icon(
-              Icons.edit_outlined,
-              color: AppColors.accent,
+          // Tahrirlash
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.secondary.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: IconButton(
+              onPressed: () {},
+              icon: const Icon(
+                Icons.edit_outlined,
+                color: AppColors.primary,
+                size: 20,
+              ),
             ),
           ),
         ],
@@ -234,30 +234,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(32),
-          child: CircularProgressIndicator(color: AppColors.accent),
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
       );
     }
 
     if (ordersProvider.orders.isEmpty) {
       return Container(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(36),
         decoration: BoxDecoration(
-          color: AppColors.cardColor,
-          borderRadius: BorderRadius.circular(16),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppTheme.borderRadius),
         ),
         child: Column(
           children: [
             Icon(
               Icons.shopping_bag_outlined,
               size: 48,
-              color: AppColors.lightGrey,
+              color: AppColors.secondary,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             const Text(
               'Buyurtmalar yo\'q',
               style: TextStyle(
-                color: AppColors.textGrey,
+                color: AppColors.textSecondary,
                 fontSize: 14,
               ),
             ),
@@ -272,7 +272,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final order = entry.value;
         return _buildOrderCard(order)
             .animate()
-            .fadeIn(delay: (100 * index).ms)
+            .fadeIn(delay: (80 * index).ms)
             .slideX(begin: 0.1);
       }).toList(),
     );
@@ -285,8 +285,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     switch (order.status) {
       case OrderStatus.newOrder:
-        statusColor = AppColors.accent;
-        statusIcon = Icons.schedule;
+        statusColor = AppColors.primary;
+        statusIcon = Icons.schedule_rounded;
         break;
       case OrderStatus.processing:
         statusColor = Colors.blue;
@@ -294,21 +294,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
         break;
       case OrderStatus.delivered:
         statusColor = AppColors.success;
-        statusIcon = Icons.check_circle_outline;
+        statusIcon = Icons.check_circle_outline_rounded;
         break;
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppTheme.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: AppColors.textPrimary.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -316,7 +316,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           // Rasm
           ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             child: Image.network(
               order.productImage,
               width: 70,
@@ -326,13 +326,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 return Container(
                   width: 70,
                   height: 70,
-                  color: AppColors.lightGrey,
+                  color: AppColors.secondary,
                   child: const Icon(Icons.image_not_supported),
                 );
               },
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           // Ma'lumotlar
           Expanded(
             child: Column(
@@ -341,7 +341,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Text(
                   order.productName,
                   style: const TextStyle(
-                    color: AppColors.primary,
+                    color: AppColors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
@@ -352,7 +352,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Text(
                   order.totalPrice.toCurrency(),
                   style: const TextStyle(
-                    color: AppColors.accent,
+                    color: AppColors.primary,
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
@@ -361,7 +361,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Text(
                   order.date.toFormattedDate(),
                   style: const TextStyle(
-                    color: AppColors.textGrey,
+                    color: AppColors.textSecondary,
                     fontSize: 12,
                   ),
                 ),
@@ -370,16 +370,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           // Holat
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: statusColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(statusIcon, size: 14, color: statusColor),
-                const SizedBox(width: 4),
+                Icon(statusIcon, size: 16, color: statusColor),
+                const SizedBox(width: 6),
                 Text(
                   order.status.label,
                   style: TextStyle(
@@ -407,14 +407,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const Text(
           'Sozlamalar',
           style: TextStyle(
-            color: AppColors.primary,
-            fontSize: 18,
+            color: AppColors.textPrimary,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         _buildSettingItem(
-          icon: Icons.person_outline,
+          icon: Icons.person_outline_rounded,
           title: 'Profil ma\'lumotlari',
           onTap: () {},
         ),
@@ -438,7 +438,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title: 'Ilova haqida',
           onTap: () {},
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         // Chiqish tugmasi
         CustomButton(
           text: 'Chiqish',
@@ -451,7 +451,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _showLogoutConfirmation(context, authProvider);
           },
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 36),
       ],
     );
   }
@@ -463,29 +463,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required VoidCallback onTap,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppTheme.borderRadius),
       ),
       child: ListTile(
-        leading: Icon(icon, color: AppColors.primary),
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: AppColors.secondary.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: AppColors.primary),
+        ),
         title: Text(
           title,
           style: const TextStyle(
-            color: AppColors.primary,
+            color: AppColors.textPrimary,
             fontSize: 15,
+            fontWeight: FontWeight.w500,
           ),
         ),
         trailing: const Icon(
-          Icons.arrow_forward_ios,
+          Icons.arrow_forward_ios_rounded,
           size: 16,
-          color: AppColors.textGrey,
+          color: AppColors.textSecondary,
         ),
         onTap: onTap,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppTheme.borderRadius),
         ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       ),
     );
   }
@@ -498,6 +508,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+        ),
         title: const Text('Tizimdan chiqish'),
         content: const Text('Haqiqatan ham tizimdan chiqmoqchimisiz?'),
         actions: [

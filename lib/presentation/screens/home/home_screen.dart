@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_theme.dart';
 import '../../../data/mock/mock_data.dart';
 import '../../../data/models/product_model.dart';
 import '../../widgets/product_card.dart';
+import '../../widgets/category_card.dart';
 import '../product/product_detail_screen.dart';
 
-/// Asosiy ekran
+/// Asosiy ekran - Nabolen Style
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -19,18 +21,18 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   final PageController _bannerController = PageController();
   int _currentBannerIndex = 0;
+  String? _selectedCategoryId;
 
   @override
   void initState() {
     super.initState();
-    // Banner avtomatik o'tishi
     _startBannerAutoScroll();
   }
 
   void _startBannerAutoScroll() {
     Future.delayed(const Duration(seconds: 4), () {
       if (mounted && _bannerController.hasClients) {
-        final nextPage = (_currentBannerIndex + 1) % MockData.bannerImages.length;
+        final nextPage = (_currentBannerIndex + 1) % MockData.banners.length;
         _bannerController.animateToPage(
           nextPage,
           duration: const Duration(milliseconds: 500),
@@ -57,6 +59,15 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  List<ProductModel> get _filteredProducts {
+    if (_selectedCategoryId == null) {
+      return MockData.popularProducts;
+    }
+    return MockData.products
+        .where((p) => p.categoryId.startsWith(_selectedCategoryId!.split('_').take(2).join('_')))
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // App Bar
+            // Header
             SliverToBoxAdapter(
               child: _buildHeader(),
             ),
@@ -72,26 +83,29 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverToBoxAdapter(
               child: _buildSearchBar(),
             ),
-            // Bannerlar
+            // Banner
             SliverToBoxAdapter(
-              child: _buildBanners(),
+              child: _buildPromoBanner(),
+            ),
+            // Kategoriyalar sarlavhasi
+            SliverToBoxAdapter(
+              child: _buildSectionHeader('Kategoriyalar'),
+            ),
+            // Kategoriyalar (Gorizontal)
+            SliverToBoxAdapter(
+              child: _buildCategoriesRow(),
             ),
             // Mashhur mahsulotlar sarlavhasi
             SliverToBoxAdapter(
-              child: _buildSectionHeader('Mashhur mahsulotlar', onSeeAll: () {}),
+              child: _buildSectionHeader(
+                _selectedCategoryId == null ? 'Mashhur mahsulotlar' : 'Mahsulotlar',
+                showAll: true,
+              ),
             ),
-            // Mashhur mahsulotlar (Gorizontal)
-            SliverToBoxAdapter(
-              child: _buildPopularProducts(),
-            ),
-            // Yangi kelganlar sarlavhasi
-            SliverToBoxAdapter(
-              child: _buildSectionHeader('Yangi kelganlar', onSeeAll: () {}),
-            ),
-            // Yangi kelganlar (Grid)
+            // Mahsulotlar (Grid)
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: _buildNewArrivalsGrid(),
+              sliver: _buildProductsGrid(),
             ),
             // Pastki bo'shliq
             const SliverToBoxAdapter(
@@ -106,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Header
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -114,9 +128,9 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Xush kelibsiz! 👋',
+                'Assalomu alaykum! 👋',
                 style: TextStyle(
-                  color: AppColors.textGrey,
+                  color: AppColors.textSecondary,
                   fontSize: 14,
                 ),
               ).animate().fadeIn(duration: 400.ms),
@@ -124,25 +138,26 @@ class _HomeScreenState extends State<HomeScreen> {
               const Text(
                 'Mebellar Olami',
                 style: TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 24,
+                  color: AppColors.textPrimary,
+                  fontSize: 26,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: -0.5,
                 ),
               ).animate().fadeIn(delay: 100.ms).slideX(begin: -0.1),
             ],
           ),
           // Bildirishnomalar
           Container(
-            width: 48,
-            height: 48,
+            width: 50,
+            height: 50,
             decoration: BoxDecoration(
-              color: AppColors.cardColor,
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.08),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+                  color: AppColors.textPrimary.withValues(alpha: 0.06),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
@@ -150,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () {},
               icon: const Icon(
                 Icons.notifications_none_rounded,
-                color: AppColors.primary,
+                color: AppColors.textPrimary,
               ),
             ),
           ).animate().fadeIn(delay: 200.ms).scale(),
@@ -162,15 +177,15 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Qidiruv
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.cardColor,
-          borderRadius: BorderRadius.circular(16),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppTheme.borderRadius),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.06),
-              blurRadius: 10,
+              color: AppColors.textPrimary.withValues(alpha: 0.05),
+              blurRadius: 12,
               offset: const Offset(0, 4),
             ),
           ],
@@ -179,15 +194,16 @@ class _HomeScreenState extends State<HomeScreen> {
           controller: _searchController,
           decoration: InputDecoration(
             hintText: 'Mebel qidirish...',
+            hintStyle: const TextStyle(color: AppColors.textSecondary),
             prefixIcon: const Icon(
               Icons.search_rounded,
-              color: AppColors.textGrey,
+              color: AppColors.textSecondary,
             ),
             suffixIcon: Container(
               margin: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.accent,
-                borderRadius: BorderRadius.circular(10),
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
                 Icons.tune_rounded,
@@ -197,8 +213,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             border: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
+              horizontal: 20,
+              vertical: 16,
             ),
           ),
         ),
@@ -206,12 +222,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Bannerlar
-  Widget _buildBanners() {
+  /// Promo Banner
+  Widget _buildPromoBanner() {
     return Column(
       children: [
         SizedBox(
-          height: 180,
+          height: 170,
           child: PageView.builder(
             controller: _bannerController,
             onPageChanged: (index) {
@@ -219,34 +235,35 @@ class _HomeScreenState extends State<HomeScreen> {
                 _currentBannerIndex = index;
               });
             },
-            itemCount: MockData.bannerImages.length,
+            itemCount: MockData.banners.length,
             itemBuilder: (context, index) {
+              final banner = MockData.banners[index];
               return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
+                margin: const EdgeInsets.symmetric(horizontal: 20),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadius),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.15),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
+                      color: AppColors.primary.withValues(alpha: 0.2),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
                     ),
                   ],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadius),
                   child: Stack(
                     children: [
                       CachedNetworkImage(
-                        imageUrl: MockData.bannerImages[index],
+                        imageUrl: banner['image']!,
                         width: double.infinity,
                         height: double.infinity,
                         fit: BoxFit.cover,
                         placeholder: (context, url) => Container(
-                          color: AppColors.lightGrey,
+                          color: AppColors.secondary,
                         ),
                         errorWidget: (context, url, error) => Container(
-                          color: AppColors.lightGrey,
+                          color: AppColors.secondary,
                           child: const Icon(Icons.image_not_supported),
                         ),
                       ),
@@ -254,36 +271,57 @@ class _HomeScreenState extends State<HomeScreen> {
                       Container(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
                             colors: [
+                              AppColors.primary.withValues(alpha: 0.85),
                               Colors.transparent,
-                              AppColors.primary.withValues(alpha: 0.7),
                             ],
                           ),
                         ),
                       ),
                       // Banner matni
                       Positioned(
-                        left: 20,
-                        bottom: 20,
+                        left: 24,
+                        top: 0,
+                        bottom: 0,
                         child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Premium Mebellar',
-                              style: TextStyle(
+                            Text(
+                              banner['title']!,
+                              style: const TextStyle(
                                 color: AppColors.white,
-                                fontSize: 20,
+                                fontSize: 22,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 6),
                             Text(
-                              '50% gacha chegirma',
+                              banner['subtitle']!,
                               style: TextStyle(
                                 color: AppColors.white.withValues(alpha: 0.9),
                                 fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.white,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Text(
+                                'Ko\'rish',
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ],
@@ -296,21 +334,21 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
         ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.1),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         // Indikatorlar
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
-            MockData.bannerImages.length,
+            MockData.banners.length,
             (index) => AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               margin: const EdgeInsets.symmetric(horizontal: 4),
-              width: _currentBannerIndex == index ? 24 : 8,
+              width: _currentBannerIndex == index ? 28 : 8,
               height: 8,
               decoration: BoxDecoration(
                 color: _currentBannerIndex == index
-                    ? AppColors.accent
-                    : AppColors.lightGrey,
+                    ? AppColors.primary
+                    : AppColors.secondary,
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
@@ -321,27 +359,31 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Bo'lim sarlavhasi
-  Widget _buildSectionHeader(String title, {VoidCallback? onSeeAll}) {
+  Widget _buildSectionHeader(String title, {bool showAll = false}) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+      padding: const EdgeInsets.fromLTRB(20, 28, 20, 14),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             title,
             style: const TextStyle(
-              color: AppColors.primary,
-              fontSize: 18,
+              color: AppColors.textPrimary,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
-          if (onSeeAll != null)
+          if (showAll)
             GestureDetector(
-              onTap: onSeeAll,
+              onTap: () {
+                setState(() {
+                  _selectedCategoryId = null;
+                });
+              },
               child: const Text(
                 'Hammasi',
                 style: TextStyle(
-                  color: AppColors.accent,
+                  color: AppColors.primary,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
@@ -352,48 +394,54 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Mashhur mahsulotlar (Gorizontal)
-  Widget _buildPopularProducts() {
-    final popularProducts = MockData.popularProducts;
-
+  /// Kategoriyalar (Gorizontal)
+  Widget _buildCategoriesRow() {
     return SizedBox(
-      height: 160,
+      height: 52,
       child: ListView.builder(
-        padding: const EdgeInsets.only(left: 16),
+        padding: const EdgeInsets.only(left: 20),
         scrollDirection: Axis.horizontal,
-        itemCount: popularProducts.length,
+        itemCount: MockData.categories.length,
         itemBuilder: (context, index) {
-          final product = popularProducts[index];
-          return ProductCard(
-            product: product,
-            isHorizontal: true,
-            onTap: () => _navigateToProduct(product),
-          ).animate().fadeIn(delay: (100 * index).ms).slideX(begin: 0.1);
+          final category = MockData.categories[index];
+          return HorizontalCategoryItem(
+            category: category,
+            isSelected: _selectedCategoryId == category.id,
+            onTap: () {
+              setState(() {
+                _selectedCategoryId = _selectedCategoryId == category.id
+                    ? null
+                    : category.id;
+              });
+            },
+          ).animate().fadeIn(delay: (80 * index).ms).slideX(begin: 0.1);
         },
       ),
     );
   }
 
-  /// Yangi kelganlar (Grid)
-  SliverGrid _buildNewArrivalsGrid() {
-    final newProducts = MockData.newProducts;
+  /// Mahsulotlar (Grid)
+  SliverGrid _buildProductsGrid() {
+    final products = _filteredProducts;
 
     return SliverGrid(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
-        childAspectRatio: 0.7,
+        childAspectRatio: 0.72,
       ),
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          final product = newProducts[index];
+          final product = products[index];
           return ProductCard(
             product: product,
             onTap: () => _navigateToProduct(product),
-          ).animate().fadeIn(delay: (100 * index).ms).scale(begin: const Offset(0.9, 0.9));
+          ).animate().fadeIn(delay: (80 * index).ms).scale(
+                begin: const Offset(0.95, 0.95),
+              );
         },
-        childCount: newProducts.length,
+        childCount: products.length,
       ),
     );
   }

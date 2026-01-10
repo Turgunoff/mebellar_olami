@@ -6,7 +6,7 @@ import 'core/constants/app_colors.dart';
 import 'providers/auth_provider.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/orders_provider.dart';
-import 'presentation/screens/main_screen.dart';
+import 'presentation/screens/onboarding/onboarding_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +16,7 @@ void main() {
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
-      systemNavigationBarColor: AppColors.cardColor,
+      systemNavigationBarColor: AppColors.surface,
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
@@ -25,6 +25,7 @@ void main() {
 }
 
 /// Mebellar Olami - Premium Furniture Marketplace
+/// Nabolen Style Design
 class MebellarOlamiApp extends StatelessWidget {
   const MebellarOlamiApp({super.key});
 
@@ -40,7 +41,7 @@ class MebellarOlamiApp extends StatelessWidget {
         title: 'Mebellar Olami',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        home: const MainScreen(),
+        home: const OnboardingScreen(),
       ),
     );
   }

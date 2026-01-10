@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_theme.dart';
 
-/// Maxsus tugma widgeti
+/// Maxsus tugma widgeti - Nabolen Style
 class CustomButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
@@ -24,8 +25,8 @@ class CustomButton extends StatelessWidget {
     this.backgroundColor,
     this.textColor,
     this.width,
-    this.height = 52,
-    this.borderRadius = 12,
+    this.height = 56,
+    this.borderRadius = AppTheme.borderRadius,
   });
 
   @override
@@ -56,7 +57,7 @@ class CustomButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? AppColors.accent,
+          backgroundColor: backgroundColor ?? AppColors.primary,
           foregroundColor: textColor ?? AppColors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius),
@@ -85,7 +86,7 @@ class CustomButton extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(icon, size: 20),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Text(
             text,
             style: const TextStyle(
@@ -103,63 +104,6 @@ class CustomButton extends StatelessWidget {
         fontSize: 16,
         fontWeight: FontWeight.w600,
       ),
-    );
-  }
-}
-
-/// Ikki qismli tugma (Savat va Sotib olish uchun)
-class DualActionButton extends StatelessWidget {
-  final String primaryText;
-  final String secondaryText;
-  final VoidCallback? onPrimaryPressed;
-  final VoidCallback? onSecondaryPressed;
-  final IconData? primaryIcon;
-  final IconData? secondaryIcon;
-
-  const DualActionButton({
-    super.key,
-    required this.primaryText,
-    required this.secondaryText,
-    this.onPrimaryPressed,
-    this.onSecondaryPressed,
-    this.primaryIcon,
-    this.secondaryIcon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        // Ikkinchi amal (Masalan: Sevimliga qo'shish)
-        if (secondaryIcon != null)
-          Container(
-            width: 52,
-            height: 52,
-            margin: const EdgeInsets.only(right: 12),
-            child: OutlinedButton(
-              onPressed: onSecondaryPressed,
-              style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.zero,
-                side: const BorderSide(color: AppColors.lightGrey),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Icon(
-                secondaryIcon,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-        // Asosiy amal
-        Expanded(
-          child: CustomButton(
-            text: primaryText,
-            icon: primaryIcon,
-            onPressed: onPrimaryPressed,
-          ),
-        ),
-      ],
     );
   }
 }

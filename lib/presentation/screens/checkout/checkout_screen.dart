@@ -3,21 +3,24 @@ import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_theme.dart';
 import '../../../core/utils/extensions.dart';
 import '../../../data/models/product_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/orders_provider.dart';
 import '../../widgets/custom_button.dart';
 
-/// Buyurtma berish ekrani
+/// Buyurtma berish ekrani - Nabolen Style
 class CheckoutScreen extends StatefulWidget {
   final ProductModel product;
   final String? selectedColor;
+  final int quantity;
 
   const CheckoutScreen({
     super.key,
     required this.product,
     this.selectedColor,
+    this.quantity = 1,
   });
 
   @override
@@ -31,10 +34,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _addressController = TextEditingController();
   bool _isLoading = false;
 
+  double get _totalPrice => widget.product.price * widget.quantity;
+
   @override
   void initState() {
     super.initState();
-    // Foydalanuvchi ma'lumotlarini to'ldirish
     final authProvider = context.read<AuthProvider>();
     _nameController.text = authProvider.userName ?? '';
     _phoneController.text = authProvider.userPhone ?? '';
@@ -66,7 +70,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       );
 
       if (mounted) {
-        // Muvaffaqiyat ekranini ko'rsatish
         _showSuccessDialog();
       }
     } catch (e) {
@@ -92,10 +95,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
         child: Container(
-          padding: const EdgeInsets.all(32),
+          padding: const EdgeInsets.all(36),
           decoration: BoxDecoration(
-            color: AppColors.cardColor,
-            borderRadius: BorderRadius.circular(24),
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppTheme.borderRadius + 4),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -109,32 +112,32 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Icons.check_circle_outline_rounded,
+                  Icons.check_circle_rounded,
                   color: AppColors.success,
-                  size: 60,
+                  size: 56,
                 ),
               )
                   .animate()
                   .scale(duration: 500.ms, curve: Curves.elasticOut)
                   .then()
                   .shimmer(duration: 1000.ms),
-              const SizedBox(height: 24),
+              const SizedBox(height: 28),
               // Sarlavha
               const Text(
                 'Buyurtma qabul qilindi!',
                 style: TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 22,
+                  color: AppColors.textPrimary,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.center,
               ).animate().fadeIn(delay: 200.ms),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               // Xabar
               const Text(
                 'Tez orada operatorlarimiz\nsiz bilan bog\'lanishadi',
                 style: TextStyle(
-                  color: AppColors.textGrey,
+                  color: AppColors.textSecondary,
                   fontSize: 14,
                   height: 1.5,
                 ),
@@ -164,9 +167,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         title: const Text('Buyurtma berish'),
         backgroundColor: AppColors.background,
         surfaceTintColor: Colors.transparent,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
@@ -174,23 +181,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             children: [
               // Mahsulot kartasi
               _buildProductCard().animate().fadeIn().slideY(begin: -0.1),
-              const SizedBox(height: 24),
+              const SizedBox(height: 28),
               // Yetkazib berish ma'lumotlari
               const Text(
                 'Yetkazib berish ma\'lumotlari',
                 style: TextStyle(
-                  color: AppColors.primary,
+                  color: AppColors.textPrimary,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ).animate().fadeIn(delay: 100.ms),
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
               // Ism
               _buildTextField(
                 controller: _nameController,
                 label: 'Ism familiya',
                 hint: 'Ismingizni kiriting',
-                icon: Icons.person_outline,
+                icon: Icons.person_outline_rounded,
                 validator: (value) {
                   if (value?.isEmpty ?? true) {
                     return 'Ismni kiriting';
@@ -198,7 +205,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   return null;
                 },
               ).animate().fadeIn(delay: 150.ms).slideX(begin: -0.1),
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
               // Telefon
               _buildTextField(
                 controller: _phoneController,
@@ -216,7 +223,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   return null;
                 },
               ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1),
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
               // Manzil
               _buildTextField(
                 controller: _addressController,
@@ -231,10 +238,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   return null;
                 },
               ).animate().fadeIn(delay: 250.ms).slideX(begin: -0.1),
-              const SizedBox(height: 24),
+              const SizedBox(height: 28),
               // To'lov ma'lumotlari
               _buildPaymentInfo().animate().fadeIn(delay: 300.ms),
-              const SizedBox(height: 100),
+              const SizedBox(height: 120),
             ],
           ),
         ),
@@ -243,13 +250,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppColors.cardColor,
+          color: AppColors.surface,
           borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(24),
+            top: Radius.circular(28),
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: AppColors.textPrimary.withValues(alpha: 0.08),
               blurRadius: 20,
               offset: const Offset(0, -5),
             ),
@@ -263,31 +270,43 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Jami:',
-                    style: TextStyle(
-                      color: AppColors.textGrey,
-                      fontSize: 16,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Jami to\'lov:',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _totalPrice.toCurrency(),
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                   Text(
-                    widget.product.price.toCurrency(),
+                    '${widget.quantity} dona',
                     style: const TextStyle(
-                      color: AppColors.accent,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                      fontSize: 14,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
               // Tasdiqlash tugmasi
               CustomButton(
                 text: 'Buyurtmani tasdiqlash',
-                icon: Icons.check_circle_outline,
+                icon: Icons.check_circle_outline_rounded,
                 width: double.infinity,
-                height: 56,
-                borderRadius: 16,
+                height: 58,
                 isLoading: _isLoading,
                 onPressed: _submitOrder,
               ),
@@ -301,13 +320,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   /// Mahsulot kartasi
   Widget _buildProductCard() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppTheme.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.08),
+            color: AppColors.textPrimary.withValues(alpha: 0.06),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -317,7 +336,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         children: [
           // Rasm
           ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             child: CachedNetworkImage(
               imageUrl: widget.product.imageUrl,
               width: 90,
@@ -326,12 +345,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               placeholder: (context, url) => Container(
                 width: 90,
                 height: 90,
-                color: AppColors.lightGrey,
+                color: AppColors.secondary,
               ),
               errorWidget: (context, url, error) => Container(
                 width: 90,
                 height: 90,
-                color: AppColors.lightGrey,
+                color: AppColors.secondary,
                 child: const Icon(Icons.image_not_supported),
               ),
             ),
@@ -345,7 +364,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 Text(
                   widget.product.category,
                   style: const TextStyle(
-                    color: AppColors.textGrey,
+                    color: AppColors.textSecondary,
                     fontSize: 12,
                   ),
                 ),
@@ -353,35 +372,36 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 Text(
                   widget.product.name,
                   style: const TextStyle(
-                    color: AppColors.primary,
+                    color: AppColors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 Row(
                   children: [
                     // Rang
                     if (widget.selectedColor != null) ...[
                       Container(
-                        width: 20,
-                        height: 20,
+                        width: 22,
+                        height: 22,
                         decoration: BoxDecoration(
                           color: widget.selectedColor!.toColor(),
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: AppColors.lightGrey,
+                            width: 2,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 10),
                     ],
                     Text(
                       widget.product.price.toCurrency(),
                       style: const TextStyle(
-                        color: AppColors.accent,
+                        color: AppColors.primary,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -412,12 +432,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         Text(
           label,
           style: const TextStyle(
-            color: AppColors.primary,
+            color: AppColors.textPrimary,
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         TextFormField(
           controller: controller,
           maxLines: maxLines,
@@ -425,23 +445,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           validator: validator,
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon: Icon(icon, color: AppColors.textGrey),
+            prefixIcon: Icon(icon, color: AppColors.textSecondary),
             filled: true,
-            fillColor: AppColors.cardColor,
+            fillColor: AppColors.surface,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppTheme.borderRadius),
               borderSide: const BorderSide(color: AppColors.lightGrey),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppTheme.borderRadius),
               borderSide: const BorderSide(color: AppColors.lightGrey),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.accent, width: 2),
+              borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+              borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppTheme.borderRadius),
               borderSide: const BorderSide(color: AppColors.error),
             ),
           ),
@@ -453,29 +473,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   /// To'lov ma'lumotlari
   Widget _buildPaymentInfo() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.accent.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.secondary.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(AppTheme.borderRadius),
         border: Border.all(
-          color: AppColors.accent.withValues(alpha: 0.2),
+          color: AppColors.secondary,
         ),
       ),
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              color: AppColors.accent.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(14),
             ),
             child: const Icon(
               Icons.payments_outlined,
-              color: AppColors.accent,
+              color: AppColors.primary,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -483,15 +503,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 Text(
                   'To\'lov usuli',
                   style: TextStyle(
-                    color: AppColors.primary,
+                    color: AppColors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
+                SizedBox(height: 2),
                 Text(
                   'Yetkazib berilganda naqd pul',
                   style: TextStyle(
-                    color: AppColors.textGrey,
+                    color: AppColors.textSecondary,
                     fontSize: 12,
                   ),
                 ),

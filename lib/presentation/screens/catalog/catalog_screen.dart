@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_theme.dart';
 import '../../../data/mock/mock_data.dart';
 import '../../../data/models/product_model.dart';
 import '../../widgets/category_card.dart';
 import '../../widgets/product_card.dart';
 import '../product/product_detail_screen.dart';
 
-/// Katalog ekrani
+/// Katalog ekrani - Nabolen Style
 class CatalogScreen extends StatefulWidget {
   const CatalogScreen({super.key});
 
@@ -37,7 +38,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   /// Kategoriyalar ro'yxati
   Widget _buildCategoryList() {
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       itemCount: MockData.categories.length,
       itemBuilder: (context, index) {
         final category = MockData.categories[index];
@@ -55,7 +56,6 @@ class _CatalogScreenState extends State<CatalogScreen> {
                     _expandedCategoryId = isExpanded ? null : category.id;
                   });
                 } else {
-                  // Kategoriyasiz mahsulotlar
                   setState(() {
                     _selectedCategory = category;
                   });
@@ -66,10 +66,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
             if (isExpanded && hasChildren)
               AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
-                margin: const EdgeInsets.only(bottom: 8),
+                margin: const EdgeInsets.only(bottom: 10),
                 decoration: BoxDecoration(
-                  color: AppColors.cardColor,
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadius),
                 ),
                 child: Column(
                   children: category.children.map((subCategory) {
@@ -98,39 +98,58 @@ class _CatalogScreenState extends State<CatalogScreen> {
       children: [
         // Orqaga tugmasi
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Row(
             children: [
-              IconButton(
-                onPressed: () {
-                  setState(() {
-                    _selectedCategory = null;
-                  });
-                },
-                icon: const Icon(Icons.arrow_back_ios),
-                style: IconButton.styleFrom(
-                  backgroundColor: AppColors.cardColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.textPrimary.withValues(alpha: 0.06),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _selectedCategory = null;
+                    });
+                  },
+                  icon: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 18,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: Text(
                   _selectedCategory!.name,
                   style: const TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 18,
+                    color: AppColors.textPrimary,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-              Text(
-                '${products.length} ta mahsulot',
-                style: const TextStyle(
-                  color: AppColors.textGrey,
-                  fontSize: 14,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.secondary.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '${products.length} ta',
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -146,13 +165,13 @@ class _CatalogScreenState extends State<CatalogScreen> {
                       Icon(
                         Icons.inventory_2_outlined,
                         size: 80,
-                        color: AppColors.lightGrey,
+                        color: AppColors.secondary,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 18),
                       const Text(
                         'Mahsulotlar topilmadi',
                         style: TextStyle(
-                          color: AppColors.textGrey,
+                          color: AppColors.textSecondary,
                           fontSize: 16,
                         ),
                       ),
@@ -160,12 +179,12 @@ class _CatalogScreenState extends State<CatalogScreen> {
                   ),
                 )
               : GridView.builder(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisSpacing: 16,
                     crossAxisSpacing: 16,
-                    childAspectRatio: 0.7,
+                    childAspectRatio: 0.72,
                   ),
                   itemCount: products.length,
                   itemBuilder: (context, index) {
@@ -182,7 +201,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                         );
                       },
                     ).animate().fadeIn(delay: (50 * index).ms).scale(
-                          begin: const Offset(0.9, 0.9),
+                          begin: const Offset(0.95, 0.95),
                         );
                   },
                 ),

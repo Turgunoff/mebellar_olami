@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/favorites_provider.dart';
 import '../../widgets/product_card.dart';
@@ -9,7 +10,7 @@ import '../../widgets/custom_button.dart';
 import '../product/product_detail_screen.dart';
 import '../auth/login_screen.dart';
 
-/// Sevimlilar ekrani
+/// Sevimlilar ekrani - Nabolen Style
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
 
@@ -32,7 +33,7 @@ class FavoritesScreen extends StatelessWidget {
               },
               child: const Text(
                 'Tozalash',
-                style: TextStyle(color: AppColors.accent),
+                style: TextStyle(color: AppColors.primary),
               ),
             ),
         ],
@@ -49,7 +50,7 @@ class FavoritesScreen extends StatelessWidget {
   Widget _buildGuestView(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(36),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -57,21 +58,21 @@ class FavoritesScreen extends StatelessWidget {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: AppColors.accent.withValues(alpha: 0.1),
+                color: AppColors.secondary.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.favorite_outline_rounded,
-                size: 60,
-                color: AppColors.accent,
+                size: 56,
+                color: AppColors.primary,
               ),
             ).animate().scale(curve: Curves.elasticOut),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
             const Text(
               'Sevimli mahsulotlaringiz',
               style: TextStyle(
-                color: AppColors.primary,
-                fontSize: 22,
+                color: AppColors.textPrimary,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
@@ -80,13 +81,13 @@ class FavoritesScreen extends StatelessWidget {
             const Text(
               'Sevimli mahsulotlaringizni saqlash va\nkeyinroq ko\'rish uchun tizimga kiring',
               style: TextStyle(
-                color: AppColors.textGrey,
+                color: AppColors.textSecondary,
                 fontSize: 14,
-                height: 1.5,
+                height: 1.6,
               ),
               textAlign: TextAlign.center,
             ).animate().fadeIn(delay: 200.ms),
-            const SizedBox(height: 32),
+            const SizedBox(height: 36),
             CustomButton(
               text: 'Tizimga kirish',
               icon: Icons.login_rounded,
@@ -110,7 +111,7 @@ class FavoritesScreen extends StatelessWidget {
   Widget _buildEmptyView() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(36),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -118,21 +119,21 @@ class FavoritesScreen extends StatelessWidget {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: AppColors.lightGrey.withValues(alpha: 0.5),
+                color: AppColors.secondary.withValues(alpha: 0.4),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.favorite_border_rounded,
-                size: 60,
-                color: AppColors.textGrey,
+                size: 56,
+                color: AppColors.textSecondary,
               ),
             ).animate().scale(curve: Curves.elasticOut),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
             const Text(
               'Sevimlilar bo\'sh',
               style: TextStyle(
-                color: AppColors.primary,
-                fontSize: 22,
+                color: AppColors.textPrimary,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
@@ -141,9 +142,9 @@ class FavoritesScreen extends StatelessWidget {
             const Text(
               'Siz hali birorta mahsulotni\nsevimliga qo\'shmagansiz',
               style: TextStyle(
-                color: AppColors.textGrey,
+                color: AppColors.textSecondary,
                 fontSize: 14,
-                height: 1.5,
+                height: 1.6,
               ),
               textAlign: TextAlign.center,
             ).animate().fadeIn(delay: 200.ms),
@@ -159,12 +160,12 @@ class FavoritesScreen extends StatelessWidget {
     FavoritesProvider favoritesProvider,
   ) {
     return GridView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
-        childAspectRatio: 0.7,
+        childAspectRatio: 0.72,
       ),
       itemCount: favoritesProvider.favorites.length,
       itemBuilder: (context, index) {
@@ -174,10 +175,10 @@ class FavoritesScreen extends StatelessWidget {
           direction: DismissDirection.endToStart,
           background: Container(
             alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 20),
+            padding: const EdgeInsets.only(right: 24),
             decoration: BoxDecoration(
               color: AppColors.error.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppTheme.borderRadius),
             ),
             child: const Icon(
               Icons.delete_outline_rounded,
@@ -222,6 +223,9 @@ class FavoritesScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+        ),
         title: const Text('Sevimlilarni tozalash'),
         content: const Text(
           'Barcha sevimli mahsulotlaringiz o\'chiriladi. Davom etasizmi?',

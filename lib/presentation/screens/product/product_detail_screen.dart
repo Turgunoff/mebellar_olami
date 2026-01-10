@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_theme.dart';
 import '../../../core/utils/extensions.dart';
 import '../../../data/models/product_model.dart';
 import '../../../providers/auth_provider.dart';
@@ -11,7 +12,8 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/login_dialog.dart';
 import '../checkout/checkout_screen.dart';
 
-/// Mahsulot tafsilotlari ekrani
+/// Mahsulot tafsilotlari ekrani - Nabolen Style
+/// Rang va miqdor tanlash bilan
 class ProductDetailScreen extends StatefulWidget {
   final ProductModel product;
 
@@ -26,21 +28,22 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   String? _selectedColor;
+  int _quantity = 1;
 
   @override
   void initState() {
     super.initState();
-    // Birinchi rangni tanlash
     if (widget.product.colors.isNotEmpty) {
       _selectedColor = widget.product.colors.first;
     }
   }
 
+  double get _totalPrice => widget.product.price * _quantity;
+
   void _handleBuyNow() {
     final authProvider = context.read<AuthProvider>();
 
     if (authProvider.isGuest) {
-      // Mehmon - Login dialog ko'rsatish
       showDialog(
         context: context,
         builder: (context) => const LoginDialog(
@@ -48,13 +51,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ),
       );
     } else {
-      // Foydalanuvchi - Checkout ekraniga o'tish
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => CheckoutScreen(
             product: widget.product,
             selectedColor: _selectedColor,
+            quantity: _quantity,
           ),
         ),
       );
@@ -88,19 +91,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         slivers: [
           // SliverAppBar - Parallax effekti
           SliverAppBar(
-            expandedHeight: 350,
+            expandedHeight: 380,
             pinned: true,
-            backgroundColor: AppColors.cardColor,
+            backgroundColor: AppColors.surface,
             leading: Padding(
               padding: const EdgeInsets.all(8),
-              child: CircleAvatar(
-                backgroundColor: AppColors.white,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.textPrimary.withValues(alpha: 0.1),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
                 child: IconButton(
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(
-                    Icons.arrow_back_ios_new,
+                    Icons.arrow_back_ios_new_rounded,
                     size: 18,
-                    color: AppColors.primary,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ),
@@ -108,14 +120,23 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             actions: [
               Padding(
                 padding: const EdgeInsets.all(8),
-                child: CircleAvatar(
-                  backgroundColor: AppColors.white,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.textPrimary.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                      ),
+                    ],
+                  ),
                   child: IconButton(
                     onPressed: _handleFavorite,
                     icon: Icon(
-                      isFavorite ? Icons.favorite : Icons.favorite_border,
-                      size: 20,
-                      color: isFavorite ? AppColors.accent : AppColors.primary,
+                      isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                      size: 22,
+                      color: isFavorite ? AppColors.primary : AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -128,19 +149,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   imageUrl: widget.product.imageUrl,
                   fit: BoxFit.cover,
                   placeholder: (context, url) => Container(
-                    color: AppColors.lightGrey,
+                    color: AppColors.secondary.withValues(alpha: 0.3),
                     child: const Center(
                       child: CircularProgressIndicator(
-                        color: AppColors.accent,
+                        color: AppColors.primary,
                       ),
                     ),
                   ),
                   errorWidget: (context, url, error) => Container(
-                    color: AppColors.lightGrey,
+                    color: AppColors.secondary.withValues(alpha: 0.3),
                     child: const Icon(
                       Icons.image_not_supported_outlined,
                       size: 48,
-                      color: AppColors.textGrey,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ),
@@ -150,14 +171,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           // Tarkib
           SliverToBoxAdapter(
             child: Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.background,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(24),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
                 ),
               ),
+              transform: Matrix4.translationValues(0, -24, 0),
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -167,17 +189,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
+                            horizontal: 14,
+                            vertical: 8,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.accent.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
+                            color: AppColors.secondary.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
                             widget.product.category,
                             style: const TextStyle(
-                              color: AppColors.accent,
+                              color: AppColors.primary,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
@@ -194,7 +216,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             Text(
                               widget.product.rating.toStringAsFixed(1),
                               style: const TextStyle(
-                                color: AppColors.primary,
+                                color: AppColors.textPrimary,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -203,47 +225,59 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ),
                       ],
                     ).animate().fadeIn(delay: 100.ms),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 18),
                     // Nomi
                     Text(
                       widget.product.name,
                       style: const TextStyle(
-                        color: AppColors.primary,
-                        fontSize: 24,
+                        color: AppColors.textPrimary,
+                        fontSize: 26,
                         fontWeight: FontWeight.bold,
                         height: 1.2,
                       ),
                     ).animate().fadeIn(delay: 150.ms).slideX(begin: -0.1),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
                     // Narx
                     Text(
                       widget.product.price.toCurrency(),
                       style: const TextStyle(
-                        color: AppColors.accent,
+                        color: AppColors.primary,
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                       ),
                     ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1),
-                    const SizedBox(height: 24),
-                    // Ranglar
+                    const SizedBox(height: 28),
+                    // Rang tanlash
                     if (widget.product.colors.isNotEmpty) ...[
                       const Text(
-                        'Rangni tanlang',
+                        'Rang',
                         style: TextStyle(
-                          color: AppColors.primary,
+                          color: AppColors.textPrimary,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       _buildColorSelector().animate().fadeIn(delay: 250.ms),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 28),
                     ],
+                    // Miqdor tanlash
+                    const Text(
+                      'Miqdor',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    _buildQuantitySelector().animate().fadeIn(delay: 300.ms),
+                    const SizedBox(height: 28),
                     // Tavsif
                     const Text(
                       'Tavsif',
                       style: TextStyle(
-                        color: AppColors.primary,
+                        color: AppColors.textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -252,15 +286,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     Text(
                       widget.product.description,
                       style: const TextStyle(
-                        color: AppColors.textGrey,
+                        color: AppColors.textSecondary,
                         fontSize: 14,
-                        height: 1.6,
+                        height: 1.7,
                       ),
-                    ).animate().fadeIn(delay: 300.ms),
-                    const SizedBox(height: 24),
+                    ).animate().fadeIn(delay: 350.ms),
+                    const SizedBox(height: 28),
                     // Xususiyatlar
-                    _buildFeatures().animate().fadeIn(delay: 350.ms),
-                    const SizedBox(height: 100),
+                    _buildFeatures().animate().fadeIn(delay: 400.ms),
+                    const SizedBox(height: 120),
                   ],
                 ),
               ),
@@ -272,13 +306,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppColors.cardColor,
+          color: AppColors.surface,
           borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(24),
+            top: Radius.circular(28),
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: AppColors.textPrimary.withValues(alpha: 0.08),
               blurRadius: 20,
               offset: const Offset(0, -5),
             ),
@@ -287,33 +321,37 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         child: SafeArea(
           child: Row(
             children: [
-              // Sevimli tugmasi
-              Container(
-                width: 56,
-                height: 56,
-                margin: const EdgeInsets.only(right: 12),
-                child: OutlinedButton(
-                  onPressed: _handleFavorite,
-                  style: OutlinedButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    side: const BorderSide(color: AppColors.lightGrey),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+              // Jami narx
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Jami:',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 13,
+                      ),
                     ),
-                  ),
-                  child: Icon(
-                    isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: isFavorite ? AppColors.accent : AppColors.primary,
-                  ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _totalPrice.toCurrency(),
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               // Sotib olish tugmasi
               Expanded(
                 child: CustomButton(
-                  text: 'Sotib olish',
-                  icon: Icons.shopping_bag_outlined,
-                  height: 56,
-                  borderRadius: 16,
+                  text: 'Hozir sotib olish',
+                  height: 58,
+                  borderRadius: AppTheme.borderRadius,
                   onPressed: _handleBuyNow,
                 ),
               ),
@@ -327,8 +365,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   /// Rang tanlash
   Widget _buildColorSelector() {
     return Wrap(
-      spacing: 12,
-      runSpacing: 12,
+      spacing: 14,
+      runSpacing: 14,
       children: widget.product.colors.map((colorHex) {
         final color = colorHex.toColor();
         final isSelected = _selectedColor == colorHex;
@@ -341,29 +379,30 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            width: 44,
-            height: 44,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: color,
               shape: BoxShape.circle,
               border: Border.all(
-                color: isSelected ? AppColors.accent : Colors.transparent,
-                width: 3,
+                color: isSelected ? AppColors.primary : AppColors.lightGrey,
+                width: isSelected ? 3 : 2,
               ),
-              boxShadow: [
-                if (isSelected)
-                  BoxShadow(
-                    color: color.withValues(alpha: 0.4),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-              ],
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: color.withValues(alpha: 0.4),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                  : null,
             ),
             child: isSelected
                 ? Icon(
-                    Icons.check,
+                    Icons.check_rounded,
                     color: _getContrastColor(color),
-                    size: 20,
+                    size: 22,
                   )
                 : null,
           ),
@@ -372,19 +411,88 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  /// Kontrast rang (oq yoki qora)
+  /// Miqdor tanlash
+  Widget _buildQuantitySelector() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.lightGrey),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildQuantityButton(
+            icon: Icons.remove_rounded,
+            onTap: () {
+              if (_quantity > 1) {
+                setState(() => _quantity--);
+              }
+            },
+            enabled: _quantity > 1,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text(
+              '$_quantity',
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          _buildQuantityButton(
+            icon: Icons.add_rounded,
+            onTap: () {
+              if (_quantity < 10) {
+                setState(() => _quantity++);
+              }
+            },
+            enabled: _quantity < 10,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuantityButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    required bool enabled,
+  }) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: enabled ? AppColors.primary : AppColors.secondary,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(
+          icon,
+          color: enabled ? AppColors.white : AppColors.textSecondary,
+          size: 22,
+        ),
+      ),
+    );
+  }
+
+  /// Kontrast rang
   Color _getContrastColor(Color color) {
     final luminance = color.computeLuminance();
-    return luminance > 0.5 ? AppColors.primary : AppColors.white;
+    return luminance > 0.5 ? AppColors.textPrimary : AppColors.white;
   }
 
   /// Xususiyatlar
   Widget _buildFeatures() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.cardColor,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppTheme.borderRadius),
       ),
       child: Column(
         children: [
@@ -393,13 +501,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             title: 'Bepul yetkazib berish',
             subtitle: 'Toshkent bo\'ylab',
           ),
-          const Divider(height: 24),
+          const Divider(height: 28, color: AppColors.lightGrey),
           _buildFeatureItem(
             icon: Icons.verified_outlined,
             title: 'Kafolat',
             subtitle: '2 yil ishlab chiqaruvchi kafolati',
           ),
-          const Divider(height: 24),
+          const Divider(height: 28, color: AppColors.lightGrey),
           _buildFeatureItem(
             icon: Icons.refresh_rounded,
             title: 'Qaytarish',
@@ -419,15 +527,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return Row(
       children: [
         Container(
-          width: 44,
-          height: 44,
+          width: 48,
+          height: 48,
           decoration: BoxDecoration(
-            color: AppColors.accent.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
+            color: AppColors.secondary.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(14),
           ),
-          child: Icon(icon, color: AppColors.accent),
+          child: Icon(icon, color: AppColors.primary),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -435,15 +543,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               Text(
                 title,
                 style: const TextStyle(
-                  color: AppColors.primary,
+                  color: AppColors.textPrimary,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
               ),
+              const SizedBox(height: 2),
               Text(
                 subtitle,
                 style: const TextStyle(
-                  color: AppColors.textGrey,
+                  color: AppColors.textSecondary,
                   fontSize: 12,
                 ),
               ),

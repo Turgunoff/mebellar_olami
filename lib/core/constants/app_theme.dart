@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
-/// Ilova mavzusi (Theme)
+/// Ilova mavzusi (Theme) - Nabolen Style
 class AppTheme {
   AppTheme._();
+
+  /// Border radius - 20px
+  static const double borderRadius = 20.0;
+  static const double borderRadiusSmall = 12.0;
 
   static ThemeData get lightTheme {
     return ThemeData(
@@ -14,60 +18,61 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.background,
       colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
-        secondary: AppColors.accent,
-        surface: AppColors.cardColor,
+        secondary: AppColors.secondary,
+        surface: AppColors.surface,
         error: AppColors.error,
+        onPrimary: AppColors.white,
+        onSecondary: AppColors.textPrimary,
+        onSurface: AppColors.textPrimary,
       ),
-      // Typography
+      // Typography - Roboto
       textTheme: TextTheme(
-        // Sarlavhalar uchun Poppins
-        displayLarge: GoogleFonts.poppins(
+        displayLarge: GoogleFonts.roboto(
           fontSize: 32,
           fontWeight: FontWeight.bold,
-          color: AppColors.primary,
+          color: AppColors.textPrimary,
         ),
-        displayMedium: GoogleFonts.poppins(
+        displayMedium: GoogleFonts.roboto(
           fontSize: 28,
           fontWeight: FontWeight.bold,
-          color: AppColors.primary,
+          color: AppColors.textPrimary,
         ),
-        displaySmall: GoogleFonts.poppins(
+        displaySmall: GoogleFonts.roboto(
           fontSize: 24,
           fontWeight: FontWeight.w600,
-          color: AppColors.primary,
+          color: AppColors.textPrimary,
         ),
-        headlineMedium: GoogleFonts.poppins(
+        headlineMedium: GoogleFonts.roboto(
           fontSize: 20,
           fontWeight: FontWeight.w600,
-          color: AppColors.primary,
+          color: AppColors.textPrimary,
         ),
-        headlineSmall: GoogleFonts.poppins(
+        headlineSmall: GoogleFonts.roboto(
           fontSize: 18,
           fontWeight: FontWeight.w600,
-          color: AppColors.primary,
+          color: AppColors.textPrimary,
         ),
-        titleLarge: GoogleFonts.poppins(
+        titleLarge: GoogleFonts.roboto(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: AppColors.primary,
+          color: AppColors.textPrimary,
         ),
-        // Tana matni uchun Lato
-        bodyLarge: GoogleFonts.lato(
+        bodyLarge: GoogleFonts.roboto(
           fontSize: 16,
           fontWeight: FontWeight.normal,
-          color: AppColors.primary,
+          color: AppColors.textPrimary,
         ),
-        bodyMedium: GoogleFonts.lato(
+        bodyMedium: GoogleFonts.roboto(
           fontSize: 14,
           fontWeight: FontWeight.normal,
-          color: AppColors.primary,
+          color: AppColors.textPrimary,
         ),
-        bodySmall: GoogleFonts.lato(
+        bodySmall: GoogleFonts.roboto(
           fontSize: 12,
           fontWeight: FontWeight.normal,
-          color: AppColors.textGrey,
+          color: AppColors.textSecondary,
         ),
-        labelLarge: GoogleFonts.lato(
+        labelLarge: GoogleFonts.roboto(
           fontSize: 14,
           fontWeight: FontWeight.w600,
           color: AppColors.white,
@@ -79,94 +84,91 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: AppColors.primary),
-        titleTextStyle: GoogleFonts.poppins(
+        iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        titleTextStyle: GoogleFonts.roboto(
           fontSize: 18,
           fontWeight: FontWeight.w600,
-          color: AppColors.primary,
+          color: AppColors.textPrimary,
         ),
       ),
       // Bottom Navigation
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.white,
-        selectedItemColor: AppColors.accent,
-        unselectedItemColor: AppColors.textGrey,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.textSecondary,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
       ),
-      // Card
+      // Card - 20px radius
       cardTheme: CardThemeData(
-        color: AppColors.cardColor,
-        elevation: 2,
-        shadowColor: AppColors.primary.withValues(alpha: 0.1),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        color: AppColors.surface,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(borderRadius),
+        ),
       ),
-      // Elevated Button
+      // Elevated Button - 20px radius
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.accent,
+          backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(borderRadius),
           ),
-          textStyle: GoogleFonts.poppins(
+          textStyle: GoogleFonts.roboto(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
         ),
       ),
-      // Outlined Button
+      // Outlined Button - 20px radius
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
           side: const BorderSide(color: AppColors.primary, width: 1.5),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(borderRadius),
           ),
-          textStyle: GoogleFonts.poppins(
+          textStyle: GoogleFonts.roboto(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
         ),
       ),
-      // Input Decoration
+      // Input Decoration - 20px radius
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.white,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(borderRadius),
           borderSide: const BorderSide(color: AppColors.lightGrey),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(borderRadius),
           borderSide: const BorderSide(color: AppColors.lightGrey),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.accent, width: 2),
+          borderRadius: BorderRadius.circular(borderRadius),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(borderRadius),
           borderSide: const BorderSide(color: AppColors.error),
         ),
-        hintStyle: GoogleFonts.lato(color: AppColors.textGrey, fontSize: 14),
+        hintStyle: GoogleFonts.roboto(color: AppColors.textSecondary, fontSize: 14),
       ),
-      // Chip
+      // Chip - Rounded
       chipTheme: ChipThemeData(
-        backgroundColor: AppColors.white,
-        selectedColor: AppColors.accent,
-        labelStyle: GoogleFonts.lato(fontSize: 14),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        backgroundColor: AppColors.secondary.withValues(alpha: 0.3),
+        selectedColor: AppColors.primary,
+        labelStyle: GoogleFonts.roboto(fontSize: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(color: AppColors.lightGrey),
+          borderRadius: BorderRadius.circular(borderRadiusSmall),
         ),
       ),
     );
