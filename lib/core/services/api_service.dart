@@ -102,6 +102,35 @@ class ApiService {
     _log('🔄 Body length: ${response.body.length}');
     _log('🔄 Body content: "${response.body}"');
 
+    // Status code tekshirish
+    if (response.statusCode == 404) {
+      _log('❌ 404 Not Found - endpoint mavjud emas!');
+      return ApiResponse(
+        success: false,
+        message:
+            'Server topilmadi (404). Backend ishlamayapti yoki endpoint mavjud emas.',
+        statusCode: response.statusCode,
+      );
+    }
+
+    if (response.statusCode == 500) {
+      _log('❌ 500 Internal Server Error');
+      return ApiResponse(
+        success: false,
+        message: 'Server xatosi (500). Iltimos keyinroq urinib ko\'ring.',
+        statusCode: response.statusCode,
+      );
+    }
+
+    if (response.statusCode == 502 || response.statusCode == 503) {
+      _log('❌ Server unavailable: ${response.statusCode}');
+      return ApiResponse(
+        success: false,
+        message: 'Server hozir mavjud emas. Iltimos keyinroq urinib ko\'ring.',
+        statusCode: response.statusCode,
+      );
+    }
+
     // Bo'sh response tekshirish
     if (response.body.isEmpty) {
       _log('⚠️ Response body is empty!');
@@ -130,8 +159,7 @@ class ApiService {
       _log('❌ Raw body was: "${response.body}"');
       return ApiResponse(
         success: false,
-        message:
-            'Server javobi noto\'g\'ri format: ${response.body.substring(0, response.body.length > 100 ? 100 : response.body.length)}',
+        message: 'Server javobini o\'qib bo\'lmadi',
         statusCode: response.statusCode,
       );
     }
