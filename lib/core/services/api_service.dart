@@ -223,6 +223,91 @@ class ApiService {
       'new_password': newPassword,
     });
   }
+
+  // ============================================
+  // USER PROFILE ENDPOINTS
+  // ============================================
+
+  /// Profilni olish
+  Future<ApiResponse> getProfile(String token) async {
+    _log('👤 Fetching profile...');
+    return await get('/user/me', token: token);
+  }
+
+  /// Profilni yangilash
+  Future<ApiResponse> updateProfile({
+    required String token,
+    required String fullName,
+  }) async {
+    _log('✏️ Updating profile: $fullName');
+    return await put('/user/me', {'full_name': fullName}, token: token);
+  }
+
+  /// Hisobni o'chirish
+  Future<ApiResponse> deleteAccount(String token) async {
+    _log('🗑️ Deleting account...');
+    return await delete('/user/me', token: token);
+  }
+
+  /// PUT so'rov yuborish
+  Future<ApiResponse> put(
+    String endpoint,
+    Map<String, dynamic> body, {
+    String? token,
+  }) async {
+    final url = '$baseUrl$endpoint';
+    _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    _log('📤 PUT: $url');
+    _log('📦 Body: ${jsonEncode(body)}');
+
+    try {
+      final response = await _client.put(
+        Uri.parse(url),
+        headers: token != null ? authHeaders(token) : _headers,
+        body: jsonEncode(body),
+      );
+
+      _log('📥 Status Code: ${response.statusCode}');
+      _log('📥 Response Body: ${response.body}');
+      _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      return _handleResponse(response);
+    } catch (e, stackTrace) {
+      _log('❌ Error: $e');
+      _log('❌ StackTrace: $stackTrace');
+      return ApiResponse(
+        success: false,
+        message: 'Server bilan bog\'lanib bo\'lmadi: $e',
+      );
+    }
+  }
+
+  /// DELETE so'rov yuborish
+  Future<ApiResponse> delete(String endpoint, {String? token}) async {
+    final url = '$baseUrl$endpoint';
+    _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    _log('📤 DELETE: $url');
+
+    try {
+      final response = await _client.delete(
+        Uri.parse(url),
+        headers: token != null ? authHeaders(token) : _headers,
+      );
+
+      _log('📥 Status Code: ${response.statusCode}');
+      _log('📥 Response Body: ${response.body}');
+      _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      return _handleResponse(response);
+    } catch (e, stackTrace) {
+      _log('❌ Error: $e');
+      _log('❌ StackTrace: $stackTrace');
+      return ApiResponse(
+        success: false,
+        message: 'Server bilan bog\'lanib bo\'lmadi: $e',
+      );
+    }
+  }
 }
 
 /// API javob modeli

@@ -6,7 +6,9 @@ import 'core/constants/app_colors.dart';
 import 'providers/auth_provider.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/orders_provider.dart';
+import 'providers/user_provider.dart';
 import 'presentation/screens/onboarding/onboarding_screen.dart';
+import 'presentation/screens/auth/welcome_screen.dart';
 import 'presentation/screens/main_screen.dart';
 
 void main() {
@@ -37,6 +39,7 @@ class MebellarOlamiApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => FavoritesProvider()),
         ChangeNotifierProvider(create: (_) => OrdersProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
       child: MaterialApp(
         title: 'Mebellar Olami',
@@ -115,7 +118,12 @@ class _AuthWrapperState extends State<_AuthWrapper> {
       return const MainScreen();
     }
 
-    // Aks holda - OnboardingScreen
+    // Agar onboarding ko'rilgan bo'lsa - WelcomeScreen (Login/Register)
+    if (authProvider.isOnboardingCompleted) {
+      return const WelcomeScreen();
+    }
+
+    // Aks holda - OnboardingScreen (birinchi marta)
     return const OnboardingScreen();
   }
 }

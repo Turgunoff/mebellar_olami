@@ -10,8 +10,9 @@ class AuthProvider extends ChangeNotifier {
 
   bool _isLoggedIn = false;
   bool _isLoading = false;
+  bool _isOnboardingCompleted = false; // Onboarding ko'rilganmi?
   String? _token;
-  int? _userId;
+  String? _userId; // UUID sifatida String
   String? _userName;
   String? _userPhone;
   String? _userAddress;
@@ -33,6 +34,9 @@ class AuthProvider extends ChangeNotifier {
   /// Yuklanmoqdami?
   bool get isLoading => _isLoading;
 
+  /// Onboarding ko'rilganmi?
+  bool get isOnboardingCompleted => _isOnboardingCompleted;
+
   /// Foydalanuvchi ismi
   String? get userName => _userName;
 
@@ -45,8 +49,8 @@ class AuthProvider extends ChangeNotifier {
   /// Token
   String? get token => _token;
 
-  /// User ID
-  int? get userId => _userId;
+  /// User ID (UUID)
+  String? get userId => _userId;
 
   /// Xatolik xabari
   String? get errorMessage => _errorMessage;
@@ -70,11 +74,13 @@ class AuthProvider extends ChangeNotifier {
     _token = prefs.getString('auth_token');
     _userName = prefs.getString('user_name');
     _userPhone = prefs.getString('user_phone');
-    _userId = prefs.getInt('user_id');
+    _userId = prefs.getString('user_id'); // UUID sifatida String
+    _isOnboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
 
     _log('Token: ${_token != null ? "exists" : "null"}');
     _log('UserName: $_userName');
     _log('UserPhone: $_userPhone');
+    _log('Onboarding completed: $_isOnboardingCompleted');
 
     if (_token != null && _token!.isNotEmpty) {
       _isLoggedIn = true;
@@ -82,6 +88,16 @@ class AuthProvider extends ChangeNotifier {
     } else {
       _log('User is not logged in');
     }
+    notifyListeners();
+  }
+
+  /// Onboarding tugallandi deb belgilash
+  Future<void> completeOnboarding() async {
+    _log('Completing onboarding...');
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboarding_completed', true);
+    _isOnboardingCompleted = true;
+    _log('Onboarding marked as completed');
     notifyListeners();
   }
 
@@ -93,7 +109,7 @@ class AuthProvider extends ChangeNotifier {
     if (user != null) {
       await prefs.setString('user_name', user['full_name'] ?? '');
       await prefs.setString('user_phone', user['phone'] ?? '');
-      await prefs.setInt('user_id', user['id'] ?? 0);
+      await prefs.setString('user_id', user['id']?.toString() ?? ''); // UUID sifatida String
       _log('Auth data saved: ${user['full_name']}');
     }
   }
@@ -206,7 +222,7 @@ class AuthProvider extends ChangeNotifier {
         _log('✅ Registration successful, token received');
 
         if (response.user != null) {
-          _userId = response.user!['id'];
+          _userId = response.user!['id']?.toString(); // UUID sifatida String
           _userName = response.user!['full_name'];
           _userPhone = response.user!['phone'];
           _log('User data: $_userName, $_userPhone');
@@ -264,7 +280,7 @@ class AuthProvider extends ChangeNotifier {
         _log('✅ Login successful, token received');
 
         if (response.user != null) {
-          _userId = response.user!['id'];
+          _userId = response.user!['id']?.toString(); // UUID sifatida String
           _userName = response.user!['full_name'];
           _userPhone = response.user!['phone'];
           _log('User data: $_userName, $_userPhone');
