@@ -32,11 +32,8 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
     5,
     (index) => TextEditingController(),
   );
-  final List<FocusNode> _focusNodes = List.generate(
-    5,
-    (index) => FocusNode(),
-  );
-  
+  final List<FocusNode> _focusNodes = List.generate(5, (index) => FocusNode());
+
   int _resendSeconds = 60;
   bool _canResend = false;
 
@@ -44,6 +41,15 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
   void initState() {
     super.initState();
     _startResendTimer();
+
+    // Har bir controller uchun listener qo'shish
+    for (int i = 0; i < _controllers.length; i++) {
+      _controllers[i].addListener(() => _onTextChanged(i));
+    }
+  }
+
+  void _onTextChanged(int index) {
+    setState(() {}); // UI yangilash
   }
 
   void _startResendTimer() {
@@ -62,9 +68,9 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
 
   Future<void> _resendCode() async {
     if (!_canResend) return;
-    
+
     final authProvider = context.read<AuthProvider>();
-    
+
     bool success;
     if (widget.isPasswordReset) {
       success = await authProvider.forgotPassword(widget.phone);
@@ -108,6 +114,14 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
   /// 5 xonali kodni olish
   String get _code => _controllers.map((c) => c.text).join();
 
+  /// Barcha inputlarni tozalash
+  void _clearAll() {
+    for (var controller in _controllers) {
+      controller.clear();
+    }
+    _focusNodes[0].requestFocus();
+  }
+
   Future<void> _verifyCode() async {
     if (_code.length != 5) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -137,6 +151,18 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
           backgroundColor: AppColors.error,
         ),
       );
+    }
+  }
+
+  /// Backspace bosilganda
+  void _handleBackspace(int index) {
+    if (_controllers[index].text.isEmpty && index > 0) {
+      // Bo'sh bo'lsa, oldingi inputga o'tish
+      _focusNodes[index - 1].requestFocus();
+      _controllers[index - 1].clear();
+    } else {
+      // O'zini tozalash
+      _controllers[index].clear();
     }
   }
 
@@ -227,71 +253,105 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                       5,
                       (index) => Container(
                         width: 56,
-                        height: 64,
-                        margin: EdgeInsets.only(
-                          left: index == 0 ? 0 : 10,
-                        ),
-                        child: TextFormField(
-                          controller: _controllers[index],
-                          focusNode: _focusNodes[index],
-                          keyboardType: TextInputType.number,
-                          textAlign: TextAlign.center,
-                          maxLength: 1,
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-                          decoration: InputDecoration(
-                            counterText: '',
-                            filled: true,
-                            fillColor: AppColors.surface,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: const BorderSide(color: AppColors.lightGrey),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: const BorderSide(color: AppColors.lightGrey),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: const BorderSide(color: AppColors.primary, width: 2),
-                            ),
-                          ),
-                          onChanged: (value) {
-                            if (value.isNotEmpty && index < 4) {
-                              _focusNodes[index + 1].requestFocus();
-                            } else if (value.isEmpty && index > 0) {
-                              _focusNodes[index - 1].requestFocus();
-                            }
-                            // Auto-submit when all 5 digits entered
-                            if (_code.length == 5) {
-                              _verifyCode();
+                        height: 68,
+                        margin: EdgeInsets.only(left: index == 0 ? 0 : 8),
+                        child: KeyboardListener(
+                          focusNode: FocusNode(),
+                          onKeyEvent: (event) {
+                            if (event is KeyDownEvent &&
+                                event.logicalKey ==
+                                    LogicalKeyboardKey.backspace) {
+                              _handleBackspace(index);
                             }
                           },
+                          child: TextFormField(
+                            controller: _controllers[index],
+                            focusNode: _focusNodes[index],
+                            keyboardType: TextInputType.number,
+                            textAlign: TextAlign.center,
+                            maxLength: 1,
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
+                              fontFamily: 'SF Pro Display',
+                              letterSpacing: 0,
+                              height: 1.2,
+                            ),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            decoration: InputDecoration(
+                              counterText: '',
+                              filled: true,
+                              fillColor: AppColors.surface,
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 16,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: const BorderSide(
+                                  color: AppColors.lightGrey,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: const BorderSide(
+                                  color: AppColors.lightGrey,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: const BorderSide(
+                                  color: AppColors.primary,
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+                            onChanged: (value) {
+                              if (value.isNotEmpty && index < 4) {
+                                _focusNodes[index + 1].requestFocus();
+                              }
+                              // Auto-submit when all 5 digits entered
+                              if (_code.length == 5) {
+                                _verifyCode();
+                              }
+                            },
+                          ),
                         ),
                       ).animate().fadeIn(delay: (200 + index * 50).ms).scale(),
                     ),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 20),
+                  // Tozalash tugmasi
+                  if (_code.isNotEmpty)
+                    TextButton.icon(
+                      onPressed: _clearAll,
+                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                      label: const Text('Tozalash'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.textSecondary,
+                      ),
+                    ).animate().fadeIn(),
+                  const SizedBox(height: 10),
                   // Qayta yuborish
                   GestureDetector(
                     onTap: _canResend ? _resendCode : null,
                     child: RichText(
                       text: TextSpan(
-                        style: const TextStyle(
-                          fontSize: 14,
-                        ),
+                        style: const TextStyle(fontSize: 14),
                         children: [
                           TextSpan(
-                            text: _canResend ? 'Kodni qayta yuborish' : 'Qayta yuborish ',
+                            text: _canResend
+                                ? 'Kodni qayta yuborish'
+                                : 'Qayta yuborish ',
                             style: TextStyle(
-                              color: _canResend ? AppColors.primary : AppColors.textSecondary,
-                              fontWeight: _canResend ? FontWeight.w600 : FontWeight.normal,
+                              color: _canResend
+                                  ? AppColors.primary
+                                  : AppColors.textSecondary,
+                              fontWeight: _canResend
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
                             ),
                           ),
                           if (!_canResend)

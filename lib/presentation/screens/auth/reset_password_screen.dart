@@ -13,10 +13,7 @@ import 'login_screen.dart';
 class ResetPasswordScreen extends StatefulWidget {
   final String phone;
 
-  const ResetPasswordScreen({
-    super.key,
-    required this.phone,
-  });
+  const ResetPasswordScreen({super.key, required this.phone});
 
   @override
   State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
@@ -24,7 +21,7 @@ class ResetPasswordScreen extends StatefulWidget {
 
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  
+
   // OTP controllerlari (5 xonali)
   final List<TextEditingController> _otpControllers = List.generate(
     5,
@@ -34,22 +31,22 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     5,
     (index) => FocusNode(),
   );
-  
+
   // Parol controllerlari
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  
+
   // Qaysi bosqichda (1 = OTP, 2 = Password)
   int _currentStep = 1;
-  
+
   // Parol talablari
   bool _hasMinLength = false;
   bool _hasUppercase = false;
   bool _hasNumber = false;
-  
+
   // Resend timer
   int _resendSeconds = 60;
   bool _canResend = false;
@@ -86,7 +83,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   Future<void> _resendCode() async {
     if (!_canResend) return;
-    
+
     final authProvider = context.read<AuthProvider>();
     final success = await authProvider.forgotPassword(widget.phone);
 
@@ -121,6 +118,28 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   /// 5 xonali OTP kodi
   String get _otpCode => _otpControllers.map((c) => c.text).join();
 
+  /// Backspace bosilganda
+  void _handleOtpBackspace(int index) {
+    if (_otpControllers[index].text.isEmpty && index > 0) {
+      // Bo'sh bo'lsa, oldingi inputga o'tish
+      _otpFocusNodes[index - 1].requestFocus();
+      _otpControllers[index - 1].clear();
+    } else {
+      // O'zini tozalash
+      _otpControllers[index].clear();
+    }
+    setState(() {});
+  }
+
+  /// Barcha OTP inputlarni tozalash
+  void _clearOtp() {
+    for (var controller in _otpControllers) {
+      controller.clear();
+    }
+    _otpFocusNodes[0].requestFocus();
+    setState(() {});
+  }
+
   /// 1-Bosqich: OTP tekshirish
   void _handleVerifyOtp() {
     if (_otpCode.length != 5) {
@@ -132,7 +151,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       );
       return;
     }
-    
+
     // 2-bosqichga o'tish
     setState(() => _currentStep = 2);
   }
@@ -164,9 +183,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       // Muvaffaqiyat ekraniga o'tish
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(
-          builder: (context) => _PasswordResetSuccessScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => _PasswordResetSuccessScreen()),
         (route) => false,
       );
     } else if (mounted && authProvider.errorMessage != null) {
@@ -270,10 +287,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               const SizedBox(width: 10),
               Text(
                 'Kodni backend konsoldan ko\'ring',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
             ],
           ),
@@ -286,50 +300,73 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             5,
             (index) => Container(
               width: 56,
-              height: 64,
-              margin: EdgeInsets.only(left: index == 0 ? 0 : 10),
-              child: TextFormField(
-                controller: _otpControllers[index],
-                focusNode: _otpFocusNodes[index],
-                keyboardType: TextInputType.number,
-                textAlign: TextAlign.center,
-                maxLength: 1,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
-                decoration: InputDecoration(
-                  counterText: '',
-                  filled: true,
-                  fillColor: AppColors.surface,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.lightGrey),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.lightGrey),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.primary, width: 2),
-                  ),
-                ),
-                onChanged: (value) {
-                  if (value.isNotEmpty && index < 4) {
-                    _otpFocusNodes[index + 1].requestFocus();
-                  } else if (value.isEmpty && index > 0) {
-                    _otpFocusNodes[index - 1].requestFocus();
+              height: 68,
+              margin: EdgeInsets.only(left: index == 0 ? 0 : 8),
+              child: KeyboardListener(
+                focusNode: FocusNode(),
+                onKeyEvent: (event) {
+                  if (event is KeyDownEvent &&
+                      event.logicalKey == LogicalKeyboardKey.backspace) {
+                    _handleOtpBackspace(index);
                   }
                 },
+                child: TextFormField(
+                  controller: _otpControllers[index],
+                  focusNode: _otpFocusNodes[index],
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  maxLength: 1,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: 'SF Pro Display',
+                    letterSpacing: 0,
+                    height: 1.2,
+                  ),
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: InputDecoration(
+                    counterText: '',
+                    filled: true,
+                    fillColor: AppColors.surface,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: AppColors.lightGrey),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: AppColors.lightGrey),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(
+                        color: AppColors.primary,
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    if (value.isNotEmpty && index < 4) {
+                      _otpFocusNodes[index + 1].requestFocus();
+                    }
+                  },
+                ),
               ),
             ).animate().fadeIn(delay: (200 + index * 50).ms).scale(),
           ),
         ),
+        const SizedBox(height: 16),
+        // Tozalash tugmasi
+        if (_otpCode.isNotEmpty)
+          TextButton.icon(
+            onPressed: _clearOtp,
+            icon: const Icon(Icons.refresh_rounded, size: 18),
+            label: const Text('Tozalash'),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.textSecondary,
+            ),
+          ).animate().fadeIn(),
         const SizedBox(height: 30),
         // Qayta yuborish
         GestureDetector(
@@ -341,8 +378,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 TextSpan(
                   text: _canResend ? 'Kodni qayta yuborish' : 'Qayta yuborish ',
                   style: TextStyle(
-                    color: _canResend ? AppColors.primary : AppColors.textSecondary,
-                    fontWeight: _canResend ? FontWeight.w600 : FontWeight.normal,
+                    color: _canResend
+                        ? AppColors.primary
+                        : AppColors.textSecondary,
+                    fontWeight: _canResend
+                        ? FontWeight.w600
+                        : FontWeight.normal,
                   ),
                 ),
                 if (!_canResend)
@@ -432,7 +473,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           obscureText: _obscureConfirmPassword,
           suffixIcon: IconButton(
             onPressed: () {
-              setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+              setState(
+                () => _obscureConfirmPassword = !_obscureConfirmPassword,
+              );
             },
             icon: Icon(
               _obscureConfirmPassword
@@ -460,15 +503,18 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           ),
         ).animate().fadeIn(delay: 400.ms),
         const SizedBox(height: 14),
-        _buildRequirement('Kamida 6 ta belgi', _hasMinLength)
-            .animate()
-            .fadeIn(delay: 450.ms),
-        _buildRequirement('Kamida 1 ta katta harf (A-Z)', _hasUppercase)
-            .animate()
-            .fadeIn(delay: 500.ms),
-        _buildRequirement('Kamida 1 ta raqam (0-9)', _hasNumber)
-            .animate()
-            .fadeIn(delay: 550.ms),
+        _buildRequirement(
+          'Kamida 6 ta belgi',
+          _hasMinLength,
+        ).animate().fadeIn(delay: 450.ms),
+        _buildRequirement(
+          'Kamida 1 ta katta harf (A-Z)',
+          _hasUppercase,
+        ).animate().fadeIn(delay: 500.ms),
+        _buildRequirement(
+          'Kamida 1 ta raqam (0-9)',
+          _hasNumber,
+        ).animate().fadeIn(delay: 550.ms),
         const SizedBox(height: 40),
         // Tasdiqlash tugmasi
         CustomButton(
@@ -506,10 +552,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           controller: controller,
           obscureText: obscureText,
           validator: validator,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 15,
-          ),
+          style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(
@@ -519,7 +562,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             suffixIcon: suffixIcon,
             filled: true,
             fillColor: AppColors.surface,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 18,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppTheme.borderRadius),
               borderSide: BorderSide.none,
@@ -559,11 +605,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               ),
             ),
             child: isMet
-                ? const Icon(
-                    Icons.check,
-                    size: 14,
-                    color: AppColors.white,
-                  )
+                ? const Icon(Icons.check, size: 14, color: AppColors.white)
                 : null,
           ),
           const SizedBox(width: 12),
@@ -636,7 +678,8 @@ class _PasswordResetSuccessScreen extends StatelessWidget {
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const LoginScreen(isFromOnboarding: true),
+                      builder: (context) =>
+                          const LoginScreen(isFromOnboarding: true),
                     ),
                     (route) => false,
                   );
