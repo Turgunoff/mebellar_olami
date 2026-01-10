@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/extensions.dart';
 import '../../../data/models/order_model.dart';
@@ -11,6 +12,7 @@ import '../../../providers/user_provider.dart';
 import '../../widgets/custom_button.dart';
 import '../auth/login_screen.dart';
 import '../auth/welcome_screen.dart';
+import 'edit_profile_screen.dart';
 
 /// Profil ekrani - Nabolen Style
 /// iOS Settings uslubida professional dizayn
@@ -148,12 +150,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onTap: () => _showOrdersBottomSheet(context),
                 ),
                 _MenuItem(
-                  icon: Icons.person_outline_rounded,
-                  title: 'Profil ma\'lumotlari',
-                  subtitle: 'Ism, telefon raqam',
-                  onTap: () => _showEditProfileDialog(context, userProvider),
-                ),
-                _MenuItem(
                   icon: Icons.location_on_outlined,
                   title: 'Manzillar',
                   subtitle: 'Yetkazib berish manzillari',
@@ -228,100 +224,146 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildProfileCard(AuthProvider authProvider, UserProvider userProvider) {
     final name = userProvider.fullName ?? authProvider.userName ?? 'Foydalanuvchi';
     final phone = userProvider.phone ?? authProvider.userPhone ?? '';
+    final avatarUrl = userProvider.fullAvatarUrl;
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Avatar
-          Container(
-            width: 70,
-            height: 70,
-            decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: AppColors.white.withValues(alpha: 0.3),
-                width: 2,
-              ),
+    return GestureDetector(
+      onTap: () => _navigateToEditProfile(context),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: AppColors.primaryGradient,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
             ),
-            child: Center(
-              child: Text(
-                name.isNotEmpty ? name[0].toUpperCase() : 'F',
-                style: const TextStyle(
-                  color: AppColors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
+          ],
+        ),
+        child: Row(
+          children: [
+            // Avatar
+            Container(
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                color: AppColors.white.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.white.withValues(alpha: 0.3),
+                  width: 2,
                 ),
               ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          // Ma'lumotlar
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    color: AppColors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.phone_outlined,
-                      size: 14,
-                      color: AppColors.white.withValues(alpha: 0.8),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      phone,
-                      style: TextStyle(
-                        color: AppColors.white.withValues(alpha: 0.9),
-                        fontSize: 14,
+              child: ClipOval(
+                child: avatarUrl != null
+                    ? CachedNetworkImage(
+                        imageUrl: avatarUrl,
+                        fit: BoxFit.cover,
+                        width: 70,
+                        height: 70,
+                        placeholder: (context, url) => Center(
+                          child: Text(
+                            name.isNotEmpty ? name[0].toUpperCase() : 'F',
+                            style: const TextStyle(
+                              color: AppColors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Center(
+                          child: Text(
+                            name.isNotEmpty ? name[0].toUpperCase() : 'F',
+                            style: const TextStyle(
+                              color: AppColors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      )
+                    : Center(
+                        child: Text(
+                          name.isNotEmpty ? name[0].toUpperCase() : 'F',
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          // Tahrirlash tugmasi
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: IconButton(
-              onPressed: () => _showEditProfileDialog(context, userProvider),
-              icon: const Icon(
-                Icons.edit_outlined,
-                color: AppColors.white,
-                size: 20,
               ),
             ),
-          ),
-        ],
+            const SizedBox(width: 16),
+            // Ma'lumotlar
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.phone_outlined,
+                        size: 14,
+                        color: AppColors.white.withValues(alpha: 0.8),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        phone,
+                        style: TextStyle(
+                          color: AppColors.white.withValues(alpha: 0.9),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Tahrirlash tugmasi
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: IconButton(
+                onPressed: () => _navigateToEditProfile(context),
+                icon: const Icon(
+                  Icons.edit_outlined,
+                  color: AppColors.white,
+                  size: 20,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  /// EditProfileScreen'ga o'tish
+  void _navigateToEditProfile(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+    );
+
+    // Agar profil yangilangan bo'lsa, ma'lumotlarni qayta yuklash
+    if (result == true && mounted) {
+      context.read<UserProvider>().fetchUserProfile();
+    }
   }
 
   /// Menyu bo'limi
@@ -758,62 +800,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Profilni tahrirlash dialogi
-  void _showEditProfileDialog(BuildContext context, UserProvider userProvider) {
-    final nameController = TextEditingController(text: userProvider.fullName);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Profilni tahrirlash'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: InputDecoration(
-                labelText: 'Ism',
-                hintText: 'To\'liq ismingiz',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                prefixIcon: const Icon(Icons.person_outline),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Bekor qilish'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (nameController.text.trim().isNotEmpty) {
-                Navigator.pop(context);
-                final success = await userProvider.updateProfile(nameController.text.trim());
-                if (mounted && success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Profil yangilandi'),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
-                }
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            child: const Text('Saqlash'),
           ),
         ],
       ),

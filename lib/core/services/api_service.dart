@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'dart:io';
 import 'package:http/http.dart' as http;
 
 /// API Service - Go Backend bilan bog'lanish
@@ -234,19 +235,88 @@ class ApiService {
     return await get('/user/me', token: token);
   }
 
-  /// Profilni yangilash
+  /// Profilni yangilash (multipart - ism va avatar)
   Future<ApiResponse> updateProfile({
     required String token,
-    required String fullName,
+    String? fullName,
+    File? avatarFile,
   }) async {
-    _log('✏️ Updating profile: $fullName');
-    return await put('/user/me', {'full_name': fullName}, token: token);
+    _log('✏️ Updating profile: fullName=$fullName, hasAvatar=${avatarFile != null}');
+    return await multipartPut(
+      '/user/me',
+      token: token,
+      fields: fullName != null ? {'full_name': fullName} : {},
+      file: avatarFile,
+      fileField: 'avatar',
+    );
   }
 
   /// Hisobni o'chirish
   Future<ApiResponse> deleteAccount(String token) async {
     _log('🗑️ Deleting account...');
     return await delete('/user/me', token: token);
+  }
+
+  // ============================================
+  // PHONE CHANGE ENDPOINTS
+  // ============================================
+
+  /// Telefon o'zgartirish - OTP so'rash
+  Future<ApiResponse> requestPhoneChange({
+    required String token,
+    required String newPhone,
+  }) async {
+    _log('📞 Requesting phone change OTP: $newPhone');
+    return await post(
+      '/user/change-phone/request',
+      {'new_phone': newPhone},
+      token: token,
+    );
+  }
+
+  /// Telefon o'zgartirish - OTP tasdiqlash
+  Future<ApiResponse> verifyPhoneChange({
+    required String token,
+    required String newPhone,
+    required String code,
+  }) async {
+    _log('📞 Verifying phone change: $newPhone, code: $code');
+    return await post(
+      '/user/change-phone/verify',
+      {'new_phone': newPhone, 'code': code},
+      token: token,
+    );
+  }
+
+  // ============================================
+  // EMAIL CHANGE ENDPOINTS
+  // ============================================
+
+  /// Email o'zgartirish - OTP so'rash
+  Future<ApiResponse> requestEmailChange({
+    required String token,
+    required String newEmail,
+  }) async {
+    _log('📧 Requesting email change OTP: $newEmail');
+    return await post(
+      '/user/change-email/request',
+      {'new_email': newEmail},
+      token: token,
+    );
+  }
+
+  /// Email o'zgartirish - OTP tasdiqlash
+  Future<ApiResponse> verifyEmailChange({
+    required String token,
+    required String newEmail,
+    required String code,
+  }) async {
+    _log('📧 Verifying email change: $newEmail, code: $code');
+    return await post(
+      '/user/change-email/verify',
+      {'new_email': newEmail, 'code': code},
+      token: token,
+    );
   }
 
   /// PUT so'rov yuborish
@@ -293,6 +363,60 @@ class ApiService {
         Uri.parse(url),
         headers: token != null ? authHeaders(token) : _headers,
       );
+
+      _log('📥 Status Code: ${response.statusCode}');
+      _log('📥 Response Body: ${response.body}');
+      _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      return _handleResponse(response);
+    } catch (e, stackTrace) {
+      _log('❌ Error: $e');
+      _log('❌ StackTrace: $stackTrace');
+      return ApiResponse(
+        success: false,
+        message: 'Server bilan bog\'lanib bo\'lmadi: $e',
+      );
+    }
+  }
+
+  /// Multipart PUT so'rov yuborish (fayl yuklash uchun)
+  Future<ApiResponse> multipartPut(
+    String endpoint, {
+    required String token,
+    Map<String, String> fields = const {},
+    File? file,
+    String fileField = 'file',
+  }) async {
+    final url = '$baseUrl$endpoint';
+    _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    _log('📤 MULTIPART PUT: $url');
+    _log('📦 Fields: $fields');
+    _log('📎 File: ${file?.path ?? "none"}');
+
+    try {
+      final request = http.MultipartRequest('PUT', Uri.parse(url));
+      request.headers['Authorization'] = 'Bearer $token';
+
+      // Text fieldlarni qo'shish
+      request.fields.addAll(fields);
+
+      // Fayl qo'shish (agar bor bo'lsa)
+      if (file != null) {
+        final fileStream = http.ByteStream(file.openRead());
+        final length = await file.length();
+        final filename = file.path.split('/').last;
+
+        final multipartFile = http.MultipartFile(
+          fileField,
+          fileStream,
+          length,
+          filename: filename,
+        );
+        request.files.add(multipartFile);
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
 
       _log('📥 Status Code: ${response.statusCode}');
       _log('📥 Response Body: ${response.body}');
