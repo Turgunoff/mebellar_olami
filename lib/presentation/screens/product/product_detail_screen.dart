@@ -27,18 +27,39 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
-  String? _selectedColor;
+  int _selectedVariantIndex = 0;
+  int _currentImageIndex = 0;
   int _quantity = 1;
+  late PageController _imagePageController;
 
   @override
   void initState() {
     super.initState();
-    if (widget.product.colors.isNotEmpty) {
-      _selectedColor = widget.product.colors.first;
-    }
+    _imagePageController = PageController();
   }
 
-  double get _totalPrice => widget.product.price * _quantity;
+  @override
+  void dispose() {
+    _imagePageController.dispose();
+    super.dispose();
+  }
+
+  /// Tanlangan variant
+  Map<String, dynamic>? get _selectedVariant {
+    if (widget.product.variants.isEmpty) return null;
+    return widget.product.variants[_selectedVariantIndex];
+  }
+
+  /// Tanlangan rangning stoklari
+  int get _selectedStock {
+    return (_selectedVariant?['stock'] as int?) ?? 0;
+  }
+
+  /// Aktual narx (chegirmali yoki oddiy)
+  double get _actualPrice => widget.product.actualPrice;
+
+  /// Jami narx
+  double get _totalPrice => _actualPrice * _quantity;
 
   void _handleBuyNow() {
     final authProvider = context.read<AuthProvider>();
@@ -56,7 +77,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         MaterialPageRoute(
           builder: (context) => CheckoutScreen(
             product: widget.product,
-            selectedColor: _selectedColor,
+            selectedColor: _selectedVariant?['colorCode'] as String?,
             quantity: _quantity,
           ),
         ),
@@ -84,14 +105,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget build(BuildContext context) {
     final favoritesProvider = context.watch<FavoritesProvider>();
     final isFavorite = favoritesProvider.isFavorite(widget.product.id);
+    final hasImages = widget.product.images.isNotEmpty;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
-          // SliverAppBar - Parallax effekti
+          // SliverAppBar - Rasm galereyasi
           SliverAppBar(
-            expandedHeight: 380,
+            expandedHeight: 400,
             pinned: true,
             backgroundColor: AppColors.surface,
             leading: Padding(
@@ -134,7 +156,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   child: IconButton(
                     onPressed: _handleFavorite,
                     icon: Icon(
-                      isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                      isFavorite
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
                       size: 22,
                       color: isFavorite ? AppColors.primary : AppColors.textPrimary,
                     ),
@@ -143,28 +167,113 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
-              background: Hero(
-                tag: 'product_${widget.product.id}',
-                child: CachedNetworkImage(
-                  imageUrl: widget.product.imageUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: AppColors.secondary.withValues(alpha: 0.3),
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.primary,
+              background: Stack(
+                children: [
+                  // Rasm galereyasi
+                  if (hasImages)
+                    Hero(
+                      tag: 'product_${widget.product.id}',
+                      child: PageView.builder(
+                        controller: _imagePageController,
+                        itemCount: widget.product.images.length,
+                        onPageChanged: (index) {
+                          setState(() {
+                            _currentImageIndex = index;
+                          });
+                        },
+                        itemBuilder: (context, index) {
+                          return CachedNetworkImage(
+                            imageUrl: widget.product.images[index],
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: AppColors.secondary.withValues(alpha: 0.3),
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: AppColors.secondary.withValues(alpha: 0.3),
+                              child: const Icon(
+                                Icons.image_not_supported_outlined,
+                                size: 48,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  else
+                    Container(
+                      color: AppColors.secondary.withValues(alpha: 0.3),
+                      child: const Center(
+                        child: Icon(
+                          Icons.image_not_supported_outlined,
+                          size: 48,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: AppColors.secondary.withValues(alpha: 0.3),
-                    child: const Icon(
-                      Icons.image_not_supported_outlined,
-                      size: 48,
-                      color: AppColors.textSecondary,
+
+                  // Badgelar (Yangi, Popular)
+                  Positioned(
+                    top: 100,
+                    left: 16,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (widget.product.isNew)
+                          _buildBadge('YANGI', AppColors.success),
+                        if (widget.product.isPopular) ...[
+                          const SizedBox(height: 8),
+                          _buildBadge('OMMABOP', Colors.orange),
+                        ],
+                        if (widget.product.hasDiscount) ...[
+                          const SizedBox(height: 8),
+                          _buildBadge(
+                            '-${widget.product.discountPercent}%',
+                            AppColors.error,
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                ),
+
+                  // Rasm indikatorlari
+                  if (widget.product.images.length > 1)
+                    Positioned(
+                      bottom: 40,
+                      left: 0,
+                      right: 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          widget.product.images.length,
+                          (index) => AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            width: _currentImageIndex == index ? 24 : 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: _currentImageIndex == index
+                                  ? AppColors.primary
+                                  : AppColors.white.withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(4),
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      AppColors.textPrimary.withValues(alpha: 0.2),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
@@ -187,24 +296,25 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.secondary.withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            widget.product.category,
-                            style: const TextStyle(
-                              color: AppColors.primary,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                        if (widget.product.category.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.secondary.withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              widget.product.category,
+                              style: const TextStyle(
+                                color: AppColors.primary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                        ),
                         Row(
                           children: [
                             const Icon(
@@ -237,18 +347,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     ).animate().fadeIn(delay: 150.ms).slideX(begin: -0.1),
                     const SizedBox(height: 14),
-                    // Narx
-                    Text(
-                      widget.product.price.toCurrency(),
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1),
+                    // Narx qismi
+                    _buildPriceSection()
+                        .animate()
+                        .fadeIn(delay: 200.ms)
+                        .slideX(begin: -0.1),
                     const SizedBox(height: 28),
-                    // Rang tanlash
-                    if (widget.product.colors.isNotEmpty) ...[
+                    // Variant (rang) tanlash
+                    if (widget.product.variants.isNotEmpty) ...[
                       const Text(
                         'Rang',
                         style: TextStyle(
@@ -258,17 +364,33 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ),
                       ),
                       const SizedBox(height: 14),
-                      _buildColorSelector().animate().fadeIn(delay: 250.ms),
+                      _buildVariantSelector().animate().fadeIn(delay: 250.ms),
                       const SizedBox(height: 28),
                     ],
                     // Miqdor tanlash
-                    const Text(
-                      'Miqdor',
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Miqdor',
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        if (_selectedStock > 0)
+                          Text(
+                            'Mavjud: $_selectedStock dona',
+                            style: TextStyle(
+                              color: _selectedStock <= 5
+                                  ? AppColors.error
+                                  : AppColors.textSecondary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 14),
                     _buildQuantitySelector().animate().fadeIn(delay: 300.ms),
@@ -292,6 +414,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     ).animate().fadeIn(delay: 350.ms),
                     const SizedBox(height: 28),
+                    // Spetsifikatsiyalar
+                    if (widget.product.specs.isNotEmpty) ...[
+                      _buildSpecsSection().animate().fadeIn(delay: 380.ms),
+                      const SizedBox(height: 28),
+                    ],
                     // Xususiyatlar
                     _buildFeatures().animate().fadeIn(delay: 400.ms),
                     const SizedBox(height: 120),
@@ -349,10 +476,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               // Sotib olish tugmasi
               Expanded(
                 child: CustomButton(
-                  text: 'Hozir sotib olish',
+                  text: _selectedStock > 0 ? 'Hozir sotib olish' : 'Tugagan',
                   height: 58,
                   borderRadius: AppTheme.borderRadius,
-                  onPressed: _handleBuyNow,
+                  onPressed: _selectedStock > 0 ? _handleBuyNow : null,
                 ),
               ),
             ],
@@ -362,49 +489,178 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  /// Rang tanlash
-  Widget _buildColorSelector() {
+  /// Badge yaratish
+  Widget _buildBadge(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.4),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: AppColors.white,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
+  /// Narx bo'limi
+  Widget _buildPriceSection() {
+    if (widget.product.hasDiscount) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            widget.product.discountPrice!.toCurrency(),
+            style: const TextStyle(
+              color: AppColors.primary,
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            widget.product.price.toCurrency(),
+            style: TextStyle(
+              color: AppColors.textSecondary.withValues(alpha: 0.7),
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              decoration: TextDecoration.lineThrough,
+              decorationColor: AppColors.textSecondary.withValues(alpha: 0.7),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Text(
+      widget.product.price.toCurrency(),
+      style: const TextStyle(
+        color: AppColors.primary,
+        fontSize: 28,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
+  /// Variant (rang) tanlash
+  Widget _buildVariantSelector() {
     return Wrap(
-      spacing: 14,
-      runSpacing: 14,
-      children: widget.product.colors.map((colorHex) {
+      spacing: 12,
+      runSpacing: 12,
+      children: widget.product.variants.asMap().entries.map((entry) {
+        final index = entry.key;
+        final variant = entry.value;
+        final colorHex = variant['colorCode'] as String? ?? 'CCCCCC';
+        final colorName = variant['color'] as String? ?? '';
+        final stock = variant['stock'] as int? ?? 0;
         final color = colorHex.toColor();
-        final isSelected = _selectedColor == colorHex;
+        final isSelected = _selectedVariantIndex == index;
+        final isOutOfStock = stock <= 0;
 
         return GestureDetector(
-          onTap: () {
-            setState(() {
-              _selectedColor = colorHex;
-            });
-          },
+          onTap: isOutOfStock
+              ? null
+              : () {
+                  setState(() {
+                    _selectedVariantIndex = index;
+                    // Reset quantity if exceeds stock
+                    if (_quantity > stock) {
+                      _quantity = stock > 0 ? stock : 1;
+                    }
+                  });
+                },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            width: 48,
-            height: 48,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
+              color: isSelected
+                  ? AppColors.primary.withValues(alpha: 0.1)
+                  : AppColors.surface,
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isSelected ? AppColors.primary : AppColors.lightGrey,
-                width: isSelected ? 3 : 2,
+                color: isSelected
+                    ? AppColors.primary
+                    : isOutOfStock
+                        ? AppColors.lightGrey
+                        : AppColors.lightGrey,
+                width: isSelected ? 2 : 1,
               ),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: color.withValues(alpha: 0.4),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ]
-                  : null,
             ),
-            child: isSelected
-                ? Icon(
-                    Icons.check_rounded,
-                    color: _getContrastColor(color),
-                    size: 22,
-                  )
-                : null,
+            child: Opacity(
+              opacity: isOutOfStock ? 0.5 : 1.0,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Rang doirasi
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.lightGrey,
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withValues(alpha: 0.3),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: isSelected
+                        ? Icon(
+                            Icons.check_rounded,
+                            color: _getContrastColor(color),
+                            size: 16,
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: 10),
+                  // Rang nomi va stok
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        colorName,
+                        style: TextStyle(
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.textPrimary,
+                          fontSize: 14,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        isOutOfStock ? 'Tugagan' : '$stock dona',
+                        style: TextStyle(
+                          color: isOutOfStock
+                              ? AppColors.error
+                              : AppColors.textSecondary,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
         );
       }).toList(),
@@ -413,6 +669,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   /// Miqdor tanlash
   Widget _buildQuantitySelector() {
+    final maxQuantity = _selectedStock > 0 ? _selectedStock : 1;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
@@ -446,11 +704,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           _buildQuantityButton(
             icon: Icons.add_rounded,
             onTap: () {
-              if (_quantity < 10) {
+              if (_quantity < maxQuantity) {
                 setState(() => _quantity++);
               }
             },
-            enabled: _quantity < 10,
+            enabled: _quantity < maxQuantity,
           ),
         ],
       ),
@@ -484,6 +742,72 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Color _getContrastColor(Color color) {
     final luminance = color.computeLuminance();
     return luminance > 0.5 ? AppColors.textPrimary : AppColors.white;
+  }
+
+  /// Spetsifikatsiyalar bo'limi
+  Widget _buildSpecsSection() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(
+                Icons.info_outline_rounded,
+                color: AppColors.primary,
+                size: 20,
+              ),
+              SizedBox(width: 8),
+              Text(
+                'Xususiyatlar',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...widget.product.specs.entries.map((entry) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Text(
+                      entry.key,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      entry.value.toString(),
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
   }
 
   /// Xususiyatlar
