@@ -30,9 +30,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = context.read<AuthProvider>();
       if (authProvider.isLoggedIn) {
-        // Profilni va buyurtmalarni yuklash
+        // Profilni yuklash
         context.read<UserProvider>().fetchUserProfile();
-        context.read<OrdersProvider>().loadOrders();
+        // Orders will be loaded when needed (no customer order history endpoint yet)
       }
     });
   }
@@ -123,7 +123,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return RefreshIndicator(
       onRefresh: () async {
         await context.read<UserProvider>().fetchUserProfile();
-        await context.read<OrdersProvider>().loadOrders();
+        // Orders will be loaded when needed (no customer order history endpoint yet)
       },
       color: AppColors.primary,
       child: SingleChildScrollView(
@@ -178,7 +178,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   trailing: Switch(
                     value: true,
                     onChanged: (value) {},
-                    activeColor: AppColors.primary,
+                    activeThumbColor: AppColors.primary,
                   ),
                   onTap: () {},
                 ),
@@ -701,13 +701,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
         statusColor = AppColors.primary;
         statusIcon = Icons.schedule_rounded;
         break;
-      case OrderStatus.processing:
+      case OrderStatus.confirmed:
         statusColor = Colors.blue;
+        statusIcon = Icons.check_circle_outline_rounded;
+        break;
+      case OrderStatus.shipping:
+        statusColor = Colors.orange;
         statusIcon = Icons.local_shipping_outlined;
         break;
-      case OrderStatus.delivered:
+      case OrderStatus.completed:
         statusColor = AppColors.success;
-        statusIcon = Icons.check_circle_outline_rounded;
+        statusIcon = Icons.check_circle_rounded;
+        break;
+      case OrderStatus.cancelled:
+        statusColor = AppColors.error;
+        statusIcon = Icons.cancel_outlined;
         break;
     }
 

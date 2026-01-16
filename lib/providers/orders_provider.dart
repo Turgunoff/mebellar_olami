@@ -8,7 +8,7 @@ import '../core/services/api_service.dart';
 class OrdersProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
 
-  List<OrderModel> _orders = [];
+  final List<OrderModel> _orders = [];
   bool _isLoading = false;
   String? _errorMessage;
 

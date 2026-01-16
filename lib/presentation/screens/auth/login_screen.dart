@@ -5,7 +5,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../providers/orders_provider.dart';
 import '../../widgets/custom_button.dart';
 import '../main_screen.dart';
 import 'signup_screen.dart';
@@ -56,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (success && mounted) {
-      context.read<OrdersProvider>().loadOrders();
+      // Orders will be loaded when needed (no customer order history endpoint yet)
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const MainScreen()),
