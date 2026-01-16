@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mebellar Olami - Investor Taqdimoti</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 0;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+      }
+
+      .page {
+        width: 210mm;
+        min-height: 297mm;
+        background: white;
+        margin: 0 auto 20px;
+        padding: 20mm;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        page-break-after: always;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 3px solid #2c3e50;
+      }
+
+      .header h1 {
+        color: #2c3e50;
+        font-size: 32px;
+        margin-bottom: 10px;
+      }
+
+      .header .tagline {
+        color: #7f8c8d;
+        font-size: 16px;
+      }
+
+      .key-questions {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+      }
+
+      .key-questions h2 {
+        margin-bottom: 20px;
+        font-size: 24px;
+      }
+
+      .key-questions ol {
+        margin-left: 25px;
+        font-size: 18px;
+        line-height: 1.8;
+      }
+
+      .section-title {
+        background: #2c3e50;
+        color: white;
+        padding: 12px 20px;
+        margin: 30px 0 20px;
+        border-radius: 8px;
+        font-size: 20px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 12px;
+      }
+
+      th {
+        background: #34495e;
+        color: white;
+        padding: 12px 8px;
+        text-align: left;
+        font-weight: 600;
+      }
+
+      td {
+        padding: 10px 8px;
+        border-bottom: 1px solid #ecf0f1;
+      }
+
+      tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+
+      .highlight {
+        background: #fff3cd;
+        font-weight: bold;
+      }
+
+      .positive {
+        color: #27ae60;
+        font-weight: bold;
+      }
+
+      .negative {
+        color: #e74c3c;
+      }
+
+      .metric-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 25px 0;
+      }
+
+      .metric-card {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+      }
+
+      .metric-card .value {
+        font-size: 32px;
+        font-weight: bold;
+        margin: 10px 0;
+      }
+
+      .metric-card .label {
+        font-size: 14px;
+        opacity: 0.9;
+      }
+
+      .strategy-box {
+        background: #e8f5e9;
+        border-left: 4px solid #4caf50;
+        padding: 20px;
+        margin: 15px 0;
+        border-radius: 5px;
+      }
+
+      .strategy-box h3 {
+        color: #2e7d32;
+        margin-bottom: 10px;
+      }
+
+      .strategy-box ul {
+        margin-left: 20px;
+        line-height: 1.8;
+      }
+
+      .unit-economics {
+        background: #fff3e0;
+        border: 2px solid #ff9800;
+        padding: 25px;
+        border-radius: 10px;
+        margin: 20px 0;
+      }
+
+      .formula {
+        background: #263238;
+        color: #4caf50;
+        padding: 15px;
+        border-radius: 8px;
+        font-family: "Courier New", monospace;
+        font-size: 18px;
+        text-align: center;
+        margin: 15px 0;
+      }
+
+      .investment-box {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin: 25px 0;
+      }
+
+      .investment-box h3 {
+        font-size: 22px;
+        margin-bottom: 15px;
+      }
+
+      .investment-box ul {
+        font-size: 16px;
+        line-height: 2;
+        margin-left: 20px;
+      }
+
+      @media print {
+        body {
+          padding: 0;
+          background: white;
+        }
+
+        .page {
+          margin: 0;
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- PAGE 1: OVERVIEW & FORECAST -->
+    <div class="page">
+      <div class="header">
+        <h1>🏡 Mebellar Olami</h1>
+        <p class="tagline">O'zbekiston Mebel E-Commerce Platformasi</p>
+      </div>
+
+      <div class="key-questions">
+        <h2>💡 Investorlar uchun asosiy savollar:</h2>
+        <ol>
+          <li>
+            <strong>Pulm qachon qaytadi?</strong> (ROI - Return on Investment)
+          </li>
+          <li><strong>Qancha pul "kuyishi" mumkin?</strong> (Risk)</li>
+          <li>
+            <strong>Maksimal qancha foyda ko'rishim mumkin?</strong>
+            (Scalability)
+          </li>
+        </ol>
+      </div>
+
+      <h2 class="section-title">📊 1-YILLIK MOLIYAVIY PROGNOZ</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Ko'rsatkichlar</th>
+            <th>1-Chorak<br />(Launch)</th>
+            <th>2-Chorak<br />(O'sish)</th>
+            <th>3-Chorak<br />(Masshtab)</th>
+            <th>4-Chorak<br />(Foyda)</th>
+            <th>JAMI 1-YIL</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="background: #e3f2fd">
+            <td><strong>Faol Sotuvchilar</strong></td>
+            <td>20 ta</td>
+            <td>50 ta</td>
+            <td>100 ta</td>
+            <td>200 ta</td>
+            <td><strong>—</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Oylik Buyurtmalar</strong></td>
+            <td>30 ta</td>
+            <td>150 ta</td>
+            <td>500 ta</td>
+            <td>1,000 ta</td>
+            <td><strong>5,040 ta</strong></td>
+          </tr>
+          <tr style="background: #fff9c4">
+            <td><strong>Umumiy Savdo (GMV)</strong></td>
+            <td>$6,000</td>
+            <td>$30,000</td>
+            <td>$100,000</td>
+            <td>$200,000</td>
+            <td><strong>$1,008,000</strong></td>
+          </tr>
+          <tr style="background: #c8e6c9">
+            <td colspan="6"><strong>DAROMADLAR:</strong></td>
+          </tr>
+          <tr>
+            <td>1. Komissiya (5%)</td>
+            <td>$300</td>
+            <td>$1,500</td>
+            <td>$5,000</td>
+            <td>$10,000</td>
+            <td><strong>$50,400</strong></td>
+          </tr>
+          <tr>
+            <td>2. Obuna ($15/oy)</td>
+            <td>$0</td>
+            <td>$375</td>
+            <td>$1,125</td>
+            <td>$3,000</td>
+            <td><strong>$13,500</strong></td>
+          </tr>
+          <tr>
+            <td>3. Reklama (Top)</td>
+            <td>$0</td>
+            <td>$100</td>
+            <td>$500</td>
+            <td>$1,500</td>
+            <td><strong>$6,300</strong></td>
+          </tr>
+          <tr class="highlight">
+            <td><strong>JAMI DAROMAD</strong></td>
+            <td>$300</td>
+            <td>$1,975</td>
+            <td>$6,625</td>
+            <td>$14,500</td>
+            <td><strong>~$70,000</strong></td>
+          </tr>
+          <tr style="background: #ffccbc">
+            <td colspan="6"><strong>XARAJATLAR:</strong></td>
+          </tr>
+          <tr>
+            <td>Marketing (Target/Bloger)</td>
+            <td>$1,500</td>
+            <td>$2,000</td>
+            <td>$3,000</td>
+            <td>$4,000</td>
+            <td><strong>$31,500</strong></td>
+          </tr>
+          <tr>
+            <td>Server va SMS</td>
+            <td>$200</td>
+            <td>$500</td>
+            <td>$1000</td>
+            <td>$2000</td>
+            <td><strong>$3,700</strong></td>
+          </tr>
+          <tr>
+            <td>Jamoa (Sales, Admin)</td>
+            <td>$600</td>
+            <td>$1,000</td>
+            <td>$1,500</td>
+            <td>$2,000</td>
+            <td><strong>$15,300</strong></td>
+          </tr>
+          <tr>
+            <td>Soliq va ofis</td>
+            <td>$100</td>
+            <td>$200</td>
+            <td>$300</td>
+            <td>$500</td>
+            <td><strong>$3,300</strong></td>
+          </tr>
+          <tr class="highlight">
+            <td><strong>JAMI XARAJAT</strong></td>
+            <td>$2,250</td>
+            <td>$3,300</td>
+            <td>$5,000</td>
+            <td>$6,800</td>
+            <td><strong>~$53,700</strong></td>
+          </tr>
+          <tr style="background: #e1f5fe; font-size: 14px">
+            <td><strong>SOF FOYDA/ZARAR</strong></td>
+            <td class="negative">-$1,950</td>
+            <td class="negative">-$1,325</td>
+            <td class="positive">+$1,625 🚀</td>
+            <td class="positive">+$7,700</td>
+            <td class="positive"><strong>+$18,000</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="investment-box">
+        <h3>💰 Investor uchun XULOSA:</h3>
+        <ul>
+          <li>
+            <strong>Investitsiya talabi:</strong> $10,000 - $15,000 (dastlabki 6
+            oy uchun)
+          </li>
+          <li><strong>Break-even Point:</strong> 7-8 oy (3-chorak boshida)</li>
+          <li><strong>1-yil yakuni:</strong> Oyiga $7,000+ sof foyda</li>
+          <li>
+            <strong>ROI (Return on Investment):</strong> ~120-180% birinchi
+            yilda
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- PAGE 2: GROWTH STRATEGIES -->
+    <div class="page">
+      <div class="header">
+        <h1>🚀 Tezkor O'sish Strategiyalari</h1>
+        <p class="tagline">Qanday qilib TEZROQ foydaga chiqish mumkin?</p>
+      </div>
+
+      <h2 class="section-title">🎯 TEZKOR DAROMAD (Quick Wins) Usullari</h2>
+
+      <div class="strategy-box">
+        <h3>
+          A. 💳 Nasiya Savdo (Installment) - O'zbekiston uchun "Oltin kalit"
+        </h3>
+        <p>
+          <strong>Muammo:</strong> Mebel qimmat mahsulot. Odamlar birdaniga 5
+          mln so'm to'lashga qiynaladi.
+        </p>
+        <p>
+          <strong>Yechim:</strong> Uzum Nasiya, Alif yoki Intend bilan shartnoma
+        </p>
+        <ul>
+          <li><strong>Ta'sir:</strong> Savdo hajmi 3 barobar oshadi ⬆️</li>
+          <li>
+            <strong>Biznes model:</strong> Nasiya provayderlaridan qo'shimcha
+            komissiya
+          </li>
+          <li>
+            <strong>Mijoz uchun:</strong> Oyiga 500,000 so'm to'lash oson (5 mln
+            so'm emas)
+          </li>
+          <li><strong>Natija:</strong> Konversiya 15% → 45% ga oshadi</li>
+        </ul>
+      </div>
+
+      <div class="strategy-box">
+        <h3>B. 🏢 B2B Sotuvlar (Ofis Mebellari)</h3>
+        <p>
+          <strong>Mantiq:</strong> Yakka tartibdagi mijozlar bitta divan oladi.
+          Firmalar esa 20 ta stol-stul oladi.
+        </p>
+        <p>
+          <strong>Strategiya:</strong> "Mebellar Olami Business" bo'limini
+          oching
+        </p>
+        <ul>
+          <li><strong>Potensial:</strong> Bitta B2B buyurtma = $5,000</li>
+          <li><strong>Teng:</strong> 25 ta oddiy mijozning foydasiga teng</li>
+          <li>
+            <strong>Maqsad:</strong> Har oyda 5-10 ta firmaga xizmat ko'rsatish
+          </li>
+          <li><strong>Natija:</strong> ENG TEZ foydaga kirish yo'li 🎯</li>
+        </ul>
+      </div>
+
+      <div class="strategy-box">
+        <h3>C. 📞 "Lead Generation" modeli</h3>
+        <p>
+          <strong>Muqobil yondashuv:</strong> Agar to'g'ridan-to'g'ri savdo
+          qilish qiyin bo'lsa:
+        </p>
+        <ul>
+          <li>Siz mebel sotmang → Siz mijoz ma'lumotlarini soting</li>
+          <li>Har bir "Qiziqish bildirilgan" tugmasi: 5,000 so'm</li>
+          <li>Mebelchi uchun juda arzon</li>
+          <li>Siz uchun kafolatlangan pul (sotiladimi-yo'qmi farqi yo'q)</li>
+          <li>
+            <strong>Misol:</strong> Oyiga 500 ta lead × 5,000 = 2.5 mln so'm
+          </li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>
