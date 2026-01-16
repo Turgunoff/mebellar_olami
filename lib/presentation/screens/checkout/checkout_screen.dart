@@ -61,16 +61,48 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     try {
       final ordersProvider = context.read<OrdersProvider>();
 
-      await ordersProvider.createOrder(
+      // Shop ID ni olish (product dan yoki default)
+      // Eslatma: Backend hozircha shop_id ni product response da qaytarmaydi
+      // Shuning uchun vaqtincha hardcoded yoki product dan olish kerak
+      // Kelajakda backend shop_id ni qaytarishi kerak
+      final shopId = widget.product.shopId ?? 
+                     '00000000-0000-0000-0000-000000000000'; // Default shop ID
+
+      if (shopId.isEmpty || shopId == '00000000-0000-0000-0000-000000000000') {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Mahsulot do\'koni topilmadi. Iltimos, keyinroq urinib ko\'ring.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+        return;
+      }
+
+      final order = await ordersProvider.createOrder(
+        shopId: shopId,
         product: widget.product,
-        selectedColor: widget.selectedColor ?? widget.product.colors.first,
+        quantity: widget.quantity,
+        selectedColor: widget.selectedColor,
         customerName: _nameController.text.trim(),
         customerPhone: _phoneController.text.trim(),
         deliveryAddress: _addressController.text.trim(),
+        clientNote: null, // Kelajakda note field qo'shish mumkin
       );
 
       if (mounted) {
-        _showSuccessDialog();
+        if (order != null) {
+          _showSuccessDialog();
+        } else {
+          final errorMsg = ordersProvider.errorMessage ?? 'Buyurtma yaratishda xatolik yuz berdi';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMsg),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {

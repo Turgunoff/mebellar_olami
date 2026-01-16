@@ -4,9 +4,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_theme.dart';
-import '../../../data/mock/mock_data.dart';
 import '../../../data/models/product_model.dart';
 import '../../../providers/product_provider.dart';
+import '../../../providers/category_provider.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/category_card.dart';
 import '../product/product_detail_screen.dart';
@@ -25,20 +25,40 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentBannerIndex = 0;
   String? _selectedCategoryId;
 
+  // Static banners (Backend API yo'q, shuning uchun static)
+  static const List<Map<String, String>> _banners = [
+    {
+      'image': 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
+      'title': 'Yangi Kolleksiya',
+      'subtitle': '30% gacha chegirma',
+    },
+    {
+      'image': 'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=800',
+      'title': 'Premium Divanlar',
+      'subtitle': 'Maxsus narxlarda',
+    },
+    {
+      'image': 'https://images.unsplash.com/photo-1538688525198-9b88f6f53126?w=800',
+      'title': 'Yotoqxona to\'plami',
+      'subtitle': 'Bepul yetkazib berish',
+    },
+  ];
+
   @override
   void initState() {
     super.initState();
     _startBannerAutoScroll();
-    // Mahsulotlarni yuklash
+    // Ma'lumotlarni yuklash
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductProvider>().fetchAll();
+      context.read<CategoryProvider>().fetchCategories();
     });
   }
 
   void _startBannerAutoScroll() {
     Future.delayed(const Duration(seconds: 4), () {
-      if (mounted && _bannerController.hasClients) {
-        final nextPage = (_currentBannerIndex + 1) % MockData.banners.length;
+      if (mounted && _bannerController.hasClients && _banners.isNotEmpty) {
+        final nextPage = (_currentBannerIndex + 1) % _banners.length;
         _bannerController.animateToPage(
           nextPage,
           duration: const Duration(milliseconds: 500),
@@ -67,19 +87,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<ProductModel> _getFilteredProducts(ProductProvider productProvider) {
     // Backenddan kelgan mahsulotlar
-    final products = productProvider.popularProducts.isNotEmpty
-        ? productProvider.popularProducts
-        : MockData.popularProducts;
+    final products = productProvider.popularProducts;
 
     if (_selectedCategoryId == null) {
       return products;
     }
 
     // Kategoriya bo'yicha filtrlash
-    final categoryPrefix = _selectedCategoryId!.split('_').take(2).join('_');
     return products.where((p) {
       final productCat = p.categoryId ?? '';
-      return productCat.startsWith(categoryPrefix);
+      return productCat == _selectedCategoryId;
     }).toList();
   }
 
@@ -246,9 +263,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 _currentBannerIndex = index;
               });
             },
-            itemCount: MockData.banners.length,
+            itemCount: _banners.length,
             itemBuilder: (context, index) {
-              final banner = MockData.banners[index];
+              final banner = _banners[index];
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 decoration: BoxDecoration(
@@ -349,7 +366,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
-            MockData.banners.length,
+            _banners.length,
             (index) => AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -383,13 +400,19 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // Backenddan yoki MockData dan olish
-    final newProducts = productProvider.newArrivals.isNotEmpty
-        ? productProvider.newArrivals
-        : MockData.newProducts;
+    // Backenddan kelgan yangi mahsulotlar
+    final newProducts = productProvider.newArrivals;
 
     if (newProducts.isEmpty) {
-      return const SizedBox(height: 20);
+      return const SizedBox(
+        height: 100,
+        child: Center(
+          child: Text(
+            'Yangi mahsulotlar hozircha yo\'q',
+            style: TextStyle(color: AppColors.textSecondary),
+          ),
+        ),
+      );
     }
 
     return SizedBox(
@@ -448,14 +471,34 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Kategoriyalar (Gorizontal)
   Widget _buildCategoriesRow() {
+    final categoryProvider = context.watch<CategoryProvider>();
+    
+    if (categoryProvider.isLoading) {
+      return const SizedBox(
+        height: 52,
+        child: Center(
+          child: CircularProgressIndicator(
+            color: AppColors.primary,
+            strokeWidth: 2,
+          ),
+        ),
+      );
+    }
+
+    final categories = categoryProvider.categories;
+    
+    if (categories.isEmpty) {
+      return const SizedBox(height: 20);
+    }
+
     return SizedBox(
       height: 52,
       child: ListView.builder(
         padding: const EdgeInsets.only(left: 20),
         scrollDirection: Axis.horizontal,
-        itemCount: MockData.categories.length,
+        itemCount: categories.length,
         itemBuilder: (context, index) {
-          final category = MockData.categories[index];
+          final category = categories[index];
           return HorizontalCategoryItem(
             category: category,
             isSelected: _selectedCategoryId == category.id,

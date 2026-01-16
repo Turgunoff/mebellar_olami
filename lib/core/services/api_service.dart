@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// API Service - Go Backend bilan bog'lanish
 class ApiService {
@@ -27,6 +28,26 @@ class ApiService {
     'Authorization': 'Bearer $token',
   };
 
+  /// Token ni SharedPreferences dan olish
+  Future<String?> _getToken() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString('auth_token');
+    } catch (e) {
+      _log('⚠️ Error getting token: $e');
+      return null;
+    }
+  }
+
+  /// Headers ni olish (token avtomatik qo'shiladi)
+  Future<Map<String, String>> _getHeaders({String? explicitToken}) async {
+    final token = explicitToken ?? await _getToken();
+    if (token != null && token.isNotEmpty) {
+      return authHeaders(token);
+    }
+    return _headers;
+  }
+
   /// Log helper
   void _log(String message) {
     developer.log(message, name: 'API');
@@ -35,21 +56,35 @@ class ApiService {
   }
 
   /// POST so'rov yuborish
+  /// Token avtomatik SharedPreferences dan olinadi, agar explicitToken berilmasa
   Future<ApiResponse> post(
     String endpoint,
     Map<String, dynamic> body, {
-    String? token,
+    String? token, // Explicit token (optional, otherwise auto-fetched)
+    bool requireAuth = false, // Agar true bo'lsa va token topilmasa xatolik qaytaradi
   }) async {
     final url = '$baseUrl$endpoint';
+    final headers = await _getHeaders(explicitToken: token);
+    
     _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     _log('📤 POST: $url');
     _log('📦 Body: ${jsonEncode(body)}');
-    _log('📋 Headers: ${token != null ? authHeaders(token) : _headers}');
+    _log('📋 Headers: $headers');
+
+    // Agar auth talab qilinsa va token bo'lmasa
+    if (requireAuth && !headers.containsKey('Authorization')) {
+      _log('❌ Auth required but token not found');
+      return ApiResponse(
+        success: false,
+        message: 'Tizimga kirish talab etiladi',
+        statusCode: 401,
+      );
+    }
 
     try {
       final response = await _client.post(
         Uri.parse(url),
-        headers: token != null ? authHeaders(token) : _headers,
+        headers: headers,
         body: jsonEncode(body),
       );
 
@@ -71,15 +106,33 @@ class ApiService {
   }
 
   /// GET so'rov yuborish
-  Future<ApiResponse> get(String endpoint, {String? token}) async {
+  /// Token avtomatik SharedPreferences dan olinadi, agar explicitToken berilmasa
+  Future<ApiResponse> get(
+    String endpoint, {
+    String? token, // Explicit token (optional, otherwise auto-fetched)
+    bool requireAuth = false, // Agar true bo'lsa va token topilmasa xatolik qaytaradi
+  }) async {
     final url = '$baseUrl$endpoint';
+    final headers = await _getHeaders(explicitToken: token);
+    
     _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     _log('📤 GET: $url');
+    _log('📋 Headers: $headers');
+
+    // Agar auth talab qilinsa va token bo'lmasa
+    if (requireAuth && !headers.containsKey('Authorization')) {
+      _log('❌ Auth required but token not found');
+      return ApiResponse(
+        success: false,
+        message: 'Tizimga kirish talab etiladi',
+        statusCode: 401,
+      );
+    }
 
     try {
       final response = await _client.get(
         Uri.parse(url),
-        headers: token != null ? authHeaders(token) : _headers,
+        headers: headers,
       );
 
       _log('📥 Status Code: ${response.statusCode}');
@@ -315,18 +368,123 @@ class ApiService {
   }
 
   // ============================================
+  // ORDERS ENDPOINTS
+  // ============================================
+
+  /// Yangi buyurtma yaratish
+  Future<OrderApiResponse> createOrder({
+    required String shopId,
+    required String clientName,
+    required String clientPhone,
+    required String clientAddress,
+    String? clientNote,
+    required List<Map<String, dynamic>> items, // [{product_id, quantity}]
+  }) async {
+    _log('🛒 Creating order...');
+    final url = '$baseUrl/orders';
+    
+    final body = {
+      'shop_id': shopId,
+      'client_name': clientName,
+      'client_phone': clientPhone,
+      'client_address': clientAddress,
+      if (clientNote != null && clientNote.isNotEmpty) 'client_note': clientNote,
+      'items': items,
+    };
+
+    _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    _log('📤 POST: $url');
+    _log('📦 Body: ${jsonEncode(body)}');
+
+    try {
+      final response = await _client.post(
+        Uri.parse(url),
+        headers: _headers,
+        body: jsonEncode(body),
+      );
+
+      _log('📥 Status Code: ${response.statusCode}');
+      _log('📥 Response Body: ${response.body}');
+      _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      return _handleOrderResponse(response);
+    } catch (e, stackTrace) {
+      _log('❌ Error: $e');
+      _log('❌ StackTrace: $stackTrace');
+      return OrderApiResponse(
+        success: false,
+        message: 'Server bilan bog\'lanib bo\'lmadi: $e',
+      );
+    }
+  }
+
+  /// Order response handler
+  OrderApiResponse _handleOrderResponse(http.Response response) {
+    if (response.statusCode == 401) {
+      return OrderApiResponse(
+        success: false,
+        message: 'Tizimga kirish talab etiladi',
+        statusCode: response.statusCode,
+      );
+    }
+
+    if (response.statusCode == 404) {
+      return OrderApiResponse(
+        success: false,
+        message: 'Server topilmadi (404)',
+        statusCode: response.statusCode,
+      );
+    }
+
+    if (response.statusCode == 500) {
+      return OrderApiResponse(
+        success: false,
+        message: 'Server xatosi (500)',
+        statusCode: response.statusCode,
+      );
+    }
+
+    if (response.body.isEmpty) {
+      return OrderApiResponse(
+        success: false,
+        message: 'Server bo\'sh javob qaytardi',
+        statusCode: response.statusCode,
+      );
+    }
+
+    try {
+      final data = jsonDecode(response.body);
+      return OrderApiResponse(
+        success: data['success'] ?? false,
+        message: data['message'] ?? '',
+        order: data['order'] != null
+            ? Map<String, dynamic>.from(data['order'])
+            : null,
+        statusCode: response.statusCode,
+      );
+    } catch (e) {
+      _log('❌ JSON parse error: $e');
+      return OrderApiResponse(
+        success: false,
+        message: 'Server javobini o\'qib bo\'lmadi',
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  // ============================================
   // USER PROFILE ENDPOINTS
   // ============================================
 
   /// Profilni olish
-  Future<ApiResponse> getProfile(String token) async {
+  Future<ApiResponse> getProfile({String? token}) async {
     _log('👤 Fetching profile...');
-    return await get('/user/me', token: token);
+    return await get('/user/me', token: token, requireAuth: true);
   }
 
   /// Profilni yangilash (multipart - ism va avatar)
   Future<ApiResponse> updateProfile({
-    required String token,
+    String? token,
     String? fullName,
     File? avatarFile,
   }) async {
@@ -341,9 +499,9 @@ class ApiService {
   }
 
   /// Hisobni o'chirish
-  Future<ApiResponse> deleteAccount(String token) async {
+  Future<ApiResponse> deleteAccount({String? token}) async {
     _log('🗑️ Deleting account...');
-    return await delete('/user/me', token: token);
+    return await delete('/user/me', token: token, requireAuth: true);
   }
 
   // ============================================
@@ -352,7 +510,7 @@ class ApiService {
 
   /// Telefon o'zgartirish - OTP so'rash
   Future<ApiResponse> requestPhoneChange({
-    required String token,
+    String? token,
     required String newPhone,
   }) async {
     _log('📞 Requesting phone change OTP: $newPhone');
@@ -360,12 +518,13 @@ class ApiService {
       '/user/change-phone/request',
       {'new_phone': newPhone},
       token: token,
+      requireAuth: true,
     );
   }
 
   /// Telefon o'zgartirish - OTP tasdiqlash
   Future<ApiResponse> verifyPhoneChange({
-    required String token,
+    String? token,
     required String newPhone,
     required String code,
   }) async {
@@ -374,6 +533,7 @@ class ApiService {
       '/user/change-phone/verify',
       {'new_phone': newPhone, 'code': code},
       token: token,
+      requireAuth: true,
     );
   }
 
@@ -383,7 +543,7 @@ class ApiService {
 
   /// Email o'zgartirish - OTP so'rash
   Future<ApiResponse> requestEmailChange({
-    required String token,
+    String? token,
     required String newEmail,
   }) async {
     _log('📧 Requesting email change OTP: $newEmail');
@@ -391,12 +551,13 @@ class ApiService {
       '/user/change-email/request',
       {'new_email': newEmail},
       token: token,
+      requireAuth: true,
     );
   }
 
   /// Email o'zgartirish - OTP tasdiqlash
   Future<ApiResponse> verifyEmailChange({
-    required String token,
+    String? token,
     required String newEmail,
     required String code,
   }) async {
@@ -405,24 +566,39 @@ class ApiService {
       '/user/change-email/verify',
       {'new_email': newEmail, 'code': code},
       token: token,
+      requireAuth: true,
     );
   }
 
   /// PUT so'rov yuborish
+  /// Token avtomatik SharedPreferences dan olinadi, agar explicitToken berilmasa
   Future<ApiResponse> put(
     String endpoint,
     Map<String, dynamic> body, {
-    String? token,
+    String? token, // Explicit token (optional, otherwise auto-fetched)
+    bool requireAuth = false,
   }) async {
     final url = '$baseUrl$endpoint';
+    final headers = await _getHeaders(explicitToken: token);
+    
     _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     _log('📤 PUT: $url');
     _log('📦 Body: ${jsonEncode(body)}');
+    _log('📋 Headers: $headers');
+
+    if (requireAuth && !headers.containsKey('Authorization')) {
+      _log('❌ Auth required but token not found');
+      return ApiResponse(
+        success: false,
+        message: 'Tizimga kirish talab etiladi',
+        statusCode: 401,
+      );
+    }
 
     try {
       final response = await _client.put(
         Uri.parse(url),
-        headers: token != null ? authHeaders(token) : _headers,
+        headers: headers,
         body: jsonEncode(body),
       );
 
@@ -442,15 +618,32 @@ class ApiService {
   }
 
   /// DELETE so'rov yuborish
-  Future<ApiResponse> delete(String endpoint, {String? token}) async {
+  /// Token avtomatik SharedPreferences dan olinadi, agar explicitToken berilmasa
+  Future<ApiResponse> delete(
+    String endpoint, {
+    String? token, // Explicit token (optional, otherwise auto-fetched)
+    bool requireAuth = false,
+  }) async {
     final url = '$baseUrl$endpoint';
+    final headers = await _getHeaders(explicitToken: token);
+    
     _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     _log('📤 DELETE: $url');
+    _log('📋 Headers: $headers');
+
+    if (requireAuth && !headers.containsKey('Authorization')) {
+      _log('❌ Auth required but token not found');
+      return ApiResponse(
+        success: false,
+        message: 'Tizimga kirish talab etiladi',
+        statusCode: 401,
+      );
+    }
 
     try {
       final response = await _client.delete(
         Uri.parse(url),
-        headers: token != null ? authHeaders(token) : _headers,
+        headers: headers,
       );
 
       _log('📥 Status Code: ${response.statusCode}');
@@ -471,12 +664,23 @@ class ApiService {
   /// Multipart PUT so'rov yuborish (fayl yuklash uchun)
   Future<ApiResponse> multipartPut(
     String endpoint, {
-    required String token,
+    String? token, // Explicit token (optional, otherwise auto-fetched)
     Map<String, String> fields = const {},
     File? file,
     String fileField = 'file',
   }) async {
     final url = '$baseUrl$endpoint';
+    final finalToken = token ?? await _getToken();
+    
+    if (finalToken == null || finalToken.isEmpty) {
+      _log('❌ Token required for multipart request');
+      return ApiResponse(
+        success: false,
+        message: 'Tizimga kirish talab etiladi',
+        statusCode: 401,
+      );
+    }
+
     _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     _log('📤 MULTIPART PUT: $url');
     _log('📦 Fields: $fields');
@@ -484,7 +688,7 @@ class ApiService {
 
     try {
       final request = http.MultipartRequest('PUT', Uri.parse(url));
-      request.headers['Authorization'] = 'Bearer $token';
+      request.headers['Authorization'] = 'Bearer $finalToken';
 
       // Text fieldlarni qo'shish
       request.fields.addAll(fields);
@@ -562,5 +766,25 @@ class ProductsApiResponse {
   @override
   String toString() {
     return 'ProductsApiResponse(success: $success, message: $message, count: $count)';
+  }
+}
+
+/// Order API javob modeli
+class OrderApiResponse {
+  final bool success;
+  final String message;
+  final Map<String, dynamic>? order;
+  final int? statusCode;
+
+  OrderApiResponse({
+    required this.success,
+    required this.message,
+    this.order,
+    this.statusCode,
+  });
+
+  @override
+  String toString() {
+    return 'OrderApiResponse(success: $success, message: $message, statusCode: $statusCode)';
   }
 }

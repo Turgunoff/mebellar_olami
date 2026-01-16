@@ -3,11 +3,12 @@ import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../data/models/product_model.dart';
+import '../core/services/api_service.dart';
 
 /// Category Provider
 /// Kategoriyalar bilan ishlash uchun
 class CategoryProvider extends ChangeNotifier {
-  static const String _baseUrl = 'http://45.93.201.167:8081/api';
+  static const String _baseUrl = ApiService.baseUrl;
 
   // Holat o'zgaruvchilari
   bool _isLoading = false;

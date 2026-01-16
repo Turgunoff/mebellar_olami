@@ -54,12 +54,6 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Token ni SharedPreferences dan olish
-  Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
-  }
-
   // ============================================
   // PROFILNI OLISH
   // ============================================
@@ -72,16 +66,7 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final token = await _getToken();
-      if (token == null || token.isEmpty) {
-        _log('❌ Token not found');
-        _isLoading = false;
-        _errorMessage = 'Tizimga kirish talab etiladi';
-        notifyListeners();
-        return false;
-      }
-
-      final response = await _apiService.getProfile(token);
+      final response = await _apiService.getProfile();
       _log('Response: $response');
 
       _isLoading = false;
@@ -124,17 +109,7 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final token = await _getToken();
-      if (token == null || token.isEmpty) {
-        _log('❌ Token not found');
-        _isLoading = false;
-        _errorMessage = 'Tizimga kirish talab etiladi';
-        notifyListeners();
-        return false;
-      }
-
       final response = await _apiService.updateProfile(
-        token: token,
         fullName: newName,
         avatarFile: avatarFile,
       );
@@ -182,16 +157,7 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final token = await _getToken();
-      if (token == null || token.isEmpty) {
-        _log('❌ Token not found');
-        _isLoading = false;
-        _errorMessage = 'Tizimga kirish talab etiladi';
-        notifyListeners();
-        return false;
-      }
-
-      final response = await _apiService.deleteAccount(token);
+      final response = await _apiService.deleteAccount();
       _log('Response: $response');
 
       _isLoading = false;
@@ -248,16 +214,7 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final token = await _getToken();
-      if (token == null || token.isEmpty) {
-        _isLoading = false;
-        _errorMessage = 'Tizimga kirish talab etiladi';
-        notifyListeners();
-        return false;
-      }
-
       final response = await _apiService.requestPhoneChange(
-        token: token,
         newPhone: newPhone,
       );
 
@@ -292,16 +249,7 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final token = await _getToken();
-      if (token == null || token.isEmpty) {
-        _isLoading = false;
-        _errorMessage = 'Tizimga kirish talab etiladi';
-        notifyListeners();
-        return false;
-      }
-
       final response = await _apiService.verifyPhoneChange(
-        token: token,
         newPhone: newPhone,
         code: code,
       );
@@ -346,16 +294,7 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final token = await _getToken();
-      if (token == null || token.isEmpty) {
-        _isLoading = false;
-        _errorMessage = 'Tizimga kirish talab etiladi';
-        notifyListeners();
-        return false;
-      }
-
       final response = await _apiService.requestEmailChange(
-        token: token,
         newEmail: newEmail,
       );
 
@@ -390,16 +329,7 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final token = await _getToken();
-      if (token == null || token.isEmpty) {
-        _isLoading = false;
-        _errorMessage = 'Tizimga kirish talab etiladi';
-        notifyListeners();
-        return false;
-      }
-
       final response = await _apiService.verifyEmailChange(
-        token: token,
         newEmail: newEmail,
         code: code,
       );

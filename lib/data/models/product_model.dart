@@ -3,6 +3,7 @@ class ProductModel {
   final String id;
   final String? categoryId;
   final String category; // Kategoriya nomi (UI uchun)
+  final String? shopId; // Do'kon ID (Backend: shop_id, lekin hozircha qaytarmaydi)
   final String name;
   final String description;
   final double price;
@@ -19,6 +20,7 @@ class ProductModel {
     required this.id,
     this.categoryId,
     this.category = '',
+    this.shopId,
     required this.name,
     required this.description,
     required this.price,
@@ -44,8 +46,34 @@ class ProductModel {
   bool get hasDiscount =>
       discountPrice != null && discountPrice! > 0 && discountPrice! < price;
 
-  /// Asosiy rasm
-  String get imageUrl => images.isNotEmpty ? images.first : '';
+  /// Asosiy rasm (to'liq URL yoki relative path)
+  String get imageUrl {
+    if (images.isEmpty) return '';
+    final image = images.first;
+    // Agar to'liq URL bo'lsa (http:// yoki https:// bilan boshlansa)
+    if (image.startsWith('http://') || image.startsWith('https://')) {
+      return image;
+    }
+    // Agar relative path bo'lsa (/ bilan boshlansa), server URL qo'shamiz
+    if (image.startsWith('/')) {
+      return 'http://45.93.201.167:8081$image';
+    }
+    // Agar faqat fayl nomi bo'lsa, server URL qo'shamiz
+    return 'http://45.93.201.167:8081/uploads/products/$image';
+  }
+
+  /// Barcha rasmlar (to'liq URL lar bilan)
+  List<String> get imageUrls {
+    return images.map((img) {
+      if (img.startsWith('http://') || img.startsWith('https://')) {
+        return img;
+      }
+      if (img.startsWith('/')) {
+        return 'http://45.93.201.167:8081$img';
+      }
+      return 'http://45.93.201.167:8081/uploads/products/$img';
+    }).toList();
+  }
 
   /// Ranglar ro'yxati (variants dan)
   List<String> get colors {
@@ -96,6 +124,7 @@ class ProductModel {
       id: json['id']?.toString() ?? '',
       categoryId: json['category_id']?.toString(),
       category: json['category']?.toString() ?? '',
+      shopId: json['shop_id']?.toString(), // Backend hozircha qaytarmaydi, lekin kelajakda bo'lishi mumkin
       name: json['name']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
@@ -138,6 +167,7 @@ class ProductModel {
     String? id,
     String? categoryId,
     String? category,
+    String? shopId,
     String? name,
     String? description,
     double? price,
@@ -154,6 +184,7 @@ class ProductModel {
       id: id ?? this.id,
       categoryId: categoryId ?? this.categoryId,
       category: category ?? this.category,
+      shopId: shopId ?? this.shopId,
       name: name ?? this.name,
       description: description ?? this.description,
       price: price ?? this.price,
