@@ -3,14 +3,12 @@ import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// API Service - Go Backend bilan bog'lanish
 class ApiService {
-  // Backend server manzili - o'zingizning IP manzilingizni kiriting
-  // Emulator uchun: 10.0.2.2:8081
-  // iOS Simulator uchun: localhost:8081
-  // Real device uchun: <YOUR_IP>:8081
-  static const String baseUrl = 'http://45.93.201.167:8081/api';
+  // Backend server manzili - .env faylidan olinadi
+  static String get baseUrl => dotenv.env['BASE_URL'] ?? 'https://api.mebellar-olami.uz';
 
   // HTTP client
   final http.Client _client = http.Client();
@@ -63,7 +61,7 @@ class ApiService {
     String? token, // Explicit token (optional, otherwise auto-fetched)
     bool requireAuth = false, // Agar true bo'lsa va token topilmasa xatolik qaytaradi
   }) async {
-    final url = '$baseUrl$endpoint';
+    final url = '${baseUrl}/api$endpoint';
     final headers = await _getHeaders(explicitToken: token);
     
     _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -112,7 +110,7 @@ class ApiService {
     String? token, // Explicit token (optional, otherwise auto-fetched)
     bool requireAuth = false, // Agar true bo'lsa va token topilmasa xatolik qaytaradi
   }) async {
-    final url = '$baseUrl$endpoint';
+    final url = '${baseUrl}/api$endpoint';
     final headers = await _getHeaders(explicitToken: token);
     
     _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -305,7 +303,7 @@ class ApiService {
 
   /// Products GET helper
   Future<ProductsApiResponse> getProducts_(String endpoint) async {
-    final url = '$baseUrl$endpoint';
+    final url = '${baseUrl}/api$endpoint';
     _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     _log('📤 GET: $url');
 
@@ -381,7 +379,7 @@ class ApiService {
     required List<Map<String, dynamic>> items, // [{product_id, quantity}]
   }) async {
     _log('🛒 Creating order...');
-    final url = '$baseUrl/orders';
+    final url = '${baseUrl}/api/orders';
     
     final body = {
       'shop_id': shopId,
@@ -578,7 +576,7 @@ class ApiService {
     String? token, // Explicit token (optional, otherwise auto-fetched)
     bool requireAuth = false,
   }) async {
-    final url = '$baseUrl$endpoint';
+    final url = '${baseUrl}/api$endpoint';
     final headers = await _getHeaders(explicitToken: token);
     
     _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -624,7 +622,7 @@ class ApiService {
     String? token, // Explicit token (optional, otherwise auto-fetched)
     bool requireAuth = false,
   }) async {
-    final url = '$baseUrl$endpoint';
+    final url = '${baseUrl}/api$endpoint';
     final headers = await _getHeaders(explicitToken: token);
     
     _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -669,7 +667,7 @@ class ApiService {
     File? file,
     String fileField = 'file',
   }) async {
-    final url = '$baseUrl$endpoint';
+    final url = '${baseUrl}/api$endpoint';
     final finalToken = token ?? await _getToken();
     
     if (finalToken == null || finalToken.isEmpty) {

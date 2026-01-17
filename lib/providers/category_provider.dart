@@ -8,7 +8,7 @@ import '../core/services/api_service.dart';
 /// Category Provider
 /// Kategoriyalar bilan ishlash uchun
 class CategoryProvider extends ChangeNotifier {
-  static const String _baseUrl = ApiService.baseUrl;
+  final String _baseUrl = ApiService.baseUrl;
 
   // Holat o'zgaruvchilari
   bool _isLoading = false;
