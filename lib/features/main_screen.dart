@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../core/constants/app_colors.dart';
 import '../core/constants/app_theme.dart';
 import 'cart/presentation/bloc/cart_bloc.dart';
@@ -60,26 +61,26 @@ class _MainScreenState extends State<MainScreen> {
                 index: 0,
                 icon: Icons.home_outlined,
                 activeIcon: Icons.home_rounded,
-                label: 'Asosiy',
+                label: 'main.home'.tr(),
               ),
               _buildNavItem(
                 index: 1,
                 icon: Icons.grid_view_outlined,
                 activeIcon: Icons.grid_view_rounded,
-                label: 'Katalog',
+                label: 'main.catalog'.tr(),
               ),
               _buildNavItem(
                 index: 2,
                 icon: Icons.favorite_outline_rounded,
                 activeIcon: Icons.favorite_rounded,
-                label: 'Sevimli',
+                label: 'main.favorites'.tr(),
               ),
               _buildCartNavItem(),
               _buildNavItem(
                 index: 4,
                 icon: Icons.person_outline_rounded,
                 activeIcon: Icons.person_rounded,
-                label: 'Profil',
+                label: 'main.profile'.tr(),
               ),
             ],
           ),
@@ -126,7 +127,7 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Savatcha',
+                      'main.cart'.tr(),
                       style: TextStyle(
                         color: isActive
                             ? AppColors.primary

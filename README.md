@@ -27,28 +27,36 @@
 
 #### State Management:
 
-- `provider: ^6.1.2` - State management (Provider pattern)
+- `flutter_bloc: ^8.1.6` - State management (BLoC pattern)
+- `equatable: ^2.0.5` - Object comparison for BLoC
 
 #### UI/UX:
 
 - `google_fonts: ^6.2.1` - Google Fonts integratsiyasi
 - `flutter_animate: ^4.5.2` - Animatsiyalar
 - `cached_network_image: ^3.4.1` - Rasmlarni cache qilish
+- `shimmer: ^3.0.0` - Loading animatsiyalari
+- `fluttertoast: ^8.2.8` - Toast notifications
 
 #### Networking:
 
-- `http: ^1.2.2` - HTTP so'rovlar (REST API)
+- `dio: ^5.7.0` - HTTP so'rovlar (REST API)
+- `internet_connection_checker_plus: ^2.1.0` - Internet holatini tekshirish
 
 #### Local Storage:
 
-- `shared_preferences: ^2.3.3` - Local data saqlash (token, user data)
+- `hive: ^2.2.3` - Local database
+- `hive_flutter: ^1.1.0` - Hive uchun Flutter integratsiyasi
+- `shared_preferences: ^2.3.3` - Simple data saqlash (settings)
 
-#### Media:
+#### Services & Utilities:
 
+- `get_it: ^8.0.2` - Dependency Injection
+- `flutter_dotenv: ^5.1.0` - Environment variables
+- `geolocator: ^10.1.0` - GPS location services
+- `onesignal_flutter: ^5.2.1` - Push notifications
+- `yandex_mapkit: ^4.2.1` - Yandex xaritalar integratsiyasi
 - `image_picker: ^1.1.2` - Rasmlarni tanlash va yuklash
-
-#### Utilities:
-
 - `intl: ^0.20.2` - Internationalization (sana, vaqt formatlari)
 - `cupertino_icons: ^1.0.8` - iOS style icons
 
@@ -60,75 +68,59 @@
 
 ## 📁 Loyiha Strukturasi
 
-Loyiha **Clean Architecture** prinsiplariga asoslangan:
+Loyiha **Clean Architecture** prinsiplariga asoslangan bo'lib, **Feature-based** strukturadan foydalanadi:
 
 ```
 lib/
 ├── core/                    # Core functionality
-│   ├── constants/
-│   │   ├── app_colors.dart  # Rang konstantalari
-│   │   └── app_theme.dart   # Theme konfiguratsiyasi
-│   ├── services/
-│   │   └── api_service.dart # Backend API integratsiyasi
-│   └── utils/
-│       └── extensions.dart  # Dart extension methods
-│
-├── data/                    # Data layer
-│   ├── models/
-│   │   ├── product_model.dart  # Mahsulot modeli
-│   │   └── order_model.dart    # Buyurtma modeli
-│   └── mock/
-│       └── mock_data.dart       # Mock data (development)
-│
-├── presentation/            # UI layer
-│   ├── screens/            # Ekranlar
-│   │   ├── auth/          # Autentifikatsiya ekranlari
-│   │   │   ├── welcome_screen.dart
-│   │   │   ├── login_screen.dart
-│   │   │   ├── signup_screen.dart
-│   │   │   ├── verify_code_screen.dart
-│   │   │   ├── forgot_password_screen.dart
-│   │   │   ├── reset_password_screen.dart
-│   │   │   └── success_screen.dart
-│   │   ├── onboarding/
-│   │   │   └── onboarding_screen.dart
-│   │   ├── home/
-│   │   │   └── home_screen.dart
-│   │   ├── catalog/
-│   │   │   └── catalog_screen.dart
-│   │   ├── product/
-│   │   │   └── product_detail_screen.dart
-│   │   ├── favorites/
-│   │   │   └── favorites_screen.dart
-│   │   ├── checkout/
-│   │   │   └── checkout_screen.dart
-│   │   ├── profile/
-│   │   │   ├── profile_screen.dart
-│   │   │   └── edit_profile_screen.dart
-│   │   └── main_screen.dart  # Bottom navigation
-│   └── widgets/            # Reusable widgets
-│       ├── category_card.dart
-│       ├── product_card.dart
-│       ├── custom_button.dart
-│       └── login_dialog.dart
-│
-├── providers/              # State management (Provider)
-│   ├── auth_provider.dart      # Autentifikatsiya holati
-│   ├── user_provider.dart      # Foydalanuvchi ma'lumotlari
-│   ├── product_provider.dart   # Mahsulotlar holati
-│   ├── category_provider.dart  # Kategoriyalar holati
-│   ├── favorites_provider.dart # Sevimlilar holati
-│   └── orders_provider.dart    # Buyurtmalar holati
-│
-└── main.dart               # Application entry point
+│   ├── constants/          # Konstantalar (colors, themes, strings)
+│   │   ├── app_colors.dart
+│   │   ├── app_theme.dart
+│   │   └── app_strings.dart
+│   ├── di/                 # Dependency Injection
+│   │   └── dependency_injection.dart
+│   ├── init/               # App initialization
+│   │   └── app_initializer.dart
+│   ├── local/              # Local storage services
+│   │   └── hive_service.dart
+│   ├── network/            # Network configuration
+│   │   └── dio_client.dart
+│   ├── services/           # Global services
+│   │   ├── api_service.dart
+│   │   └── notification_service.dart
+│   ├── utils/              # Utility functions
+│   │   └── extensions.dart
+│   └── widgets/            # Reusable core widgets
+│       ├── app_providers.dart
+│       ├── connectivity_wrapper.dart
+│       └── custom_widgets/
+
+├── features/               # Feature-based modules
+│   ├── auth/              # Autentifikatsiya moduli
+│   │   ├── data/          # Data layer (models, repositories)
+│   │   ├── domain/        # Business logic (entities, use cases)
+│   │   └── presentation/  # UI layer (screens, widgets, BLoC)
+│   ├── home/              # Bosh sahifa moduli
+│   ├── catalog/           # Katalog moduli
+│   ├── products/          # Mahsulotlar moduli
+│   ├── categories/        # Kategoriyalar moduli
+│   ├── cart/              # Savat moduli
+│   ├── favorites/         # Sevimlilar moduli
+│   ├── checkout/          # Buyurtma berish moduli
+│   ├── profile/           # Profil moduli
+│   ├── search/            # Qidiruv moduli
+│   └── main/              # Asosiy ekran (bottom navigation)
+
+└── main.dart              # Application entry point
 ```
 
 ### Arxitektura Qatlamlari:
 
-1. **Core Layer** - Constants, services, utilities
-2. **Data Layer** - Models va mock data
-3. **Presentation Layer** - UI ekranlar va widgetlar
-4. **Providers Layer** - State management (Provider pattern)
+1. **Core Layer** - Constants, services, utilities, DI
+2. **Features Layer** - Feature-based modullar (data, domain, presentation)
+3. **Data Layer** - Models, repositories, data sources
+4. **Domain Layer** - Business logic, entities, use cases
+5. **Presentation Layer** - UI ekranlar, widgetlar, BLoC state management
 
 ---
 
@@ -288,19 +280,27 @@ cd mebellar_olami
 flutter pub get
 ```
 
-### 2. API Base URL ni sozlash
+### 2. Environment variables ni sozlash
 
-`lib/core/services/api_service.dart` faylida base URL ni o'zgartiring:
+`.env` faylini project root da yarating:
 
-```dart
-static const String baseUrl = 'http://YOUR_BACKEND_IP:8081/api';
+```bash
+# .env faylini yarating
+touch .env
+```
+
+`.env` fayliga quyidagilarni qo'shing:
+
+```env
+BASE_URL=http://45.93.201.167:8081/api
+ONESIGNAL_APP_ID=your_onesignal_app_id
 ```
 
 **Eslatma:**
 
-- Emulator uchun: `10.0.2.2:8081`
-- iOS Simulator uchun: `localhost:8081`
-- Real device uchun: `<YOUR_IP>:8081`
+- Emulator uchun: `http://10.0.2.2:8081/api`
+- iOS Simulator uchun: `http://localhost:8081/api`
+- Real device uchun: `http://<YOUR_IP>:8081/api`
 
 ### 3. Ilovani ishga tushirish
 
@@ -351,49 +351,45 @@ flutter test test/widget_test.dart
 2. Barcha ekranlarni tekshirish
 3. API integratsiyasini tekshirish
 4. Autentifikatsiya flow ni tekshirish
+5. Buyurtma berish flow ni tekshirish
+6. Profilni tahrirlash flow ni tekshirish
 
 ---
 
 ## 📦 State Management
 
-Ilova **Provider** pattern dan foydalanadi:
+Ilova **BLoC (Business Logic Component)** pattern dan foydalanadi:
 
-### Providers:
+### BLoC Architecture:
 
-1. **AuthProvider** - Autentifikatsiya holati
+1. **AuthBloc** - Autentifikatsiya holati
+   - `AuthState` - Auth holatlari (initial, loading, authenticated, unauthenticated)
+   - `AuthEvent` - Auth eventlari (LoginRequested, LogoutRequested, RegisterRequested)
+   - `mapEventToState()` - Eventlarni state ga aylantirish
 
-   - `isLoggedIn` - Tizimga kirganmi?
-   - `isOnboardingCompleted` - Onboarding ko'rilganmi?
-   - `checkAuthStatus()` - Auth holatini tekshirish
-   - `login()`, `logout()`, `register()` - Auth operatsiyalari
+2. **UserBloc** - Foydalanuvchi ma'lumotlari
+   - `UserState` - Foydalanuvchi holatlari
+   - `UserEvent` - Foydalanuvchi eventlari (GetProfile, UpdateProfile)
 
-2. **UserProvider** - Foydalanuvchi ma'lumotlari
+3. **ProductBloc** - Mahsulotlar holati
+   - `ProductState` - Mahsulotlar holatlari (loading, loaded, error)
+   - `ProductEvent` - Mahsulotlar eventlari (GetProducts, GetNewArrivals, GetPopular)
 
-   - `user` - Joriy foydalanuvchi
-   - `getProfile()` - Profilni yuklash
-   - `updateProfile()` - Profilni yangilash
+4. **CategoryBloc** - Kategoriyalar holati
+   - `CategoryState` - Kategoriyalar holati
+   - `CategoryEvent` - Kategoriyalar eventlari (GetCategories)
 
-3. **ProductProvider** - Mahsulotlar holati
+5. **CartBloc** - Savat holati
+   - `CartState` - Savat holati
+   - `CartEvent` - Savat eventlari (AddToCart, RemoveFromCart, UpdateQuantity)
 
-   - `products` - Mahsulotlar ro'yxati
-   - `getProducts()` - Mahsulotlarni yuklash
-   - `getNewArrivals()` - Yangi mahsulotlar
-   - `getPopularProducts()` - Mashhur mahsulotlar
+6. **FavoritesBloc** - Sevimlilar holati
+   - `FavoritesState` - Sevimlilar holati
+   - `FavoritesEvent` - Sevimlilar eventlari (AddToFavorites, RemoveFromFavorites)
 
-4. **CategoryProvider** - Kategoriyalar holati
-
-   - `categories` - Kategoriyalar ro'yxati
-   - `getCategories()` - Kategoriyalarni yuklash
-
-5. **FavoritesProvider** - Sevimlilar holati
-
-   - `favorites` - Sevimli mahsulotlar
-   - `addToFavorites()` - Qo'shish
-   - `removeFromFavorites()` - O'chirish
-
-6. **OrdersProvider** - Buyurtmalar holati
-   - `orders` - Buyurtmalar ro'yxati
-   - `createOrder()` - Yangi buyurtma
+7. **OrderBloc** - Buyurtmalar holati
+   - `OrderState` - Buyurtmalar holati
+   - `OrderEvent` - Buyurtmalar eventlari (CreateOrder, GetOrders)
 
 ---
 
@@ -408,14 +404,23 @@ Ilova **Provider** pattern dan foydalanadi:
 - ✅ Profil boshqaruvi
 - ✅ Avatar yuklash
 - ✅ Buyurtma berish
-- ✅ Onboarding flow
+- ✅ Savat (Cart) funksiyasi
+- ✅ Yandex xaritalar integratsiyasi
+- ✅ GPS location services
+- ✅ Push notifications (OneSignal)
+- ✅ Internet holatini tekshirish
+- ✅ Hive local database
+- ✅ BLoC state management
+- ✅ Dependency Injection
+- ✅ Environment variables
 
 ### 🚧 Rivojlantirilmoqda:
 
-- Push notifications
 - To'lov integratsiyasi
 - Buyurtmalar tarixi
 - Izohlar va reytinglar
+- Real-time chat
+- Multi-language support
 
 ---
 
@@ -423,7 +428,20 @@ Ilova **Provider** pattern dan foydalanadi:
 
 ### API Base URL:
 
-`lib/core/services/api_service.dart` faylida sozlash mumkin.
+`.env` faylida sozlash mumkin:
+
+```env
+BASE_URL=http://45.93.201.167:8081/api
+```
+
+### Environment Variables:
+
+`.env` fayl orqali sozlanadi:
+
+```env
+BASE_URL=http://45.93.201.167:8081/api
+ONESIGNAL_APP_ID=your_onesignal_app_id
+```
 
 ### Theme va Ranglar:
 
@@ -431,7 +449,11 @@ Ilova **Provider** pattern dan foydalanadi:
 
 ### Local Storage:
 
-`shared_preferences` orqali token va user data saqlanadi.
+`Hive` orqali complex data saqlanadi, `shared_preferences` esa simple settings uchun ishlatiladi.
+
+### Dependency Injection:
+
+`lib/core/di/dependency_injection.dart` faylida barcha dependencylar sozlanadi.
 
 ---
 

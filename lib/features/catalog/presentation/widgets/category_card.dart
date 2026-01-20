@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/localized_text_helper.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
 import '../../data/models/category_model.dart';
@@ -91,7 +92,7 @@ class CategoryCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        category.name,
+                        LocalizedTextHelper.get(category.name, context),
                         style: const TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 16,
@@ -164,7 +165,7 @@ class SubCategoryItem extends StatelessWidget {
               const SizedBox(width: 14),
               Expanded(
                 child: Text(
-                  category.name,
+                  LocalizedTextHelper.get(category.name, context),
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 14,
@@ -242,7 +243,7 @@ class HorizontalCategoryItem extends StatelessWidget {
             SizedBox(
               width: 64,
               child: Text(
-                category.name,
+                LocalizedTextHelper.get(category.name, context),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: isSelected ? AppColors.primary : AppColors.textPrimary,

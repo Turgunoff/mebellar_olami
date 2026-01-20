@@ -1,12 +1,14 @@
+import '../../../../core/utils/image_utils.dart';
+
 /// Mahsulot modeli (MVP uchun moslashuvchan)
 class ProductModel {
   final String id;
   final String? categoryId;
-  final String category; // Kategoriya nomi (UI uchun)
+  final dynamic category; // Kategoriya nomi - Map yoki String bo'lishi mumkin
   final String?
   shopId; // Do'kon ID (Backend: shop_id, lekin hozircha qaytarmaydi)
-  final String name;
-  final String description;
+  final dynamic name; // Map<String, dynamic> yoki String bo'lishi mumkin
+  final dynamic description; // Map<String, dynamic> yoki String bo'lishi mumkin
   final double price;
   final double? discountPrice;
   final List<String> images;
@@ -20,7 +22,7 @@ class ProductModel {
   const ProductModel({
     required this.id,
     this.categoryId,
-    this.category = '',
+    this.category,
     this.shopId,
     required this.name,
     required this.description,
@@ -50,30 +52,12 @@ class ProductModel {
   /// Asosiy rasm (to'liq URL yoki relative path)
   String get imageUrl {
     if (images.isEmpty) return '';
-    final image = images.first;
-    // Agar to'liq URL bo'lsa (http:// yoki https:// bilan boshlansa)
-    if (image.startsWith('http://') || image.startsWith('https://')) {
-      return image;
-    }
-    // Agar relative path bo'lsa (/ bilan boshlansa), server URL qo'shamiz
-    if (image.startsWith('/')) {
-      return 'http://45.93.201.167:8081$image';
-    }
-    // Agar faqat fayl nomi bo'lsa, server URL qo'shamiz
-    return 'http://45.93.201.167:8081/uploads/products/$image';
+    return ImageUtils.getProductImageUrl(images.first);
   }
 
   /// Barcha rasmlar (to'liq URL lar bilan)
   List<String> get imageUrls {
-    return images.map((img) {
-      if (img.startsWith('http://') || img.startsWith('https://')) {
-        return img;
-      }
-      if (img.startsWith('/')) {
-        return 'http://45.93.201.167:8081$img';
-      }
-      return 'http://45.93.201.167:8081/uploads/products/$img';
-    }).toList();
+    return images.map((img) => ImageUtils.getProductImageUrl(img)).toList();
   }
 
   /// Ranglar ro'yxati (variants dan)
@@ -124,11 +108,12 @@ class ProductModel {
     return ProductModel(
       id: json['id']?.toString() ?? '',
       categoryId: json['category_id']?.toString(),
-      category: json['category']?.toString() ?? '',
+      category: json['category'], // Map yoki String bo'lishi mumkin
       shopId: json['shop_id']
           ?.toString(), // Backend hozircha qaytarmaydi, lekin kelajakda bo'lishi mumkin
-      name: json['name']?.toString() ?? '',
-      description: json['description']?.toString() ?? '',
+      name:
+          json['name'], // Map yoki String bo'lishi mumkin, o'z holicha saqlaymiz
+      description: json['description'], // Map yoki String bo'lishi mumkin,
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       discountPrice: json['discount_price'] != null
           ? (json['discount_price'] as num?)?.toDouble()
@@ -168,10 +153,10 @@ class ProductModel {
   ProductModel copyWith({
     String? id,
     String? categoryId,
-    String? category,
+    dynamic category,
     String? shopId,
-    String? name,
-    String? description,
+    dynamic name,
+    dynamic description,
     double? price,
     double? discountPrice,
     List<String>? images,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/utils/localized_text_helper.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/product_card.dart';
 import '../bloc/catalog_bloc.dart';
@@ -52,7 +53,11 @@ class _CatalogScreenState extends State<CatalogScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          _showProducts ? (_selectedCategory?.name ?? 'Katalog') : 'Katalog',
+          _showProducts
+              ? (_selectedCategory != null
+                    ? LocalizedTextHelper.get(_selectedCategory!.name, context)
+                    : 'Katalog')
+              : 'Katalog',
         ),
         backgroundColor: AppColors.background,
         surfaceTintColor: Colors.transparent,
@@ -152,7 +157,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
           childrenPadding: const EdgeInsets.only(bottom: 8),
           leading: _buildCategoryIcon(category),
           title: Text(
-            category.name,
+            LocalizedTextHelper.get(category.name, context),
             style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 16,
@@ -206,7 +211,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: CachedNetworkImage(
-            imageUrl: category.iconUrl,
+            imageUrl: category.fullIconUrl,
             width: 48,
             height: 48,
             fit: BoxFit.cover,
@@ -226,7 +231,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
         color: AppColors.secondary.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
       ),
-      child:  Icon(Icons.category_outlined, color: AppColors.primary),
+      child: Icon(Icons.category_outlined, color: AppColors.primary),
     );
   }
 
@@ -256,7 +261,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: CachedNetworkImage(
-                    imageUrl: subCategory.iconUrl,
+                    imageUrl: subCategory.fullIconUrl,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
                       color: AppColors.secondary.withValues(alpha: 0.3),
@@ -271,7 +276,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
             // Nomi
             Expanded(
               child: Text(
-                subCategory.name,
+                LocalizedTextHelper.get(subCategory.name, context),
                 style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 14,

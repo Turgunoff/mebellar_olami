@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../utils/localized_text_helper.dart';
 import '../../features/products/data/models/product_model.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_theme.dart';
@@ -88,7 +89,7 @@ class ProductCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        product.name,
+                        LocalizedTextHelper.get(product.name, context),
                         style: const TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 14,
@@ -434,7 +435,7 @@ class HorizontalProductCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        product.name,
+                        LocalizedTextHelper.get(product.name, context),
                         style: const TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 13,

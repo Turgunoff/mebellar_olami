@@ -44,7 +44,11 @@ dependencies:
   onesignal_flutter: ^5.2.1
 
   # Connectivity
+  connectivity_plus: ^6.0.5
   internet_connection_checker_plus: ^2.1.0
+
+  # Localization
+  easy_localization: ^3.0.7
   # yandex_mapkit_lite: ^2.0.2
   yandex_mapkit: ^4.2.1
 
@@ -59,3 +63,4 @@ flutter:
   assets:
     - .env
     - assets/images/
+    - assets/translations/

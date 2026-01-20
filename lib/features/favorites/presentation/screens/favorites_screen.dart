@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/utils/localized_text_helper.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
 import '../../../products/data/models/product_model.dart';
@@ -205,7 +206,11 @@ class FavoritesScreen extends StatelessWidget {
               ),
             );
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('${product.name} o\'chirildi')),
+              SnackBar(
+                content: Text(
+                  '${LocalizedTextHelper.get(product.name, context)} o\'chirildi',
+                ),
+              ),
             );
           },
           child: ProductCard(

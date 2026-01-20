@@ -1,0 +1,42 @@
+{
+  "main": {
+    "home": "Главная",
+    "catalog": "Каталог",
+    "cart": "Корзина",
+    "profile": "Профиль",
+    "favorites": "Избранное"
+  },
+  "common": {
+    "error": "Ошибка",
+    "loading": "Загрузка",
+    "retry": "Повторить",
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "search": "Поиск",
+    "no_data": "Данные не найдены",
+    "new": "Новинка"
+  },
+  "catalog": {
+    "categories": "Категории",
+    "subcategories": "подкатегорий"
+  },
+  "product": {
+    "add_to_cart": "В корзину",
+    "buy_now": "Купить сейчас",
+    "description": "Описание",
+    "specifications": "Характеристики"
+  },
+  "cart": {
+    "empty": "Ваша корзина пуста",
+    "total": "Итого",
+    "checkout": "Оформить заказ"
+  },
+  "profile": {
+    "my_orders": "Мои заказы",
+    "settings": "Настройки",
+    "logout": "Выйти",
+    "language": "Язык"
+  }
+}

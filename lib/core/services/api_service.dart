@@ -8,7 +8,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 /// API Service - Go Backend bilan bog'lanish
 class ApiService {
   // Backend server manzili - .env faylidan olinadi
-  static String get baseUrl => dotenv.env['BASE_URL'] ?? 'https://api.mebellar-olami.uz';
+  static String get baseUrl =>
+      dotenv.env['BASE_URL'] ?? 'https://api.mebellar-olami.uz/api';
 
   // HTTP client
   final http.Client _client = http.Client();
@@ -59,11 +60,12 @@ class ApiService {
     String endpoint,
     Map<String, dynamic> body, {
     String? token, // Explicit token (optional, otherwise auto-fetched)
-    bool requireAuth = false, // Agar true bo'lsa va token topilmasa xatolik qaytaradi
+    bool requireAuth =
+        false, // Agar true bo'lsa va token topilmasa xatolik qaytaradi
   }) async {
-    final url = '${baseUrl}/api$endpoint';
+    final url = '${baseUrl}$endpoint';
     final headers = await _getHeaders(explicitToken: token);
-    
+
     _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     _log('📤 POST: $url');
     _log('📦 Body: ${jsonEncode(body)}');
@@ -108,11 +110,12 @@ class ApiService {
   Future<ApiResponse> get(
     String endpoint, {
     String? token, // Explicit token (optional, otherwise auto-fetched)
-    bool requireAuth = false, // Agar true bo'lsa va token topilmasa xatolik qaytaradi
+    bool requireAuth =
+        false, // Agar true bo'lsa va token topilmasa xatolik qaytaradi
   }) async {
-    final url = '${baseUrl}/api$endpoint';
+    final url = '${baseUrl}$endpoint';
     final headers = await _getHeaders(explicitToken: token);
-    
+
     _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     _log('📤 GET: $url');
     _log('📋 Headers: $headers');
@@ -128,10 +131,7 @@ class ApiService {
     }
 
     try {
-      final response = await _client.get(
-        Uri.parse(url),
-        headers: headers,
-      );
+      final response = await _client.get(Uri.parse(url), headers: headers);
 
       _log('📥 Status Code: ${response.statusCode}');
       _log('📥 Response Body: ${response.body}');
@@ -283,8 +283,8 @@ class ApiService {
   /// Barcha mahsulotlarni olish
   Future<ProductsApiResponse> getProducts({String? category}) async {
     _log('🛋️ Fetching products... category=$category');
-    final endpoint = category != null 
-        ? '/products?category=$category' 
+    final endpoint = category != null
+        ? '/products?category=$category'
         : '/products';
     return await getProducts_(endpoint);
   }
@@ -303,15 +303,12 @@ class ApiService {
 
   /// Products GET helper
   Future<ProductsApiResponse> getProducts_(String endpoint) async {
-    final url = '${baseUrl}/api$endpoint';
+    final url = '${baseUrl}$endpoint';
     _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     _log('📤 GET: $url');
 
     try {
-      final response = await _client.get(
-        Uri.parse(url),
-        headers: _headers,
-      );
+      final response = await _client.get(Uri.parse(url), headers: _headers);
 
       _log('📥 Status Code: ${response.statusCode}');
       _log('📥 Response Body: ${response.body}');
@@ -343,7 +340,8 @@ class ApiService {
 
     try {
       final data = jsonDecode(response.body);
-      final productsList = (data['products'] as List?)
+      final productsList =
+          (data['products'] as List?)
               ?.map((p) => p as Map<String, dynamic>)
               .toList() ??
           [];
@@ -379,14 +377,15 @@ class ApiService {
     required List<Map<String, dynamic>> items, // [{product_id, quantity}]
   }) async {
     _log('🛒 Creating order...');
-    final url = '${baseUrl}/api/orders';
-    
+    final url = '${baseUrl}/orders';
+
     final body = {
       'shop_id': shopId,
       'client_name': clientName,
       'client_phone': clientPhone,
       'client_address': clientAddress,
-      if (clientNote != null && clientNote.isNotEmpty) 'client_note': clientNote,
+      if (clientNote != null && clientNote.isNotEmpty)
+        'client_note': clientNote,
       'items': items,
     };
 
@@ -486,7 +485,9 @@ class ApiService {
     String? fullName,
     File? avatarFile,
   }) async {
-    _log('✏️ Updating profile: fullName=$fullName, hasAvatar=${avatarFile != null}');
+    _log(
+      '✏️ Updating profile: fullName=$fullName, hasAvatar=${avatarFile != null}',
+    );
     return await multipartPut(
       '/user/me',
       token: token,
@@ -576,9 +577,9 @@ class ApiService {
     String? token, // Explicit token (optional, otherwise auto-fetched)
     bool requireAuth = false,
   }) async {
-    final url = '${baseUrl}/api$endpoint';
+    final url = '${baseUrl}$endpoint';
     final headers = await _getHeaders(explicitToken: token);
-    
+
     _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     _log('📤 PUT: $url');
     _log('📦 Body: ${jsonEncode(body)}');
@@ -622,9 +623,9 @@ class ApiService {
     String? token, // Explicit token (optional, otherwise auto-fetched)
     bool requireAuth = false,
   }) async {
-    final url = '${baseUrl}/api$endpoint';
+    final url = '${baseUrl}$endpoint';
     final headers = await _getHeaders(explicitToken: token);
-    
+
     _log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     _log('📤 DELETE: $url');
     _log('📋 Headers: $headers');
@@ -639,10 +640,7 @@ class ApiService {
     }
 
     try {
-      final response = await _client.delete(
-        Uri.parse(url),
-        headers: headers,
-      );
+      final response = await _client.delete(Uri.parse(url), headers: headers);
 
       _log('📥 Status Code: ${response.statusCode}');
       _log('📥 Response Body: ${response.body}');
@@ -667,9 +665,9 @@ class ApiService {
     File? file,
     String fileField = 'file',
   }) async {
-    final url = '${baseUrl}/api$endpoint';
+    final url = '${baseUrl}$endpoint';
     final finalToken = token ?? await _getToken();
-    
+
     if (finalToken == null || finalToken.isEmpty) {
       _log('❌ Token required for multipart request');
       return ApiResponse(

@@ -1,7 +1,9 @@
+import '../../../../core/utils/image_utils.dart';
+
 /// Kategoriya modeli (Backend API bilan mos)
 class CategoryModel {
   final String id;
-  final String name;
+  final dynamic name; // Map<String, dynamic> yoki String bo'lishi mumkin
   final String? parentId;
   final String iconUrl; // Backend: icon_url
   final String iconName; // Lokal ikon nomi (fallback)
@@ -22,7 +24,8 @@ class CategoryModel {
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
     return CategoryModel(
       id: json['id']?.toString() ?? '',
-      name: json['name']?.toString() ?? '',
+      name:
+          json['name'], // Map yoki String bo'lishi mumkin, o'z holicha saqlaymiz
       parentId: json['parent_id']?.toString(),
       iconUrl: json['icon_url']?.toString() ?? '',
       iconName: json['icon_name']?.toString() ?? 'category',
@@ -53,10 +56,13 @@ class CategoryModel {
   /// Ikon URL mavjudmi
   bool get hasIconUrl => iconUrl.isNotEmpty;
 
+  /// To'liq icon URL (base URL bilan)
+  String get fullIconUrl => ImageUtils.getCategoryImageUrl(iconUrl);
+
   /// copyWith
   CategoryModel copyWith({
     String? id,
-    String? name,
+    dynamic name,
     String? parentId,
     String? iconUrl,
     String? iconName,

@@ -1,0 +1,42 @@
+{
+  "main": {
+    "home": "Asosiy",
+    "catalog": "Katalog",
+    "cart": "Savatcha",
+    "profile": "Profil",
+    "favorites": "Sevimli"
+  },
+  "common": {
+    "error": "Xatolik",
+    "loading": "Yuklanmoqda",
+    "retry": "Qayta urinish",
+    "cancel": "Bekor qilish",
+    "save": "Saqlash",
+    "delete": "O'chirish",
+    "edit": "Tahrirlash",
+    "search": "Qidirish",
+    "no_data": "Ma'lumot topilmadi",
+    "new": "Yangi"
+  },
+  "catalog": {
+    "categories": "Kategoriyalar",
+    "subcategories": "ta turkum"
+  },
+  "product": {
+    "add_to_cart": "Savatga qo'shish",
+    "buy_now": "Hozir sotib olish",
+    "description": "Tavsif",
+    "specifications": "Xususiyatlar"
+  },
+  "cart": {
+    "empty": "Savatingiz bo'sh",
+    "total": "Jami",
+    "checkout": "Buyurtma berish"
+  },
+  "profile": {
+    "my_orders": "Mening buyurtmalarim",
+    "settings": "Sozlamalar",
+    "logout": "Chiqish",
+    "language": "Til"
+  }
+}

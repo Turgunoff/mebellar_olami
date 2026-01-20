@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'core/init/app_initializer.dart';
 import 'core/constants/app_theme.dart';
@@ -9,8 +10,17 @@ import 'features/auth/presentation/widgets/auth_wrapper.dart';
 void main() async {
   // Barcha sozlamalar shu yerda
   await AppInitializer.init();
+  await EasyLocalization.ensureInitialized();
 
-  runApp(const MebellarOlamiApp());
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [Locale('uz'), Locale('ru'), Locale('en')],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('uz'),
+      startLocale: null,
+      child: const MebellarOlamiApp(),
+    ),
+  );
 }
 
 class MebellarOlamiApp extends StatelessWidget {
@@ -24,6 +34,9 @@ class MebellarOlamiApp extends StatelessWidget {
         title: 'Mebellar Olami',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
+        localizationsDelegates: context.localizationDelegates,
+        supportedLocales: context.supportedLocales,
+        locale: context.locale,
         // AuthWrapper alohida faylda
         home: const AuthWrapper(),
         builder: (context, child) {

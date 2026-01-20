@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/utils/localized_text_helper.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
 import '../../../../core/utils/extensions.dart';
@@ -259,7 +260,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         },
                         itemBuilder: (context, index) {
                           return CachedNetworkImage(
-                            imageUrl: product.images[index],
+                            imageUrl: product.imageUrls[index],
                             fit: BoxFit.cover,
                             placeholder: (context, url) => Container(
                               color: AppColors.secondary.withValues(alpha: 0.3),
@@ -373,7 +374,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        if (product.category.isNotEmpty)
+                        if (product.category != null)
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 14,
@@ -384,7 +385,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
-                              product.category,
+                              LocalizedTextHelper.get(
+                                product.category,
+                                context,
+                              ),
                               style: const TextStyle(
                                 color: AppColors.primary,
                                 fontSize: 12,
@@ -415,7 +419,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     const SizedBox(height: 18),
                     // Nomi
                     Text(
-                      product.name,
+                      LocalizedTextHelper.get(product.name, context),
                       style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 26,
@@ -484,7 +488,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      product.description,
+                      LocalizedTextHelper.get(product.description, context),
                       style: const TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 14,

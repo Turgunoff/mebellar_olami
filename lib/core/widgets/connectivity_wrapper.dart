@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import '../constants/app_colors.dart';
 
@@ -16,20 +18,24 @@ class _ConnectivityWrapperState extends State<ConnectivityWrapper>
     with WidgetsBindingObserver {
   bool _isConnected = true;
   bool _isChecking = false;
+  Timer? _debounceTimer;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _checkConnection();
 
-    // Internet aloqasini tinglash
-    InternetConnection().onStatusChange.listen((status) {
+    // Dastlabki tekshiruvni kechiktirish, ilova to'liq yonib chiqishini kutish uchun
+    Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        setState(() {
-          _isConnected =
-              status.toString() == 'InternetConnectionStatus.connected';
-        });
+        _checkConnection();
+      }
+    });
+
+    // Connectivity o'zgarishlarini tinglash
+    Connectivity().onConnectivityChanged.listen((results) {
+      if (mounted) {
+        _debouncedConnectionCheck(results);
       }
     });
   }
@@ -37,6 +43,7 @@ class _ConnectivityWrapperState extends State<ConnectivityWrapper>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _debounceTimer?.cancel();
     super.dispose();
   }
 
@@ -47,16 +54,57 @@ class _ConnectivityWrapperState extends State<ConnectivityWrapper>
     }
   }
 
-  Future<void> _checkConnection() async {
+  /// Connectivity natijalariga qarab internet borligini aniqlaydi
+  bool _hasConnectivity(List<ConnectivityResult> results) {
+    // Agar natijalar ichida .none bo'lsa va boshqa ulanish turi bo'lmasa -> Internet yo'q
+    if (results.contains(ConnectivityResult.none) && results.length == 1) {
+      return false;
+    }
+    // Mobile, Wifi, Ethernet, VPN, Bluetooth - hammasi internet borligini bildiradi
+    return true;
+  }
+
+  /// Tez-tez chaqirilmasligi uchun debounce qilingan tekshiruv
+  void _debouncedConnectionCheck(
+    List<ConnectivityResult>? connectivityResults,
+  ) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      _checkConnection(connectivityResults);
+    });
+  }
+
+  Future<void> _checkConnection([
+    List<ConnectivityResult>? connectivityResults,
+  ]) async {
     if (_isChecking) return;
 
     setState(() => _isChecking = true);
 
     try {
-      final isConnected = await InternetConnection().hasInternetAccess;
+      // Agar connectivityResults berilmagan bo'lsa, tekshirib olish
+      final results =
+          connectivityResults ?? await Connectivity().checkConnectivity();
+
+      // Avval connectivity ni tekshiramiz
+      final hasConnectivity = _hasConnectivity(results);
+
+      if (!hasConnectivity) {
+        if (mounted) {
+          setState(() {
+            _isConnected = false;
+            _isChecking = false;
+          });
+        }
+        return;
+      }
+
+      // Connectivity bor, endi haqiqiy internet alokasini tekshiramiz
+      final hasInternetAccess = await InternetConnection().hasInternetAccess;
+
       if (mounted) {
         setState(() {
-          _isConnected = isConnected;
+          _isConnected = hasInternetAccess;
           _isChecking = false;
         });
       }
