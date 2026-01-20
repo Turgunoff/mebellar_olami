@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_theme.dart';
-import '../../../providers/auth_provider.dart';
+import '../../../features/auth/bloc/auth_bloc.dart';
 import '../../widgets/custom_button.dart';
 import '../main_screen.dart';
 import 'signup_screen.dart';
@@ -40,35 +40,18 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final authProvider = context.read<AuthProvider>();
-    authProvider.clearError();
-
     // Telefon raqamini formatlash (+998 qo'shish)
     String phone = _phoneController.text.trim();
     if (!phone.startsWith('+')) {
       phone = '+998$phone';
     }
 
-    final success = await authProvider.login(
-      phone: phone,
-      password: _passwordController.text,
-    );
-
-    if (success && mounted) {
-      // Orders will be loaded when needed (no customer order history endpoint yet)
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const MainScreen()),
-        (route) => false,
-      );
-    } else if (mounted && authProvider.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.errorMessage!),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
+    context.read<AuthBloc>().add(
+          AuthLoginRequested(
+            phone: phone,
+            password: _passwordController.text,
+          ),
+        );
   }
 
   @override
@@ -99,8 +82,28 @@ class _LoginScreenState extends State<LoginScreen> {
                 icon: const Icon(Icons.close_rounded, color: AppColors.textPrimary),
               ),
       ),
-      body: Consumer<AuthProvider>(
-        builder: (context, authProvider, child) {
+      body: BlocConsumer<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthAuthenticated) {
+            if (mounted) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const MainScreen()),
+                (route) => false,
+              );
+            }
+          } else if (state is AuthFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          final isLoading = state is AuthLoading;
+
           return SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -244,7 +247,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     CustomButton(
                       text: 'Kirish',
                       width: double.infinity,
-                      isLoading: authProvider.isLoading,
+                      isLoading: isLoading,
                       onPressed: _handleLogin,
                     ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.1),
                     const SizedBox(height: 30),

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../features/auth/bloc/auth_bloc.dart';
 import '../../widgets/custom_button.dart';
 import 'login_screen.dart';
 import 'verify_code_screen.dart';
@@ -163,18 +165,44 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
         ),
       ),
-      body: Consumer<AuthProvider>(
-        builder: (context, authProvider, child) {
-          return SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Form(
-                key: _formKey,
-                child: _currentStep == 1
-                    ? _buildStep1(authProvider)
-                    : _buildStep2(authProvider),
+      body: BlocConsumer<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthAuthenticated) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const _SuccessScreen(
+                  title: 'Tabriklaymiz! 🎉',
+                  subtitle: 'Siz muvaffaqiyatli ro\'yxatdan o\'tdingiz',
+                ),
               ),
-            ),
+            );
+          } else if (state is AuthFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          final isLoading = state is AuthLoading;
+
+          return Consumer<AuthProvider>(
+            builder: (context, authProvider, child) {
+              return SafeArea(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Form(
+                    key: _formKey,
+                    child: _currentStep == 1
+                        ? _buildStep1(authProvider)
+                        : _buildStep2(authProvider, isLoading),
+                  ),
+                ),
+              );
+            },
           );
         },
       ),
@@ -262,7 +290,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   /// 2-Bosqich: Ism va Parol
-  Widget _buildStep2(AuthProvider authProvider) {
+  Widget _buildStep2(AuthProvider authProvider, bool isLoading) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -389,7 +417,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         CustomButton(
           text: 'Ro\'yxatdan o\'tish',
           width: double.infinity,
-          isLoading: authProvider.isLoading,
+          isLoading: isLoading,
           onPressed: _handleRegister,
         ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.1),
         const SizedBox(height: 30),

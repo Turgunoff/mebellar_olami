@@ -4,6 +4,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_theme.dart';
+import '../../../core/widgets/shimmer/product_card_skeleton.dart';
+import '../../../core/widgets/shimmer/category_skeleton.dart';
+import '../../../core/widgets/shimmer/banner_skeleton.dart';
 import '../../../data/models/product_model.dart';
 import '../../../providers/product_provider.dart';
 import '../../../providers/category_provider.dart';
@@ -28,17 +31,20 @@ class _HomeScreenState extends State<HomeScreen> {
   // Static banners (Backend API yo'q, shuning uchun static)
   static const List<Map<String, String>> _banners = [
     {
-      'image': 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
+      'image':
+          'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
       'title': 'Yangi Kolleksiya',
       'subtitle': '30% gacha chegirma',
     },
     {
-      'image': 'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=800',
+      'image':
+          'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=800',
       'title': 'Premium Divanlar',
       'subtitle': 'Maxsus narxlarda',
     },
     {
-      'image': 'https://images.unsplash.com/photo-1538688525198-9b88f6f53126?w=800',
+      'image':
+          'https://images.unsplash.com/photo-1538688525198-9b88f6f53126?w=800',
       'title': 'Yotoqxona to\'plami',
       'subtitle': 'Bepul yetkazib berish',
     },
@@ -391,11 +397,16 @@ class _HomeScreenState extends State<HomeScreen> {
     if (productProvider.isLoadingNew) {
       return SizedBox(
         height: 240,
-        child: Center(
-          child: CircularProgressIndicator(
-            color: AppColors.primary,
-            strokeWidth: 2,
-          ),
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: 3, // Show 3 skeleton cards
+          itemBuilder: (context, index) {
+            return Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: const HorizontalProductCardSkeleton(),
+            );
+          },
         ),
       );
     }
@@ -472,21 +483,26 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Kategoriyalar (Gorizontal)
   Widget _buildCategoriesRow() {
     final categoryProvider = context.watch<CategoryProvider>();
-    
+
     if (categoryProvider.isLoading) {
-      return const SizedBox(
-        height: 52,
-        child: Center(
-          child: CircularProgressIndicator(
-            color: AppColors.primary,
-            strokeWidth: 2,
-          ),
+      return SizedBox(
+        height: 100,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.only(left: 20),
+          itemCount: 6, // Show 6 skeleton categories
+          itemBuilder: (context, index) {
+            return Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: const CategorySkeleton(),
+            );
+          },
         ),
       );
     }
 
     final categories = categoryProvider.categories;
-    
+
     if (categories.isEmpty) {
       return const SizedBox(height: 20);
     }
@@ -519,28 +535,16 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildProductsGrid(ProductProvider productProvider) {
     // Loading holati
     if (productProvider.isLoadingPopular) {
-      return SliverToBoxAdapter(
-        child: SizedBox(
-          height: 200,
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const CircularProgressIndicator(
-                  color: AppColors.primary,
-                  strokeWidth: 3,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Mahsulotlar yuklanmoqda...',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
+      return SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 0.75,
+        ),
+        delegate: SliverChildBuilderDelegate(
+          (context, index) => const ProductCardSkeleton(),
+          childCount: 6, // Show 6 skeleton cards
         ),
       );
     }

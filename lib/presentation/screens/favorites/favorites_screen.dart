@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_theme.dart';
-import '../../../providers/auth_provider.dart';
 import '../../../providers/favorites_provider.dart';
+import '../../../features/auth/bloc/auth_bloc.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/custom_button.dart';
 import '../product/product_detail_screen.dart';
@@ -16,7 +17,6 @@ class FavoritesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
     final favoritesProvider = context.watch<FavoritesProvider>();
 
     return Scaffold(
@@ -38,11 +38,15 @@ class FavoritesScreen extends StatelessWidget {
             ),
         ],
       ),
-      body: authProvider.isGuest
-          ? _buildGuestView(context)
-          : favoritesProvider.favorites.isEmpty
-              ? _buildEmptyView()
-              : _buildFavoritesList(context, favoritesProvider),
+      body: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, state) {
+          final isGuest = state is! AuthAuthenticated;
+
+          if (isGuest) return _buildGuestView(context);
+          if (favoritesProvider.favorites.isEmpty) return _buildEmptyView();
+          return _buildFavoritesList(context, favoritesProvider);
+        },
+      ),
     );
   }
 

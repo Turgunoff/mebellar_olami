@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_theme.dart';
 import '../../core/utils/extensions.dart';
 import '../../data/models/product_model.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/favorites_provider.dart';
-import 'login_dialog.dart';
+import '../../features/auth/bloc/auth_bloc.dart';
+import '../../features/favorites/bloc/favorites_bloc.dart';
 
 /// Mahsulot kartasi widgeti - Nabolen Style (Discount support)
 class ProductCard extends StatelessWidget {
@@ -78,11 +77,7 @@ class ProductCard extends StatelessWidget {
                   ),
 
                   // Badge (Yangi yoki Chegirma)
-                  Positioned(
-                    top: 10,
-                    left: 10,
-                    child: _buildBadge(),
-                  ),
+                  Positioned(top: 10, left: 10, child: _buildBadge()),
 
                   // Sevimli tugmasi
                   if (showFavoriteButton)
@@ -225,42 +220,85 @@ class _FavoriteButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
-    final favoritesProvider = context.watch<FavoritesProvider>();
-    final isFavorite = favoritesProvider.isFavorite(product.id);
+    return BlocBuilder<FavoritesBloc, FavoritesState>(
+      builder: (context, favoritesState) {
+        return BlocListener<FavoritesBloc, FavoritesState>(
+          listener: (context, state) {
+            // Show error message if needed
+            if (state.status == FavoritesStatus.error &&
+                state.errorMessage != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.errorMessage!),
+                  backgroundColor: AppColors.error,
+                ),
+              );
+            }
+          },
+          child: BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, authState) {
+              final isFavorite = context.read<FavoritesBloc>().isFavorite(
+                product.id.toString(),
+              );
+              final isUpdating = favoritesState.isUpdating;
 
-    return GestureDetector(
-      onTap: () {
-        if (authProvider.isGuest) {
-          showDialog(
-            context: context,
-            builder: (context) => const LoginDialog(
-              message: 'Sevimli mahsulotlarni saqlash uchun tizimga kiring',
-            ),
-          );
-        } else {
-          favoritesProvider.toggleFavorite(product);
-        }
+              return GestureDetector(
+                onTap: () {
+                  // Guest Mode - Works without login
+                  // User Mode - Also works, will sync to server
+                  context.read<FavoritesBloc>().add(
+                    ToggleFavoriteEvent(
+                      product: {
+                        'id': product.id,
+                        'name': product.name,
+                        'price': product.price,
+                        'image_url': product.imageUrl,
+                        'has_discount': product.hasDiscount,
+                        'discount_price': product.discountPrice,
+                        'discount_percent': product.discountPercent,
+                        'is_new': product.isNew,
+                      },
+                      showSuccessMessage: true,
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.textPrimary.withValues(alpha: 0.1),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: isUpdating
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.primary,
+                          ),
+                        )
+                      : Icon(
+                          isFavorite
+                              ? Icons.favorite
+                              : Icons.favorite_border_rounded,
+                          size: 20,
+                          color: isFavorite
+                              ? AppColors.error
+                              : AppColors.textSecondary,
+                        ),
+                ),
+              );
+            },
+          ),
+        );
       },
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.textPrimary.withValues(alpha: 0.1),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Icon(
-          isFavorite ? Icons.favorite : Icons.favorite_border_rounded,
-          size: 20,
-          color: isFavorite ? AppColors.error : AppColors.textSecondary,
-        ),
-      ),
     );
   }
 }

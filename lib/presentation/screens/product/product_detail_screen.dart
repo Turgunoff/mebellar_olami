@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_theme.dart';
 import '../../../core/utils/extensions.dart';
 import '../../../data/models/product_model.dart';
-import '../../../providers/auth_provider.dart';
 import '../../../providers/favorites_provider.dart';
+import '../../../features/auth/bloc/auth_bloc.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/login_dialog.dart';
 import '../checkout/checkout_screen.dart';
@@ -62,9 +63,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   double get _totalPrice => _actualPrice * _quantity;
 
   void _handleBuyNow() {
-    final authProvider = context.read<AuthProvider>();
+    final isGuest = context.read<AuthBloc>().state is! AuthAuthenticated;
 
-    if (authProvider.isGuest) {
+    if (isGuest) {
       showDialog(
         context: context,
         builder: (context) => const LoginDialog(
@@ -86,10 +87,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   void _handleFavorite() {
-    final authProvider = context.read<AuthProvider>();
+    final isGuest = context.read<AuthBloc>().state is! AuthAuthenticated;
     final favoritesProvider = context.read<FavoritesProvider>();
 
-    if (authProvider.isGuest) {
+    if (isGuest) {
       showDialog(
         context: context,
         builder: (context) => const LoginDialog(

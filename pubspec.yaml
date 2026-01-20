@@ -10,15 +10,43 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  provider: ^6.1.2
   google_fonts: ^6.2.1
-  cached_network_image: ^3.4.1
   flutter_animate: ^4.5.2
   intl: ^0.20.2
-  http: ^1.2.2
   shared_preferences: ^2.3.3
   image_picker: ^1.1.2
   flutter_dotenv: ^5.1.0
+  geolocator: ^10.1.0
+
+  # Networking
+  dio: ^5.7.0
+
+  # State Management
+  flutter_bloc: ^8.1.6
+  equatable: ^2.0.5
+
+  # Local Storage
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # Service Locator
+  get_it: ^8.0.2
+
+  # UI Effects
+  shimmer: ^3.0.0
+  cached_network_image: ^3.4.1
+  fluttertoast: ^8.2.8
+
+  # Maps
+  # yandex_mapkit_lite: ^2.0.2
+
+  # Notifications
+  onesignal_flutter: ^5.2.1
+
+  # Connectivity
+  internet_connection_checker_plus: ^2.1.0
+  # yandex_mapkit_lite: ^2.0.2
+  yandex_mapkit: ^4.2.1
 
 dev_dependencies:
   flutter_test:
@@ -30,3 +58,4 @@ flutter:
 
   assets:
     - .env
+    - assets/images/

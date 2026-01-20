@@ -38,6 +38,11 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- Yandex Map Kit API Key -->
+        <meta-data
+            android:name="yandex_map_api_key"
+            android:value="6db07f4e-a68f-4845-9e3c-79ed8d6e9c1f" />
+        
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

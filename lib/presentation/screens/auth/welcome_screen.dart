@@ -18,8 +18,8 @@ class WelcomeScreen extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           // Background Image
-          Image.network(
-            'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1200',
+          Image.asset(
+            'assets/images/welcome_image.jpg',
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
               return Container(
@@ -27,10 +27,7 @@ class WelcomeScreen extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFF4A5043),
-                      Color(0xFF3D4A3A),
-                    ],
+                    colors: [Color(0xFF4A5043), Color(0xFF3D4A3A)],
                   ),
                 ),
               );
@@ -73,10 +70,7 @@ class WelcomeScreen extends StatelessWidget {
                       color: AppColors.white,
                       size: 40,
                     ),
-                  ).animate().scale(
-                        duration: 600.ms,
-                        curve: Curves.elasticOut,
-                      ),
+                  ).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
                   const SizedBox(height: 24),
                   // Title
                   const Text(
@@ -112,7 +106,8 @@ class WelcomeScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const LoginScreen(isFromOnboarding: true),
+                            builder: (context) =>
+                                const LoginScreen(isFromOnboarding: true),
                           ),
                         );
                       },
@@ -121,7 +116,9 @@ class WelcomeScreen extends StatelessWidget {
                         foregroundColor: AppColors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.borderRadius,
+                          ),
                         ),
                       ),
                       child: const Text(
@@ -154,7 +151,9 @@ class WelcomeScreen extends StatelessWidget {
                           width: 1.5,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.borderRadius,
+                          ),
                         ),
                       ),
                       child: const Text(
