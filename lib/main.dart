@@ -65,8 +65,7 @@ class MebellarOlamiApp extends StatelessWidget {
         providers: [
           BlocProvider(
             create: (context) =>
-                di.sl<AuthBloc>(instanceName: 'authBloc')
-                  ..add(const AuthCheckStatus()),
+                di.sl<AuthBloc>()..add(const AuthCheckStatus()),
           ),
           BlocProvider(
             create: (context) =>
@@ -96,13 +95,14 @@ class MebellarOlamiApp extends StatelessWidget {
                 authProvider.logout();
               }
             },
-            child: ConnectivityWrapper(
-              child: MaterialApp(
-                title: 'Mebellar Olami',
-                debugShowCheckedModeBanner: false,
-                theme: AppTheme.lightTheme,
-                home: const _AuthWrapper(),
-              ),
+            child: MaterialApp(
+              title: 'Mebellar Olami',
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.lightTheme,
+              home: const _AuthWrapper(),
+              builder: (context, child) {
+                return ConnectivityWrapper(child: child!);
+              },
             ),
           ),
         ),

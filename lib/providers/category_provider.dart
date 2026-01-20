@@ -1,14 +1,12 @@
-import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import '../data/models/product_model.dart';
-import '../core/services/api_service.dart';
+import '../features/categories/data/repositories/category_repository.dart';
 
 /// Category Provider
 /// Kategoriyalar bilan ishlash uchun
 class CategoryProvider extends ChangeNotifier {
-  final String _baseUrl = ApiService.baseUrl;
+  final CategoryRepository _repository;
 
   // Holat o'zgaruvchilari
   bool _isLoading = false;
@@ -20,6 +18,9 @@ class CategoryProvider extends ChangeNotifier {
   // Tanlangan kategoriya
   CategoryModel? _selectedCategory;
   CategoryModel? _selectedSubCategory;
+
+  CategoryProvider({CategoryRepository? repository})
+    : _repository = repository ?? CategoryRepository();
 
   /// Log helper
   void _log(String message) {
@@ -84,42 +85,28 @@ class CategoryProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await http.get(
-        Uri.parse('$_baseUrl/categories'),
-        headers: {'Accept': 'application/json'},
-      ).timeout(const Duration(seconds: 10));
-
-      _log('Response status: ${response.statusCode}');
-      _log('Response body: ${response.body.substring(0, response.body.length.clamp(0, 200))}...');
+      final result = await _repository.getCategories();
 
       _isLoading = false;
 
-      if (response.statusCode == 200) {
-        final json = jsonDecode(response.body) as Map<String, dynamic>;
-        final success = json['success'] as bool? ?? false;
-
-        if (success) {
-          final categoriesJson = json['categories'] as List? ?? [];
-          _categories = categoriesJson
-              .map((e) => CategoryModel.fromJson(e as Map<String, dynamic>))
-              .toList();
-          _log('✅ ${_categories.length} ta kategoriya yuklandi');
-          notifyListeners();
-          return true;
-        } else {
-          _errorMessage = json['message']?.toString() ?? 'Kategoriyalarni olishda xatolik';
-          _log('❌ Fetch categories failed: $_errorMessage');
-          notifyListeners();
-          return false;
-        }
+      if (result['success']) {
+        final categoriesJson = result['categories'] as List? ?? [];
+        _categories = categoriesJson
+            .map((e) => CategoryModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+        _log(' ${_categories.length} ta kategoriya yuklandi');
+        notifyListeners();
+        return true;
       } else {
-        _errorMessage = 'Server xatosi: ${response.statusCode}';
-        _log('❌ HTTP error: ${response.statusCode}');
+        _errorMessage =
+            result['message']?.toString() ?? 'Kategoriyalarni olishda xatolik';
+        _log(' Fetch categories failed: $_errorMessage');
         notifyListeners();
         return false;
       }
     } catch (e, stackTrace) {
-      _log('❌ Exception: $e');
+      _log(' Exception: $e');
+      _log(' StackTrace: $stackTrace');
       _log('❌ StackTrace: $stackTrace');
       _isLoading = false;
       _errorMessage = 'Xatolik yuz berdi: $e';
