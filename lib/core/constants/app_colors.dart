@@ -1,46 +1,52 @@
 import 'package:flutter/material.dart';
 
-/// Ilova ranglar paleti - Nabolen Style
-/// Earthy, premium, cozy dizayn
 class AppColors {
   AppColors._();
 
-  /// Asosiy rang - Cappuccino/Dark Brown (Tugmalar, Sarlavhalar, Faol ikonlar)
-  static const Color primary = Color(0xFF633E33);
+  // --- Asosiy Brand Rangi (Rasmdagi tugmalar rangi) ---
+  /// Warm Chocolate - Issiq Shokolad rangi
+  static const Color primary = Color(0xFF5D4037);
 
-  /// Ikkinchi rang - Soft Beige (Fon, yengil ta'kidlash)
-  static const Color secondary = Color(0xFFD6CFC4);
+  /// Bosilganda yoki gradient uchun to'qroq varianti
+  static const Color primaryDark = Color(0xFF4E342E);
 
-  /// Asosiy fon - Off-white
-  static const Color background = Color(0xFFF9F9F9);
+  // --- Qo'shimcha Ranglar ---
+  /// Secondary: Oltin/Sariq (Credit Card dagi chip yoki yulduzchalar uchun)
+  static const Color accent = Color(0xFFD4A017);
 
-  /// Karta foni - Oq
+  // --- Fon Ranglari (Rasmdagi toza fon) ---
+  /// Asosiy fon - Deyarli Oq (Juda och issiq kulrang)
+  static const Color background = Color(0xFFFAFAFA);
+
+  /// Karta va BottomSheet foni - Toza Oq
   static const Color surface = Colors.white;
 
-  /// Asosiy matn rangi - Qora/To'q kulrang
-  static const Color textPrimary = Color(0xFF1E1E20);
+  /// Input maydonlari foni (Rasmdagi "Enter coupon code" foni)
+  static const Color inputBackground = Color(0xFFF3F3F3);
 
-  /// Ikkinchi matn rangi - Kulrang
-  static const Color textSecondary = Color(0xFF6B6B6B);
+  // --- Matn Ranglari ---
+  /// Asosiy sarlavhalar (Qop-qora emas, to'q kulrang)
+  static const Color textPrimary = Color(0xFF212121);
 
-  /// Yengil kulrang (divider, border)
-  static const Color lightGrey = Color(0xFFE8E8E8);
+  /// Izohlar va yordamchi matnlar
+  static const Color textSecondary = Color(0xFF757575);
 
-  /// Muvaffaqiyat rangi
-  static const Color success = Color(0xFF4CAF50);
+  // --- Chiziqlar va Borderlar ---
+  static const Color outline = Color(0xFFEEEEEE);
 
-  /// Xatolik rangi
-  static const Color error = Color(0xFFE53935);
+  // --- Status ---
+  static const Color error = Color(0xFFD32F2F);
+  static const Color success = Color(0xFF388E3C);
 
-  /// Oq rang
+  // --- Missing Colors (Added to fix errors) ---
   static const Color white = Colors.white;
-
-  /// Qora rang
   static const Color black = Colors.black;
+  static const Color lightGrey = Color(0xFFE0E0E0); // Added lightGrey
+  static const Color secondary = Color(0xFFD7CCC8); // Added secondary back as a soft beige/brown
 
-  /// Accent gradient
+  // --- Gradients ---
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF633E33), Color(0xFF8B5A4A)],
+    colors: [primary, primaryDark],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

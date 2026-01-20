@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../../../core/di/dependency_injection.dart' as di;
-import '../../../../data/models/order_model.dart';
+import '../../data/models/order_model.dart';
 
 /// Buyurtmalar bilan ishlash uchun repository
 class OrderRepository {
