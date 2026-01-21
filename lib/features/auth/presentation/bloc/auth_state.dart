@@ -62,3 +62,9 @@ class AuthUserExists extends AuthState {
   @override
   List<Object?> get props => [phone, message, isOnboardingCompleted];
 }
+
+/// Kod qayta yuborilganda chiqariladigan state.
+/// Bu holat faqat kod qayta yuborilganda ishlatiladi va navigatsiya qilmaydi.
+class AuthCodeResent extends AuthState {
+  const AuthCodeResent({required super.isOnboardingCompleted});
+}

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
 import '../bloc/auth_bloc.dart';
@@ -39,8 +40,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _handleSubmit() async {
     if (_phoneController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Telefon raqamini kiriting'),
+        SnackBar(
+          content: Text('auth.enter_phone'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -76,6 +77,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
       ),
       body: BlocListener<AuthBloc, AuthState>(
+        listenWhen: (previous, current) {
+          // Only listen when state actually changes
+          return previous != current;
+        },
         listener: (context, state) {
           if (state is AuthUnauthenticated) {
             Navigator.push(
@@ -106,18 +111,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     children: [
                       const SizedBox(height: 20),
                       // Sarlavha
-                      const Text(
-                        'Parolni tiklash',
-                        style: TextStyle(
+                      Text(
+                        'auth.forgot_password'.tr(),
+                        style: const TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                         ),
                       ).animate().fadeIn().slideX(begin: -0.1),
                       const SizedBox(height: 10),
-                      const Text(
-                        'Telefon raqamingizni kiriting.\nBiz sizga parolni tiklash kodini yuboramiz.',
-                        style: TextStyle(
+                      Text(
+                        'auth.forgot_password_subtitle'.tr(),
+                        style: const TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 14,
                           height: 1.5,
@@ -127,40 +132,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       // Telefon raqami
                       _buildPhoneField(
                         controller: _phoneController,
-                        label: 'Telefon raqami',
+                        label: 'auth.phone'.tr(),
                       ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1),
-                      const SizedBox(height: 16),
-                      // Info banner
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.secondary.withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.info_outline_rounded,
-                              color: AppColors.primary,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                'Kodni backend konsoldan ko\'ring',
-                                style: TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ).animate().fadeIn(delay: 250.ms),
+                      const SizedBox(height: 40),
                       const Spacer(),
                       // Yuborish tugmasi
                       CustomButton(
-                        text: 'Kod yuborish',
+                        text: 'auth.send_code'.tr(),
                         width: double.infinity,
                         isLoading: state is AuthLoading,
                         onPressed: _handleSubmit,
@@ -202,7 +180,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ],
           style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
           decoration: InputDecoration(
-            hintText: '90 123 45 67',
+            hintText: 'auth.phone_hint'.tr(),
             hintStyle: TextStyle(
               color: AppColors.textSecondary.withValues(alpha: 0.6),
               fontSize: 15,

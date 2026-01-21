@@ -1,20 +1,8 @@
-import 'package:dio/dio.dart';
+import 'package:dartz/dartz.dart';
 import '../../../../../core/local/hive_service.dart';
 import '../../../../../core/network/dio_client.dart';
-
-/// Foydalanuvchi allaqachon mavjud bo'lganda (409 Conflict) chiqariladigan xato.
-class UserExistsException implements Exception {
-  final String message;
-  final String phone;
-
-  UserExistsException({
-    this.message = 'Bu raqam tizimda mavjud. Iltimos, kirish qismiga o\'ting.',
-    required this.phone,
-  });
-
-  @override
-  String toString() => message;
-}
+import '../../../../../core/network/failure.dart';
+import '../../../../../core/network/error_message_helper.dart';
 
 /// Auth bilan ishlash uchun repository.
 class AuthRepository {
@@ -24,7 +12,7 @@ class AuthRepository {
     : _dioClient = dioClient ?? DioClient();
 
   /// Tizimga kirish.
-  Future<Map<String, dynamic>> login({
+  Future<Either<Failure, Map<String, dynamic>>> login({
     required String phone,
     required String password,
   }) async {
@@ -34,7 +22,19 @@ class AuthRepository {
         data: {'phone': phone, 'password': password},
       );
 
-      if (response.statusCode == 200 && response.data != null) {
+      // Handle error status codes
+      if (response.statusCode != 200) {
+        final data = response.data;
+        String errorMessage = 'Login failed';
+
+        if (data is Map<String, dynamic> && data.containsKey('message')) {
+          errorMessage = data['message'] as String;
+        }
+
+        return Left(Failure(message: errorMessage));
+      }
+
+      if (response.data != null) {
         final data = response.data as Map<String, dynamic>;
 
         if (data['success'] == true && data['token'] != null) {
@@ -42,22 +42,20 @@ class AuthRepository {
             data['token'] as String,
             data['user'] as Map<String, dynamic>?,
           );
-          return data;
+          return Right(data);
         } else {
-          throw Exception(data['message'] ?? 'Login failed');
+          return Left(Failure(message: data['message'] ?? 'Login failed'));
         }
       } else {
-        throw Exception('Invalid response from server');
+        return Left(Failure(message: 'Invalid response from server'));
       }
-    } on DioException catch (e) {
-      throw Exception(_handleDioError(e));
     } catch (e) {
-      throw Exception('Login failed: ${e.toString()}');
+      return Left(Failure(message: ErrorMessageHelper.getMessage(e)));
     }
   }
 
   /// Ro'yxatdan o'tish.
-  Future<Map<String, dynamic>> register({
+  Future<Either<Failure, Map<String, dynamic>>> register({
     required String fullName,
     required String phone,
     required String password,
@@ -74,12 +72,19 @@ class AuthRepository {
         },
       );
 
-      // 409 Conflict - Foydalanuvchi allaqachon mavjud
-      if (response.statusCode == 409) {
-        throw UserExistsException(phone: phone);
+      // Handle error status codes (400, 409, etc.)
+      if (response.statusCode != 201 && response.statusCode != 200) {
+        final data = response.data;
+        String errorMessage = 'Registration failed';
+
+        if (data is Map<String, dynamic> && data.containsKey('message')) {
+          errorMessage = data['message'] as String;
+        }
+
+        return Left(Failure(message: errorMessage));
       }
 
-      if (response.statusCode == 201 && response.data != null) {
+      if (response.data != null) {
         final data = response.data as Map<String, dynamic>;
 
         if (data['success'] == true && data['token'] != null) {
@@ -87,24 +92,17 @@ class AuthRepository {
             data['token'] as String,
             data['user'] as Map<String, dynamic>?,
           );
-          return data;
+          return Right(data);
         } else {
-          throw Exception(data['message'] ?? 'Registration failed');
+          return Left(
+            Failure(message: data['message'] ?? 'Registration failed'),
+          );
         }
       } else {
-        throw Exception('Invalid response from server');
+        return Left(Failure(message: 'Invalid response from server'));
       }
-    } on UserExistsException {
-      rethrow;
-    } on DioException catch (e) {
-      // DioException dan ham 409 ni tekshirish
-      if (e.response?.statusCode == 409) {
-        throw UserExistsException(phone: phone);
-      }
-      throw Exception(_handleDioError(e));
     } catch (e) {
-      if (e is UserExistsException) rethrow;
-      throw Exception('Registration failed: ${e.toString()}');
+      return Left(Failure(message: ErrorMessageHelper.getMessage(e)));
     }
   }
 
@@ -165,61 +163,56 @@ class AuthRepository {
     }
   }
 
-  String _handleDioError(DioException error) {
-    switch (error.type) {
-      case DioExceptionType.connectionTimeout:
-        return 'Connection timeout. Please check your internet connection.';
-      case DioExceptionType.sendTimeout:
-        return 'Request timeout. Please try again.';
-      case DioExceptionType.receiveTimeout:
-        return 'Server timeout. Please try again.';
-      case DioExceptionType.badResponse:
-        if (error.response?.data is Map<String, dynamic>) {
-          final data = error.response!.data as Map<String, dynamic>;
-          return data['message'] ?? data['error'] ?? 'Server error occurred.';
-        }
-        return 'Server error: ${error.response?.statusCode ?? 'Unknown'}';
-      case DioExceptionType.cancel:
-        return 'Request was cancelled.';
-      case DioExceptionType.unknown:
-        if (error.error?.toString().contains('SocketException') == true) {
-          return 'No internet connection. Please check your network.';
-        }
-        return 'An unexpected error occurred. Please try again.';
-      default:
-        return 'An error occurred. Please try again.';
-    }
-  }
-
   /// OTP yuborish.
-  Future<Map<String, dynamic>> sendOtp({required String phone}) async {
+  Future<Either<Failure, Map<String, dynamic>>> sendOtp({
+    required String phone,
+  }) async {
     try {
       final response = await _dioClient.post(
         '/auth/send-otp',
         data: {'phone': phone},
       );
 
+      // Check for 400 Bad Request - validation error
+      if (response.statusCode == 400) {
+        final data = response.data;
+        String errorMessage = "Noto'g'ri so'rov.";
+
+        if (data is Map<String, dynamic> && data.containsKey('message')) {
+          errorMessage = data['message'] as String;
+        }
+
+        return Left(Failure(message: errorMessage));
+      }
+
+      // Check for 409 Conflict - phone already registered
+      if (response.statusCode == 409) {
+        final data = response.data;
+        String errorMessage = "Bu telefon raqami allaqachon ro'yxatdan o'tgan";
+
+        if (data is Map<String, dynamic> && data.containsKey('message')) {
+          errorMessage = data['message'] as String;
+        }
+
+        return Left(Failure(message: errorMessage));
+      }
+
       if (response.statusCode == 200 && response.data != null) {
         final data = response.data as Map<String, dynamic>;
-        return {
+        return Right({
           'success': data['success'] ?? false,
           'message': data['message'] ?? 'OTP sent successfully',
-        };
+        });
       } else {
-        return {'success': false, 'message': 'Failed to send OTP'};
+        return Left(Failure(message: 'Failed to send OTP'));
       }
-    } on DioException catch (e) {
-      return {'success': false, 'message': _handleDioError(e)};
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'An unexpected error occurred. Please try again.',
-      };
+      return Left(Failure(message: ErrorMessageHelper.getMessage(e)));
     }
   }
 
   /// OTP tasdiqlash.
-  Future<Map<String, dynamic>> verifyOtp({
+  Future<Either<Failure, Map<String, dynamic>>> verifyOtp({
     required String phone,
     required String code,
   }) async {
@@ -229,27 +222,34 @@ class AuthRepository {
         data: {'phone': phone, 'code': code},
       );
 
-      if (response.statusCode == 200 && response.data != null) {
+      // Handle error status codes
+      if (response.statusCode != 200) {
+        final data = response.data;
+        String errorMessage = 'Failed to verify OTP';
+
+        if (data is Map<String, dynamic> && data.containsKey('message')) {
+          errorMessage = data['message'] as String;
+        }
+
+        return Left(Failure(message: errorMessage));
+      }
+
+      if (response.data != null) {
         final data = response.data as Map<String, dynamic>;
-        return {
+        return Right({
           'success': data['success'] ?? false,
           'message': data['message'] ?? 'OTP verified successfully',
-        };
+        });
       } else {
-        return {'success': false, 'message': 'Failed to verify OTP'};
+        return Left(Failure(message: 'Failed to verify OTP'));
       }
-    } on DioException catch (e) {
-      return {'success': false, 'message': _handleDioError(e)};
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'An unexpected error occurred. Please try again.',
-      };
+      return Left(Failure(message: ErrorMessageHelper.getMessage(e)));
     }
   }
 
   /// Parolni tiklash (OTP orqali).
-  Future<Map<String, dynamic>> resetPassword({
+  Future<Either<Failure, Map<String, dynamic>>> resetPassword({
     required String phone,
     required String code,
     required String newPassword,
@@ -260,49 +260,65 @@ class AuthRepository {
         data: {'phone': phone, 'code': code, 'new_password': newPassword},
       );
 
-      if (response.statusCode == 200 && response.data != null) {
+      // Handle error status codes
+      if (response.statusCode != 200) {
+        final data = response.data;
+        String errorMessage = 'Failed to reset password';
+
+        if (data is Map<String, dynamic> && data.containsKey('message')) {
+          errorMessage = data['message'] as String;
+        }
+
+        return Left(Failure(message: errorMessage));
+      }
+
+      if (response.data != null) {
         final data = response.data as Map<String, dynamic>;
-        return {
+        return Right({
           'success': data['success'] ?? false,
           'message': data['message'] ?? 'Password reset successful',
-        };
+        });
       } else {
-        return {'success': false, 'message': 'Failed to reset password'};
+        return Left(Failure(message: 'Failed to reset password'));
       }
-    } on DioException catch (e) {
-      return {'success': false, 'message': _handleDioError(e)};
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'An unexpected error occurred. Please try again.',
-      };
+      return Left(Failure(message: ErrorMessageHelper.getMessage(e)));
     }
   }
 
   /// Parolni unutish.
-  Future<Map<String, dynamic>> forgotPassword({required String phone}) async {
+  Future<Either<Failure, Map<String, dynamic>>> forgotPassword({
+    required String phone,
+  }) async {
     try {
       final response = await _dioClient.post(
         '/auth/forgot-password',
         data: {'phone': phone},
       );
 
-      if (response.statusCode == 200 && response.data != null) {
+      // Handle error status codes
+      if (response.statusCode != 200) {
+        final data = response.data;
+        String errorMessage = 'Failed to send reset code';
+
+        if (data is Map<String, dynamic> && data.containsKey('message')) {
+          errorMessage = data['message'] as String;
+        }
+
+        return Left(Failure(message: errorMessage));
+      }
+
+      if (response.data != null) {
         final data = response.data as Map<String, dynamic>;
-        return {
+        return Right({
           'success': data['success'] ?? false,
           'message': data['message'] ?? 'Password reset code sent',
-        };
+        });
       } else {
-        return {'success': false, 'message': 'Failed to send reset code'};
+        return Left(Failure(message: 'Failed to send reset code'));
       }
-    } on DioException catch (e) {
-      return {'success': false, 'message': _handleDioError(e)};
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'An unexpected error occurred. Please try again.',
-      };
+      return Left(Failure(message: ErrorMessageHelper.getMessage(e)));
     }
   }
 }

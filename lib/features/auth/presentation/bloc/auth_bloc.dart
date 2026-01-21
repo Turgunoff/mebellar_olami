@@ -3,8 +3,7 @@ import 'package:equatable/equatable.dart';
 
 import '../../../../core/local/hive_service.dart';
 import '../../../favorites/presentation/bloc/favorites_bloc.dart';
-import '../../data/repositories/auth_repository.dart'
-    show AuthRepository, UserExistsException;
+import '../../data/repositories/auth_repository.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';
@@ -56,30 +55,32 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading(isOnboardingCompleted: state.isOnboardingCompleted));
 
-    try {
-      final response = await _repository.login(
-        phone: event.phone,
-        password: event.password,
-      );
+    final result = await _repository.login(
+      phone: event.phone,
+      password: event.password,
+    );
 
-      emit(
+    result.fold(
+      (failure) => emit(
+        AuthFailure(
+          message: failure.message,
+          isOnboardingCompleted: state.isOnboardingCompleted,
+        ),
+      ),
+      (response) => emit(
         AuthAuthenticated(
           token: response['token'] as String,
           user: response['user'] as Map<String, dynamic>?,
           isOnboardingCompleted: true,
         ),
-      );
+      ),
+    );
 
-      // Trigger favorites sync after successful login
-      _favoritesBloc?.add(const SyncFavoritesEvent());
-    } catch (e) {
-      emit(
-        AuthFailure(
-          message: e.toString().replaceAll('Exception: ', ''),
-          isOnboardingCompleted: state.isOnboardingCompleted,
-        ),
-      );
-    }
+    // Trigger favorites sync after successful login if result is Right
+    result.fold(
+      (failure) => null,
+      (response) => _favoritesBloc?.add(const SyncFavoritesEvent()),
+    );
   }
 
   Future<void> _onRegisterRequested(
@@ -88,41 +89,27 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading(isOnboardingCompleted: state.isOnboardingCompleted));
 
-    try {
-      final response = await _repository.register(
-        fullName: event.fullName,
-        phone: event.phone,
-        password: event.password,
-      );
+    final result = await _repository.register(
+      fullName: event.fullName,
+      phone: event.phone,
+      password: event.password,
+    );
 
-      emit(
+    result.fold(
+      (failure) => emit(
+        AuthFailure(
+          message: failure.message,
+          isOnboardingCompleted: state.isOnboardingCompleted,
+        ),
+      ),
+      (response) => emit(
         AuthAuthenticated(
           token: response['token'] as String,
           user: response['user'] as Map<String, dynamic>?,
           isOnboardingCompleted: true,
         ),
-      );
-
-      // Trigger favorites sync after successful registration
-      _favoritesBloc?.add(const SyncFavoritesEvent());
-    } on UserExistsException catch (e) {
-      // 409 Conflict - Foydalanuvchi allaqachon mavjud
-      // Bu Sellerlar o'zlarining mavjud raqamlari bilan Xaridor ilovasiga kirishlari uchun muhim
-      emit(
-        AuthUserExists(
-          phone: e.phone,
-          message: e.message,
-          isOnboardingCompleted: state.isOnboardingCompleted,
-        ),
-      );
-    } catch (e) {
-      emit(
-        AuthFailure(
-          message: e.toString().replaceAll('Exception: ', ''),
-          isOnboardingCompleted: state.isOnboardingCompleted,
-        ),
-      );
-    }
+      ),
+    );
   }
 
   Future<void> _onLogoutRequested(
@@ -142,18 +129,27 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     final result = await _repository.forgotPassword(phone: event.phone);
 
-    if (result['success'] == true) {
-      emit(
-        AuthUnauthenticated(isOnboardingCompleted: state.isOnboardingCompleted),
-      );
-    } else {
-      emit(
+    result.fold(
+      (failure) => emit(
         AuthFailure(
-          message: result['message'] ?? 'Failed to send reset code',
+          message: failure.message,
           isOnboardingCompleted: state.isOnboardingCompleted,
         ),
-      );
-    }
+      ),
+      (response) {
+        if (event.isResend) {
+          emit(
+            AuthCodeResent(isOnboardingCompleted: state.isOnboardingCompleted),
+          );
+        } else {
+          emit(
+            AuthUnauthenticated(
+              isOnboardingCompleted: state.isOnboardingCompleted,
+            ),
+          );
+        }
+      },
+    );
   }
 
   Future<void> _onSendOtpRequested(
@@ -164,18 +160,27 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     final result = await _repository.sendOtp(phone: event.phone);
 
-    if (result['success'] == true) {
-      emit(
-        AuthUnauthenticated(isOnboardingCompleted: state.isOnboardingCompleted),
-      );
-    } else {
-      emit(
+    result.fold(
+      (failure) => emit(
         AuthFailure(
-          message: result['message'] ?? 'Failed to send OTP',
+          message: failure.message,
           isOnboardingCompleted: state.isOnboardingCompleted,
         ),
-      );
-    }
+      ),
+      (response) {
+        if (event.isResend) {
+          emit(
+            AuthCodeResent(isOnboardingCompleted: state.isOnboardingCompleted),
+          );
+        } else {
+          emit(
+            AuthUnauthenticated(
+              isOnboardingCompleted: state.isOnboardingCompleted,
+            ),
+          );
+        }
+      },
+    );
   }
 
   Future<void> _onResetPasswordRequested(
@@ -190,18 +195,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       newPassword: event.newPassword,
     );
 
-    if (result['success'] == true) {
-      emit(
-        AuthUnauthenticated(isOnboardingCompleted: state.isOnboardingCompleted),
-      );
-    } else {
-      emit(
+    result.fold(
+      (failure) => emit(
         AuthFailure(
-          message: result['message'] ?? 'Failed to reset password',
+          message: failure.message,
           isOnboardingCompleted: state.isOnboardingCompleted,
         ),
-      );
-    }
+      ),
+      (response) => emit(
+        AuthUnauthenticated(isOnboardingCompleted: state.isOnboardingCompleted),
+      ),
+    );
   }
 
   Future<void> _onVerifyOtpRequested(
@@ -215,18 +219,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       code: event.code,
     );
 
-    if (result['success'] == true) {
-      emit(
-        AuthUnauthenticated(isOnboardingCompleted: state.isOnboardingCompleted),
-      );
-    } else {
-      emit(
+    result.fold(
+      (failure) => emit(
         AuthFailure(
-          message: result['message'] ?? 'Failed to verify OTP',
+          message: failure.message,
           isOnboardingCompleted: state.isOnboardingCompleted,
         ),
-      );
-    }
+      ),
+      (response) => emit(
+        AuthUnauthenticated(isOnboardingCompleted: state.isOnboardingCompleted),
+      ),
+    );
   }
 
   Map<String, dynamic>? _getUserFromStorage() {

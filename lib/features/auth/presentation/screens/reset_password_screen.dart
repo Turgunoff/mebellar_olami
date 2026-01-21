@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
 import '../bloc/auth_bloc.dart';
@@ -85,7 +86,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     if (!_canResend) return;
 
     context.read<AuthBloc>().add(
-      AuthForgotPasswordRequested(phone: widget.phone),
+      AuthForgotPasswordRequested(phone: widget.phone, isResend: true),
     );
   }
 
@@ -127,12 +128,22 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     setState(() {});
   }
 
+  /// Telefon raqamini formatlash (+998 90 123 45 67)
+  String get _formattedPhone {
+    String phone = widget.phone;
+    // +998901234567 -> +998 90 123 45 67
+    if (phone.startsWith('+998') && phone.length == 13) {
+      return '+998 ${phone.substring(4, 6)} ${phone.substring(6, 9)} ${phone.substring(9, 11)} ${phone.substring(11)}';
+    }
+    return phone;
+  }
+
   /// 1-Bosqich: OTP tekshirish
   void _handleVerifyOtp() {
     if (_otpCode.length != 5) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Iltimos, to\'liq 5 xonali kodni kiriting'),
+        SnackBar(
+          content: Text('auth.enter_full_code'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -149,8 +160,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
     if (_passwordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Parollar mos kelmadi'),
+        SnackBar(
+          content: Text('auth.password_mismatch'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -196,8 +207,22 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         ),
       ),
       body: BlocListener<AuthBloc, AuthState>(
+        listenWhen: (previous, current) => previous != current,
         listener: (context, state) {
-          if (state is AuthUnauthenticated && _currentStep == 2) {
+          if (state is AuthCodeResent) {
+            // Kod qayta yuborildi - faqat xabar va taymer reset
+            setState(() {
+              _resendSeconds = 60;
+              _canResend = false;
+            });
+            _startResendTimer();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('auth.code_sent'.tr()),
+                backgroundColor: AppColors.success,
+              ),
+            );
+          } else if (state is AuthUnauthenticated && _currentStep == 2) {
             // Parol muvaffaqiyatli yangilandi
             Navigator.pushAndRemoveUntil(
               context,
@@ -241,8 +266,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       children: [
         const SizedBox(height: 40),
         // Sarlavha
-        const Text(
-          'Kodni kiriting',
+        Text(
+          'auth.enter_code'.tr(),
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 28,
@@ -251,7 +276,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         ).animate().fadeIn().slideY(begin: -0.1),
         const SizedBox(height: 12),
         Text(
-          '${widget.phone} ga yuborilgan\n5 xonali kodni kiriting',
+          'auth.enter_code_subtitle'.tr(args: [_formattedPhone]),
           style: const TextStyle(
             color: AppColors.textSecondary,
             fontSize: 14,
@@ -260,30 +285,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           textAlign: TextAlign.center,
         ).animate().fadeIn(delay: 100.ms),
         const SizedBox(height: 16),
-        // Info banner
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppColors.secondary.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.info_outline_rounded,
-                color: AppColors.primary,
-                size: 20,
-              ),
-              const SizedBox(width: 10),
-              Text(
-                'Kodni backend konsoldan ko\'ring',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-              ),
-            ],
-          ),
-        ).animate().fadeIn(delay: 150.ms),
-        const SizedBox(height: 40),
+
         // 5 xonali OTP input
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -353,7 +355,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           TextButton.icon(
             onPressed: _clearOtp,
             icon: const Icon(Icons.refresh_rounded, size: 18),
-            label: const Text('Tozalash'),
+            label: Text('auth.clear_code'.tr()),
             style: TextButton.styleFrom(
               foregroundColor: AppColors.textSecondary,
             ),
@@ -367,7 +369,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               style: const TextStyle(fontSize: 14),
               children: [
                 TextSpan(
-                  text: _canResend ? 'Kodni qayta yuborish' : 'Qayta yuborish ',
+                  text: _canResend
+                      ? 'auth.resend_code'.tr()
+                      : 'auth.resend_wait'.tr(),
                   style: TextStyle(
                     color: _canResend
                         ? AppColors.primary
@@ -392,7 +396,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         const SizedBox(height: 60),
         // Davom etish tugmasi
         CustomButton(
-          text: 'Davom etish',
+          text: 'auth.continue'.tr(),
           width: double.infinity,
           isLoading: context.read<AuthBloc>().state is AuthLoading,
           onPressed: _handleVerifyOtp,
@@ -409,8 +413,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       children: [
         const SizedBox(height: 20),
         // Sarlavha
-        const Text(
-          'Yangi parol',
+        Text(
+          'auth.new_password'.tr(),
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 32,
@@ -418,8 +422,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           ),
         ).animate().fadeIn().slideX(begin: -0.1),
         const SizedBox(height: 10),
-        const Text(
-          'Hisobingizni himoya qilish uchun\nkuchli va xavfsiz parol o\'rnating.',
+        Text(
+          'auth.new_password_subtitle'.tr(),
           style: TextStyle(
             color: AppColors.textSecondary,
             fontSize: 14,
@@ -430,7 +434,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         // Yangi parol
         _buildTextField(
           controller: _passwordController,
-          label: 'Yangi parol',
+          label: 'auth.new_password'.tr(),
           hint: '••••••••••••',
           obscureText: _obscurePassword,
           suffixIcon: IconButton(
@@ -447,10 +451,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           ),
           validator: (value) {
             if (value?.isEmpty ?? true) {
-              return 'Parolni kiriting';
+              return 'auth.enter_password'.tr();
             }
             if (value!.length < 6) {
-              return 'Parol kamida 6 ta belgidan iborat bo\'lishi kerak';
+              return 'auth.password_too_short'.tr();
             }
             return null;
           },
@@ -459,7 +463,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         // Parolni tasdiqlash
         _buildTextField(
           controller: _confirmPasswordController,
-          label: 'Parolni tasdiqlash',
+          label: 'auth.confirm_password'.tr(),
           hint: '••••••••••••',
           obscureText: _obscureConfirmPassword,
           suffixIcon: IconButton(
@@ -478,15 +482,15 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           ),
           validator: (value) {
             if (value?.isEmpty ?? true) {
-              return 'Parolni tasdiqlang';
+              return 'auth.confirm_password_hint'.tr();
             }
             return null;
           },
         ).animate().fadeIn(delay: 300.ms).slideX(begin: -0.1),
         const SizedBox(height: 24),
         // Parol talablari
-        const Text(
-          'Parolingiz quyidagilardan iborat bo\'lishi kerak:',
+        Text(
+          'auth.password_requirements'.tr(),
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 14,
@@ -495,21 +499,21 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         ).animate().fadeIn(delay: 400.ms),
         const SizedBox(height: 14),
         _buildRequirement(
-          'Kamida 6 ta belgi',
+          'auth.min_length'.tr(),
           _hasMinLength,
         ).animate().fadeIn(delay: 450.ms),
         _buildRequirement(
-          'Kamida 1 ta katta harf (A-Z)',
+          'auth.uppercase_required'.tr(),
           _hasUppercase,
         ).animate().fadeIn(delay: 500.ms),
         _buildRequirement(
-          'Kamida 1 ta raqam (0-9)',
+          'auth.number_required'.tr(),
           _hasNumber,
         ).animate().fadeIn(delay: 550.ms),
         const SizedBox(height: 40),
         // Tasdiqlash tugmasi
         CustomButton(
-          text: 'Parolni yangilash',
+          text: 'auth.reset_password'.tr(),
           width: double.infinity,
           isLoading: context.read<AuthBloc>().state is AuthLoading,
           onPressed: _handleResetPassword,
@@ -641,8 +645,8 @@ class _PasswordResetSuccessScreen extends StatelessWidget {
                 ),
               ).animate().scale(delay: 200.ms),
               const SizedBox(height: 32),
-              const Text(
-                'Parol yangilandi! 🎉',
+              Text(
+                'auth.password_reset_success'.tr(),
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -651,8 +655,8 @@ class _PasswordResetSuccessScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ).animate().fadeIn(delay: 400.ms),
               const SizedBox(height: 12),
-              const Text(
-                'Parolingiz muvaffaqiyatli o\'zgartirildi.\nEndi yangi parol bilan kirishingiz mumkin.',
+              Text(
+                'auth.password_reset_success_subtitle'.tr(),
                 style: TextStyle(
                   fontSize: 16,
                   color: AppColors.textSecondary,
@@ -663,7 +667,7 @@ class _PasswordResetSuccessScreen extends StatelessWidget {
               const Spacer(),
               // Kirish tugmasi
               CustomButton(
-                text: 'Kirish',
+                text: 'auth.login'.tr(),
                 width: double.infinity,
                 onPressed: () {
                   Navigator.pushAndRemoveUntil(

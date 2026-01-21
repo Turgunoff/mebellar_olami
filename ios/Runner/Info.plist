@@ -49,5 +49,11 @@
 	<string>Profil rasmini o'zgartirish uchun galereyaga ruxsat bering.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Profil rasmini o'zgartirish uchun kamera ruxsat bering.</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>ru</string>
+		<string>uz</string>
+	</array>
 </dict>
 </plist>

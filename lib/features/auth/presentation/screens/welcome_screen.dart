@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
 import 'signup_screen.dart';
@@ -86,7 +87,7 @@ class WelcomeScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   // Subtitle
                   Text(
-                    'Orzuingizdagi uyni yarating',
+                    'auth.welcome_subtitle'.tr(),
                     style: TextStyle(
                       color: AppColors.white.withValues(alpha: 0.85),
                       fontSize: 16,
@@ -121,8 +122,8 @@ class WelcomeScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      child: const Text(
-                        'Kirish',
+                      child: Text(
+                        'auth.login'.tr(),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -156,8 +157,8 @@ class WelcomeScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      child: const Text(
-                        'Ro\'yxatdan o\'tish',
+                      child: Text(
+                        'auth.signup'.tr(),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -177,7 +178,7 @@ class WelcomeScreen extends StatelessWidget {
                       );
                     },
                     child: Text(
-                      'Mehmon sifatida davom etish',
+                      'auth.guest_mode'.tr(),
                       style: TextStyle(
                         color: AppColors.white.withValues(alpha: 0.7),
                         fontSize: 14,

@@ -17,7 +17,7 @@ void main() async {
       supportedLocales: const [Locale('uz'), Locale('ru'), Locale('en')],
       path: 'assets/translations',
       fallbackLocale: const Locale('uz'),
-      startLocale: null,
+      saveLocale: true,
       child: const MebellarOlamiApp(),
     ),
   );

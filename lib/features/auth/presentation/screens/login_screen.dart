@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
 import '../bloc/auth_bloc.dart';
@@ -80,6 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
       ),
       body: BlocConsumer<AuthBloc, AuthState>(
+        listenWhen: (previous, current) => previous != current,
         listener: (context, state) {
           if (state is AuthAuthenticated) {
             if (mounted) {
@@ -90,12 +92,37 @@ class _LoginScreenState extends State<LoginScreen> {
               );
             }
           } else if (state is AuthFailure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppColors.error,
-              ),
-            );
+            const noInternetMessage =
+                "Internet aloqasi yo'q. Iltimos, tarmoqni tekshiring.";
+            if (state.message == noInternetMessage) {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Internet yo\'q'),
+                  content: const Text(noInternetMessage),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Bekor qilish'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _handleLogin();
+                      },
+                      child: const Text('Qayta urinish'),
+                    ),
+                  ],
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: AppColors.error,
+                ),
+              );
+            }
           }
         },
         builder: (context, state) {
@@ -111,8 +138,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const SizedBox(height: 20),
                     // Sarlavha
-                    const Text(
-                      'Kirish',
+                    Text(
+                      'auth.login'.tr(),
                       style: TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 32,
@@ -120,8 +147,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ).animate().fadeIn().slideX(begin: -0.1),
                     const SizedBox(height: 10),
-                    const Text(
-                      'Salom! Siz bilan qayta uchrashganimizdan\nxursandmiz!',
+                    Text(
+                      'auth.login_subtitle'.tr(),
                       style: TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 14,
@@ -132,15 +159,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Telefon raqami
                     _buildPhoneField(
                       controller: _phoneController,
-                      label: 'Telefon raqami',
+                      label: 'auth.phone'.tr(),
                       validator: (value) {
                         if (value?.isEmpty ?? true) {
-                          return 'Telefon raqamini kiriting';
+                          return 'auth.enter_phone'.tr();
                         }
                         // Raqamlarni tekshirish
                         final digits = value!.replaceAll(RegExp(r'[^0-9]'), '');
                         if (digits.length < 9) {
-                          return 'Telefon raqami noto\'g\'ri';
+                          return 'auth.invalid_phone'.tr();
                         }
                         return null;
                       },
@@ -149,8 +176,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Parol
                     _buildTextField(
                       controller: _passwordController,
-                      label: 'Parol',
-                      hint: '••••••••••••',
+                      label: 'auth.password'.tr(),
+                      hint: 'auth.password_hint'.tr(),
                       obscureText: _obscurePassword,
                       suffixIcon: IconButton(
                         onPressed: () {
@@ -166,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       validator: (value) {
                         if (value?.isEmpty ?? true) {
-                          return 'Parolni kiriting';
+                          return 'auth.enter_password'.tr();
                         }
                         return null;
                       },
@@ -207,8 +234,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     : null,
                               ),
                               const SizedBox(width: 10),
-                              const Text(
-                                'Eslab qolish',
+                              Text(
+                                'auth.remember_me'.tr(),
                                 style: TextStyle(
                                   color: AppColors.textSecondary,
                                   fontSize: 14,
@@ -233,8 +260,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          child: const Text(
-                            'Parolni unutdingizmi?',
+                          child: Text(
+                            'auth.forgot_password'.tr(),
                             style: TextStyle(
                               color: AppColors.primary,
                               fontSize: 14,
@@ -247,7 +274,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 30),
                     // Kirish tugmasi
                     CustomButton(
-                      text: 'Kirish',
+                      text: 'auth.login'.tr(),
                       width: double.infinity,
                       isLoading: isLoading,
                       onPressed: _handleLogin,
@@ -262,7 +289,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Text(
-                            'Yoki kirish',
+                            'auth.or_login'.tr(),
                             style: TextStyle(
                               color: AppColors.textSecondary,
                               fontSize: 13,
@@ -291,8 +318,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
-                          'Akkauntingiz yo\'qmi? ',
+                        Text(
+                          'auth.no_account'.tr(),
                           style: TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 14,
@@ -307,8 +334,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             );
                           },
-                          child: const Text(
-                            'Ro\'yxatdan o\'tish',
+                          child: Text(
+                            'auth.signup'.tr(),
                             style: TextStyle(
                               color: AppColors.primary,
                               fontSize: 14,
@@ -358,7 +385,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ],
           style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
           decoration: InputDecoration(
-            hintText: '90 123 45 67',
+            hintText: 'auth.phone_hint'.tr(),
             hintStyle: TextStyle(
               color: AppColors.textSecondary.withValues(alpha: 0.6),
               fontSize: 15,

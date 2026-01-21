@@ -21,6 +21,9 @@ dependencies:
   # Networking
   dio: ^5.7.0
 
+  # Functional Programming
+  dartz: ^0.10.1
+
   # State Management
   flutter_bloc: ^8.1.6
   equatable: ^2.0.5

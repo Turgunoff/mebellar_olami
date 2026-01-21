@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../bloc/auth_bloc.dart';
 import '../../../../core/widgets/custom_button.dart';
@@ -71,10 +72,12 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
 
     if (widget.isPasswordReset) {
       context.read<AuthBloc>().add(
-        AuthForgotPasswordRequested(phone: widget.phone),
+        AuthForgotPasswordRequested(phone: widget.phone, isResend: true),
       );
     } else {
-      context.read<AuthBloc>().add(AuthSendOtpRequested(phone: widget.phone));
+      context.read<AuthBloc>().add(
+        AuthSendOtpRequested(phone: widget.phone, isResend: true),
+      );
     }
   }
 
@@ -103,8 +106,8 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
   Future<void> _verifyCode() async {
     if (_code.length != 5) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Iltimos, to\'liq 5 xonali kodni kiriting'),
+        SnackBar(
+          content: Text('auth.enter_full_code'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -126,6 +129,16 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
       // O'zini tozalash
       _controllers[index].clear();
     }
+  }
+
+  /// Telefon raqamini formatlash (+998 90 123 45 67)
+  String get _formattedPhone {
+    String phone = widget.phone;
+    // +998901234567 -> +998 90 123 45 67
+    if (phone.startsWith('+998') && phone.length == 13) {
+      return '+998 ${phone.substring(4, 6)} ${phone.substring(6, 9)} ${phone.substring(9, 11)} ${phone.substring(11)}';
+    }
+    return phone;
   }
 
   @override
@@ -151,7 +164,56 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
           ),
         ),
       ),
-      body: BlocBuilder<AuthBloc, AuthState>(
+      body: BlocConsumer<AuthBloc, AuthState>(
+        listenWhen: (previous, current) => previous != current,
+        listener: (context, state) {
+          if (state is AuthCodeResent) {
+            // Kod qayta yuborildi - faqat xabar va taymer reset
+            setState(() {
+              _resendSeconds = 60;
+              _canResend = false;
+            });
+            _startResendTimer();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('auth.code_sent'.tr()),
+                backgroundColor: AppColors.success,
+              ),
+            );
+          } else if (state is AuthFailure) {
+            const noInternetMessage =
+                "Internet aloqasi yo'q. Iltimos, tarmoqni tekshiring.";
+            if (state.message == noInternetMessage) {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Internet yo\'q'),
+                  content: const Text(noInternetMessage),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Bekor qilish'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _verifyCode(); // Retry verify, or resend if needed, but for simplicity, retry verify
+                      },
+                      child: const Text('Qayta urinish'),
+                    ),
+                  ],
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: AppColors.error,
+                ),
+              );
+            }
+          }
+        },
         builder: (context, state) {
           return SafeArea(
             child: Padding(
@@ -161,8 +223,8 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                 children: [
                   const SizedBox(height: 40),
                   // Sarlavha
-                  const Text(
-                    'Kodni tasdiqlang',
+                  Text(
+                    'auth.verify_code'.tr(),
                     style: TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 28,
@@ -171,7 +233,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                   ).animate().fadeIn().slideY(begin: -0.1),
                   const SizedBox(height: 12),
                   Text(
-                    'Biz ${widget.phone} ga yuborgan\n5 xonali kodni kiriting',
+                    'auth.verify_code_subtitle'.tr(args: [_formattedPhone]),
                     style: const TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 14,
@@ -179,34 +241,6 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ).animate().fadeIn(delay: 100.ms),
-                  const SizedBox(height: 16),
-                  // Info banner
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.secondary.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.info_outline_rounded,
-                          color: AppColors.primary,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'Kodni backend konsoldan ko\'ring',
-                            style: TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ).animate().fadeIn(delay: 150.ms),
                   const SizedBox(height: 40),
                   // 5 ta OTP input
                   Row(
@@ -290,7 +324,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                     TextButton.icon(
                       onPressed: _clearAll,
                       icon: const Icon(Icons.refresh_rounded, size: 18),
-                      label: const Text('Tozalash'),
+                      label: Text('auth.clear_code'.tr()),
                       style: TextButton.styleFrom(
                         foregroundColor: AppColors.textSecondary,
                       ),
@@ -305,8 +339,8 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                         children: [
                           TextSpan(
                             text: _canResend
-                                ? 'Kodni qayta yuborish'
-                                : 'Qayta yuborish ',
+                                ? 'auth.resend_code'.tr()
+                                : 'auth.resend_wait'.tr(),
                             style: TextStyle(
                               color: _canResend
                                   ? AppColors.primary
@@ -331,7 +365,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                   const Spacer(),
                   // Tasdiqlash tugmasi
                   CustomButton(
-                    text: 'Tasdiqlash',
+                    text: 'auth.confirm'.tr(),
                     width: double.infinity,
                     isLoading: context.read<AuthBloc>().state is AuthLoading,
                     onPressed: _verifyCode,

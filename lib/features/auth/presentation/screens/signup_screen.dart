@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
 import '../bloc/auth_bloc.dart';
@@ -61,9 +62,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            const Expanded(
+            Expanded(
               child: Text(
-                'Raqam mavjud',
+                'auth.number_exists'.tr(),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -77,8 +78,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Bu raqam tizimda mavjud. Iltimos, kirish qismiga o\'ting.',
+            Text(
+              'auth.number_exists_message'.tr(),
               style: TextStyle(
                 fontSize: 14,
                 color: AppColors.textSecondary,
@@ -117,8 +118,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Bekor qilish',
+            child: Text(
+              'auth.cancel'.tr(),
               style: TextStyle(color: AppColors.textSecondary),
             ),
           ),
@@ -141,8 +142,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
-            child: const Text(
-              'Kirishga o\'tish',
+            child: Text(
+              'auth.go_to_login'.tr(),
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
@@ -164,8 +165,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> _handleSendOtp() async {
     if (_phoneController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Telefon raqamini kiriting'),
+        SnackBar(
+          content: Text('auth.enter_phone'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -181,8 +182,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     if (!_agreeTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Iltimos, foydalanish shartlariga rozilik bildiring'),
+        SnackBar(
+          content: Text('auth.agree_terms_error'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -228,15 +229,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
       ),
       body: BlocConsumer<AuthBloc, AuthState>(
+        listenWhen: (previous, current) => previous != current,
         listener: (context, state) {
           if (state is AuthAuthenticated) {
             if (mounted) {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const _SuccessScreen(
-                    title: 'Tabriklaymiz! 🎉',
-                    subtitle: 'Siz muvaffaqiyatli ro\'yxatdan o\'tdingiz',
+                  builder: (context) => _SuccessScreen(
+                    title: 'auth.registration_success'.tr(),
+                    subtitle: 'auth.registration_success_subtitle'.tr(),
                   ),
                 ),
               );
@@ -268,12 +270,46 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
             );
           } else if (state is AuthFailure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppColors.error,
-              ),
-            );
+            const noInternetMessage =
+                "Internet aloqasi yo'q. Iltimos, tarmoqni tekshiring.";
+            if (state.message == noInternetMessage) {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Internet yo\'q'),
+                  content: const Text(noInternetMessage),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Bekor qilish'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        if (_currentStep == 1) {
+                          _handleSendOtp();
+                        } else {
+                          _handleRegister();
+                        }
+                      },
+                      child: const Text('Qayta urinish'),
+                    ),
+                  ],
+                ),
+              );
+            } else {
+              String errorMessage = state.message;
+              if (state.message ==
+                  'Bu telefon raqami allaqachon ro\'yxatdan o\'tgan') {
+                errorMessage = 'auth.phone_already_registered'.tr();
+              }
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(errorMessage),
+                  backgroundColor: AppColors.error,
+                ),
+              );
+            }
           }
         },
         builder: (context, state) {
@@ -305,8 +341,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
         _buildProgressIndicator(1),
         const SizedBox(height: 30),
         // Sarlavha
-        const Text(
-          'Akkount yaratish',
+        Text(
+          'auth.create_account'.tr(),
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 32,
@@ -314,8 +350,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
         ).animate().fadeIn().slideX(begin: -0.1),
         const SizedBox(height: 10),
-        const Text(
-          'Telefon raqamingizni kiriting.\nBiz sizga tasdiqlash kodini yuboramiz.',
+        Text(
+          'auth.create_account_subtitle'.tr(),
           style: TextStyle(
             color: AppColors.textSecondary,
             fontSize: 14,
@@ -326,12 +362,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
         // Telefon raqami
         _buildPhoneField(
           controller: _phoneController,
-          label: 'Telefon raqami',
+          label: 'auth.phone'.tr(),
         ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1),
         const SizedBox(height: 40),
         // Davom etish tugmasi
         CustomButton(
-          text: 'Kod olish',
+          text: 'auth.get_code'.tr(),
           width: double.infinity,
           isLoading: context.read<AuthBloc>().state is AuthLoading,
           onPressed: _handleSendOtp,
@@ -341,8 +377,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              'Akkauntingiz bormi? ',
+            Text(
+              'auth.has_account'.tr(),
               style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
             ),
             GestureDetector(
@@ -355,8 +391,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 );
               },
-              child: const Text(
-                'Kirish',
+              child: Text(
+                'auth.login'.tr(),
                 style: TextStyle(
                   color: AppColors.primary,
                   fontSize: 14,
@@ -383,8 +419,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
         _buildProgressIndicator(2),
         const SizedBox(height: 30),
         // Sarlavha
-        const Text(
-          'Ma\'lumotlaringiz',
+        Text(
+          'auth.your_info'.tr(),
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 32,
@@ -393,7 +429,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ).animate().fadeIn().slideX(begin: -0.1),
         const SizedBox(height: 10),
         Text(
-          'Ism va parolingizni kiriting.\nTelefon: $_formattedPhone ✓',
+          'auth.your_info_subtitle'.tr(args: [_formattedPhone]),
           style: const TextStyle(
             color: AppColors.textSecondary,
             fontSize: 14,
@@ -404,11 +440,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
         // Ism
         _buildTextField(
           controller: _nameController,
-          label: 'To\'liq ismingiz',
-          hint: 'Ismingizni kiriting',
+          label: 'auth.full_name'.tr(),
+          hint: 'auth.full_name_hint'.tr(),
           validator: (value) {
             if (value?.isEmpty ?? true) {
-              return 'Ismni kiriting';
+              return 'auth.enter_name'.tr();
             }
             return null;
           },
@@ -417,8 +453,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
         // Parol
         _buildTextField(
           controller: _passwordController,
-          label: 'Parol',
-          hint: '••••••••••••',
+          label: 'auth.password'.tr(),
+          hint: 'auth.password_hint'.tr(),
           obscureText: _obscurePassword,
           suffixIcon: IconButton(
             onPressed: () {
@@ -434,10 +470,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
           validator: (value) {
             if (value?.isEmpty ?? true) {
-              return 'Parolni kiriting';
+              return 'auth.enter_password'.tr();
             }
             if (value!.length < 6) {
-              return 'Parol kamida 6 ta belgidan iborat bo\'lishi kerak';
+              return 'auth.password_too_short'.tr();
             }
             return null;
           },
@@ -476,9 +512,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       fontSize: 14,
                     ),
                     children: [
-                      const TextSpan(text: 'Men '),
+                      TextSpan(text: 'auth.agree_terms_prefix'.tr()),
                       TextSpan(
-                        text: 'Foydalanish shartlari',
+                        text: 'auth.terms_of_use'.tr(),
                         style: TextStyle(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w600,
@@ -486,7 +522,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           decorationColor: AppColors.primary,
                         ),
                       ),
-                      const TextSpan(text: 'ga roziman'),
+                      TextSpan(text: 'auth.agree_terms_suffix'.tr()),
                     ],
                   ),
                 ),
@@ -497,7 +533,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         const SizedBox(height: 30),
         // Ro'yxatdan o'tish tugmasi
         CustomButton(
-          text: 'Ro\'yxatdan o\'tish',
+          text: 'auth.signup'.tr(),
           width: double.infinity,
           isLoading: isLoading,
           onPressed: _handleRegister,
@@ -568,7 +604,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ],
           style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
           decoration: InputDecoration(
-            hintText: '90 123 45 67',
+            hintText: 'auth.phone_hint'.tr(),
             hintStyle: TextStyle(
               color: AppColors.textSecondary.withValues(alpha: 0.6),
               fontSize: 15,

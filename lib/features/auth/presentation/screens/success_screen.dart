@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../main/presentation/screens/main_screen.dart';
@@ -75,7 +76,7 @@ class SuccessScreen extends StatelessWidget {
               const Spacer(flex: 2),
               // Davom etish tugmasi
               CustomButton(
-                text: 'Davom etish',
+                text: 'auth.continue'.tr(),
                 width: double.infinity,
                 onPressed: () {
                   if (isPasswordReset) {

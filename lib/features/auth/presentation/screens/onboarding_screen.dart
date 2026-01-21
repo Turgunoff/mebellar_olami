@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
 import '../bloc/auth_bloc.dart';
@@ -22,27 +23,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<OnboardingData> _pages = [
     OnboardingData(
       image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
-      title: 'Oson Xarid Qiling',
-      subtitle:
-          'Mukammal joy yaratishda yordam kerakmi?\nBizning dizayn xizmatimiz sizni\nprofessionallar bilan bog\'laydi.',
+      title: 'onboarding.easy_shopping'.tr(),
+      subtitle: 'onboarding.easy_shopping_subtitle'.tr(),
       backgroundColor: AppColors.secondary,
       isDark: false,
     ),
     OnboardingData(
       image:
           'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=800',
-      title: 'Dizayn Oson!',
-      subtitle:
-          'Mukammal joy yaratishda yordam kerakmi?\nBizning konsultatsiya xizmatimiz sizning\nfikringizni hayotga tatbiq etadi.',
+      title: 'onboarding.easy_design'.tr(),
+      subtitle: 'onboarding.easy_design_subtitle'.tr(),
       backgroundColor: const Color(0xFF4A5043),
       isDark: true,
     ),
     OnboardingData(
       image:
           'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800',
-      title: 'Ko\'ring, Joylashtiring!',
-      subtitle:
-          'Mebellaringizni kengaytirilgan\nreallikda ko\'ring. Sotib olishdan oldin\nbo\'shliqda joylashtiring.',
+      title: 'onboarding.view_place'.tr(),
+      subtitle: 'onboarding.view_place_subtitle'.tr(),
       backgroundColor: const Color(0xFF3D4A3A),
       isDark: true,
       isLast: true,
@@ -109,7 +107,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
-                        child: const Text('O\'tkazish'),
+                        child: Text('onboarding.skip'.tr()),
                       ),
                     ),
                   ],
@@ -263,8 +261,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 ),
                               ),
                             ),
-                            child: const Text(
-                              'Boshlash',
+                            child: Text(
+                              'onboarding.start'.tr(),
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,

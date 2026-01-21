@@ -41,21 +41,26 @@ class AuthLogoutRequested extends AuthEvent {
 }
 
 class AuthForgotPasswordRequested extends AuthEvent {
-  const AuthForgotPasswordRequested({required this.phone});
+  const AuthForgotPasswordRequested({
+    required this.phone,
+    this.isResend = false,
+  });
 
   final String phone;
+  final bool isResend;
 
   @override
-  List<Object?> get props => [phone];
+  List<Object?> get props => [phone, isResend];
 }
 
 class AuthSendOtpRequested extends AuthEvent {
-  const AuthSendOtpRequested({required this.phone});
+  const AuthSendOtpRequested({required this.phone, this.isResend = false});
 
   final String phone;
+  final bool isResend;
 
   @override
-  List<Object?> get props => [phone];
+  List<Object?> get props => [phone, isResend];
 }
 
 class AuthResetPasswordRequested extends AuthEvent {
