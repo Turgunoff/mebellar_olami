@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 
 import '../constants/api_constants.dart';
 import '../local/hive_service.dart';
+import '../utils/device_utils.dart';
 
 /// Dio klientini sozlash va umumiy interceptors.
 class DioClient {
@@ -31,6 +32,21 @@ class DioClient {
           final token = HiveService.accessToken;
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
+          }
+
+          // Add device identification headers to all requests
+          // Bu backendga kim va qaysi qurilmadan kirayotganini bilish uchun kerak
+          try {
+            options.headers['x-device-id'] = DeviceUtils.deviceId;
+            options.headers['x-app-type'] = DeviceUtils.getAppType();
+          } catch (e) {
+            // DeviceUtils.init() chaqirilmagan bo'lsa, async versiyasini ishlatish
+            if (kDebugMode) {
+              developer.log(
+                '⚠️ DeviceUtils not initialized, skipping device headers',
+                name: 'DIO',
+              );
+            }
           }
 
           if (kDebugMode) {

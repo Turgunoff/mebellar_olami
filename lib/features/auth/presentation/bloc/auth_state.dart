@@ -46,3 +46,19 @@ class AuthFailure extends AuthState {
   @override
   List<Object?> get props => [message, isOnboardingCompleted];
 }
+
+/// Foydalanuvchi allaqachon mavjud bo'lganda (409 Conflict) chiqariladigan state.
+/// Bu Sellerlar o'zlarining mavjud raqamlari bilan Xaridor ilovasiga kirishlari uchun muhim.
+class AuthUserExists extends AuthState {
+  const AuthUserExists({
+    required this.phone,
+    required this.message,
+    required super.isOnboardingCompleted,
+  });
+
+  final String phone;
+  final String message;
+
+  @override
+  List<Object?> get props => [phone, message, isOnboardingCompleted];
+}

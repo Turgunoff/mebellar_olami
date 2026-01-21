@@ -5,6 +5,7 @@ import '../local/hive_service.dart';
 import '../di/dependency_injection.dart' as di;
 import '../services/notification_service.dart';
 import '../constants/app_colors.dart';
+import '../utils/device_utils.dart';
 
 class AppInitializer {
   static Future<void> init() async {
@@ -16,10 +17,13 @@ class AppInitializer {
     // 2. Initialize Hive
     await HiveService.init();
 
-    // 3. Setup Dependency Injection
+    // 3. Initialize Device Utils (Device ID generation)
+    await DeviceUtils.init();
+
+    // 4. Setup Dependency Injection
     await di.setupDependencyInjection();
 
-    // 4. Initialize Notifications
+    // 5. Initialize Notifications
     await NotificationService.initialize();
 
     // 5. System UI Settings

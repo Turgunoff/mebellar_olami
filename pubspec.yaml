@@ -47,6 +47,10 @@ dependencies:
   connectivity_plus: ^6.0.5
   internet_connection_checker_plus: ^2.1.0
 
+  # Device Info
+  device_info_plus: ^10.1.0
+  uuid: ^4.4.0
+
   # Localization
   easy_localization: ^3.0.7
   # yandex_mapkit_lite: ^2.0.2

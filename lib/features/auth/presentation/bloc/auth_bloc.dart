@@ -3,7 +3,8 @@ import 'package:equatable/equatable.dart';
 
 import '../../../../core/local/hive_service.dart';
 import '../../../favorites/presentation/bloc/favorites_bloc.dart';
-import '../../data/repositories/auth_repository.dart';
+import '../../data/repositories/auth_repository.dart'
+    show AuthRepository, UserExistsException;
 
 part 'auth_event.dart';
 part 'auth_state.dart';
@@ -104,6 +105,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       // Trigger favorites sync after successful registration
       _favoritesBloc?.add(const SyncFavoritesEvent());
+    } on UserExistsException catch (e) {
+      // 409 Conflict - Foydalanuvchi allaqachon mavjud
+      // Bu Sellerlar o'zlarining mavjud raqamlari bilan Xaridor ilovasiga kirishlari uchun muhim
+      emit(
+        AuthUserExists(
+          phone: e.phone,
+          message: e.message,
+          isOnboardingCompleted: state.isOnboardingCompleted,
+        ),
+      );
     } catch (e) {
       emit(
         AuthFailure(

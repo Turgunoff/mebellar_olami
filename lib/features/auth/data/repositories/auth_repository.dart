@@ -2,6 +2,20 @@ import 'package:dio/dio.dart';
 import '../../../../../core/local/hive_service.dart';
 import '../../../../../core/network/dio_client.dart';
 
+/// Foydalanuvchi allaqachon mavjud bo'lganda (409 Conflict) chiqariladigan xato.
+class UserExistsException implements Exception {
+  final String message;
+  final String phone;
+
+  UserExistsException({
+    this.message = 'Bu raqam tizimda mavjud. Iltimos, kirish qismiga o\'ting.',
+    required this.phone,
+  });
+
+  @override
+  String toString() => message;
+}
+
 /// Auth bilan ishlash uchun repository.
 class AuthRepository {
   final DioClient _dioClient;
@@ -60,6 +74,11 @@ class AuthRepository {
         },
       );
 
+      // 409 Conflict - Foydalanuvchi allaqachon mavjud
+      if (response.statusCode == 409) {
+        throw UserExistsException(phone: phone);
+      }
+
       if (response.statusCode == 201 && response.data != null) {
         final data = response.data as Map<String, dynamic>;
 
@@ -75,9 +94,16 @@ class AuthRepository {
       } else {
         throw Exception('Invalid response from server');
       }
+    } on UserExistsException {
+      rethrow;
     } on DioException catch (e) {
+      // DioException dan ham 409 ni tekshirish
+      if (e.response?.statusCode == 409) {
+        throw UserExistsException(phone: phone);
+      }
       throw Exception(_handleDioError(e));
     } catch (e) {
+      if (e is UserExistsException) rethrow;
       throw Exception('Registration failed: ${e.toString()}');
     }
   }
