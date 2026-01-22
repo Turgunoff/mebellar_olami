@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:hive/hive.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:uuid/uuid.dart';
 
 /// Qurilma haqida ma'lumotlar va app type bilan ishlash uchun utility class.
@@ -12,10 +13,45 @@ class DeviceUtils {
   static String? _cachedDeviceId;
   static Box? _deviceBox;
 
+  // OS va App versiya ma'lumotlari
+  static String? _osType;
+  static String? _osVersion;
+  static String? _appVersion;
+
   /// Hive box'ni ochish (ilova boshida chaqiriladi)
   static Future<void> init() async {
     _deviceBox = await Hive.openBox(_boxName);
     await _ensureDeviceId();
+    await _initDeviceInfo();
+  }
+
+  /// OS va App versiya ma'lumotlarini olish
+  static Future<void> _initDeviceInfo() async {
+    final deviceInfo = DeviceInfoPlugin();
+
+    try {
+      // OS type va versiyasini olish
+      if (Platform.isAndroid) {
+        final androidInfo = await deviceInfo.androidInfo;
+        _osType = 'Android';
+        _osVersion = androidInfo.version.release;
+      } else if (Platform.isIOS) {
+        final iosInfo = await deviceInfo.iosInfo;
+        _osType = 'iOS';
+        _osVersion = iosInfo.systemVersion;
+      } else {
+        _osType = Platform.operatingSystem;
+        _osVersion = Platform.operatingSystemVersion;
+      }
+
+      // App versiyasini olish
+      final packageInfo = await PackageInfo.fromPlatform();
+      _appVersion = '${packageInfo.version}+${packageInfo.buildNumber}';
+    } catch (e) {
+      _osType = Platform.operatingSystem;
+      _osVersion = '';
+      _appVersion = '';
+    }
   }
 
   /// Unique Device ID ni olish.
@@ -43,6 +79,36 @@ class DeviceUtils {
   /// App type ni olish - bu ilova xaridor (client) ilovasi
   static String getAppType() {
     return 'client';
+  }
+
+  /// OS type ni olish (iOS, Android)
+  static String get osType => _osType ?? Platform.operatingSystem;
+
+  /// OS versiyasini olish (17.2, 14.0)
+  static String get osVersion => _osVersion ?? '';
+
+  /// App versiyasini olish (1.0.0+1)
+  static String get appVersion => _appVersion ?? '';
+
+  /// Asinxron OS type olish (init chaqirilmagan bo'lsa)
+  static Future<String> getOSType() async {
+    if (_osType != null) return _osType!;
+    await _initDeviceInfo();
+    return _osType ?? Platform.operatingSystem;
+  }
+
+  /// Asinxron OS versiya olish
+  static Future<String> getOSVersion() async {
+    if (_osVersion != null) return _osVersion!;
+    await _initDeviceInfo();
+    return _osVersion ?? '';
+  }
+
+  /// Asinxron App versiya olish
+  static Future<String> getAppVersion() async {
+    if (_appVersion != null) return _appVersion!;
+    await _initDeviceInfo();
+    return _appVersion ?? '';
   }
 
   /// Device ID mavjudligini ta'minlash

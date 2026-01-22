@@ -39,6 +39,9 @@ class DioClient {
           try {
             options.headers['x-device-id'] = DeviceUtils.deviceId;
             options.headers['x-app-type'] = DeviceUtils.getAppType();
+            options.headers['x-device-os'] = DeviceUtils.osType;
+            options.headers['x-os-version'] = DeviceUtils.osVersion;
+            options.headers['x-app-version'] = DeviceUtils.appVersion;
           } catch (e) {
             // DeviceUtils.init() chaqirilmagan bo'lsa, async versiyasini ishlatish
             if (kDebugMode) {
