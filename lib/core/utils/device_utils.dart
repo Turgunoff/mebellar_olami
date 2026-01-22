@@ -17,6 +17,7 @@ class DeviceUtils {
   static String? _osType;
   static String? _osVersion;
   static String? _appVersion;
+  static String? _deviceName;
 
   /// Hive box'ni ochish (ilova boshida chaqiriladi)
   static Future<void> init() async {
@@ -35,13 +36,16 @@ class DeviceUtils {
         final androidInfo = await deviceInfo.androidInfo;
         _osType = 'Android';
         _osVersion = androidInfo.version.release;
+        _deviceName = "${androidInfo.brand} ${androidInfo.model}";
       } else if (Platform.isIOS) {
         final iosInfo = await deviceInfo.iosInfo;
         _osType = 'iOS';
         _osVersion = iosInfo.systemVersion;
+        _deviceName = iosInfo.name;
       } else {
         _osType = Platform.operatingSystem;
         _osVersion = Platform.operatingSystemVersion;
+        _deviceName = Platform.localHostname;
       }
 
       // App versiyasini olish
@@ -51,6 +55,7 @@ class DeviceUtils {
       _osType = Platform.operatingSystem;
       _osVersion = '';
       _appVersion = '';
+      _deviceName = '';
     }
   }
 
@@ -90,6 +95,9 @@ class DeviceUtils {
   /// App versiyasini olish (1.0.0+1)
   static String get appVersion => _appVersion ?? '';
 
+  /// Qurilma nomini olish (iPhone 15 Pro, Samsung Galaxy S21)
+  static String get deviceName => _deviceName ?? '';
+
   /// Asinxron OS type olish (init chaqirilmagan bo'lsa)
   static Future<String> getOSType() async {
     if (_osType != null) return _osType!;
@@ -109,6 +117,13 @@ class DeviceUtils {
     if (_appVersion != null) return _appVersion!;
     await _initDeviceInfo();
     return _appVersion ?? '';
+  }
+
+  /// Asinxron qurilma nomi olish
+  static Future<String> getDeviceName() async {
+    if (_deviceName != null) return _deviceName!;
+    await _initDeviceInfo();
+    return _deviceName ?? '';
   }
 
   /// Device ID mavjudligini ta'minlash
@@ -173,12 +188,14 @@ class DeviceUtils {
         info['brand'] = androidInfo.brand;
         info['version'] = androidInfo.version.release;
         info['sdk'] = androidInfo.version.sdkInt;
+        info['device_name'] = "${androidInfo.brand} ${androidInfo.model}";
       } else if (Platform.isIOS) {
         final iosInfo = await deviceInfo.iosInfo;
         info['platform'] = 'ios';
         info['model'] = iosInfo.model;
         info['name'] = iosInfo.name;
         info['version'] = iosInfo.systemVersion;
+        info['device_name'] = iosInfo.name;
       }
     } catch (e) {
       info['error'] = e.toString();

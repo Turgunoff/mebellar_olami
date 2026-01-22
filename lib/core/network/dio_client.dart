@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
@@ -42,6 +43,7 @@ class DioClient {
             options.headers['x-device-os'] = DeviceUtils.osType;
             options.headers['x-os-version'] = DeviceUtils.osVersion;
             options.headers['x-app-version'] = DeviceUtils.appVersion;
+            options.headers['x-device-name'] = DeviceUtils.deviceName;
           } catch (e) {
             // DeviceUtils.init() chaqirilmagan bo'lsa, async versiyasini ishlatish
             if (kDebugMode) {
@@ -119,12 +121,69 @@ class DioClient {
     developer.log('====================', name: 'DIO');
   }
 
+  /// Format response data for logging to avoid console clutter
+  String _formatResponse(dynamic data) {
+    if (data == null) return 'null';
+
+    // Handle List data
+    if (data is List) {
+      return 'List [length: ${data.length}]';
+    }
+
+    // Handle Map data
+    if (data is Map) {
+      final formattedMap = <String, dynamic>{};
+
+      // Check for large lists that should be summarized
+      final listKeys = [
+        'products',
+        'categories',
+        'orders',
+        'users',
+        'items',
+        'sessions',
+      ];
+
+      for (final entry in data.entries) {
+        final key = entry.key;
+        final value = entry.value;
+
+        // If value is a large list, summarize it
+        if (listKeys.contains(key) && value is List) {
+          formattedMap[key] = 'List [Length: ${value.length}]';
+        } else {
+          formattedMap[key] = value;
+        }
+      }
+
+      // Convert to string and check length
+      String jsonString = jsonEncode(formattedMap);
+
+      // Truncate if too long
+      if (jsonString.length > 500) {
+        jsonString = '${jsonString.substring(0, 497)}... [TRUNCATED]';
+      }
+
+      return jsonString;
+    }
+
+    // Handle other types (String, int, bool, etc.)
+    String stringData = data.toString();
+
+    // Truncate if too long
+    if (stringData.length > 500) {
+      stringData = '${stringData.substring(0, 497)}... [TRUNCATED]';
+    }
+
+    return stringData;
+  }
+
   void _logResponse(Response response) {
     developer.log('✅ === API Response ===', name: 'DIO');
     developer.log('Status Code: ${response.statusCode}', name: 'DIO');
     developer.log('URL: ${response.requestOptions.uri}', name: 'DIO');
     if (response.data != null) {
-      developer.log('Response: ${response.data}', name: 'DIO');
+      developer.log('Response: ${_formatResponse(response.data)}', name: 'DIO');
     }
     developer.log('=====================', name: 'DIO');
   }
