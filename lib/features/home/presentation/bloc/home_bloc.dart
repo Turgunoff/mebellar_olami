@@ -38,7 +38,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       final newArrivalsResponse = results[0] as Map<String, dynamic>;
       final popularProductsResponse = results[1] as Map<String, dynamic>;
-      final categories = results[2] as List<CategoryModel>;
+      final categoriesResponse = results[2] as Map<String, dynamic>;
 
       final newArrivals =
           (newArrivalsResponse['products'] as List<dynamic>?)
@@ -49,6 +49,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final popularProducts =
           (popularProductsResponse['products'] as List<dynamic>?)
               ?.map((e) => ProductModel.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [];
+
+      final categories =
+          (categoriesResponse['categories'] as List<dynamic>?)
+              ?.map((e) => CategoryModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [];
 
@@ -77,7 +83,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       final newArrivalsResponse = results[0] as Map<String, dynamic>;
       final popularProductsResponse = results[1] as Map<String, dynamic>;
-      final categories = results[2] as List<CategoryModel>;
+      final categoriesResponse = results[2] as Map<String, dynamic>;
 
       final newArrivals =
           (newArrivalsResponse['products'] as List<dynamic>?)
@@ -88,6 +94,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final popularProducts =
           (popularProductsResponse['products'] as List<dynamic>?)
               ?.map((e) => ProductModel.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [];
+
+      final categories =
+          (categoriesResponse['categories'] as List<dynamic>?)
+              ?.map((e) => CategoryModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [];
 

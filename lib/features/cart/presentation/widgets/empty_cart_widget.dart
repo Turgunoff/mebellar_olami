@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/route_names.dart';
 import '../../../../core/widgets/custom_button.dart';
 
 /// Bo'sh savatcha widgeti
@@ -43,8 +45,8 @@ class EmptyCartWidget extends StatelessWidget {
           CustomButton(
             text: 'Katalogga o\'tish',
             onPressed: () {
-              // Navigate to catalog
-              Navigator.pop(context);
+              // Navigate to catalog (main screen has catalog tab)
+              context.goNamed(RouteNames.main);
             },
           ),
         ],

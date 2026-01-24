@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -149,7 +150,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -191,12 +192,12 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                   content: const Text(noInternetMessage),
                   actions: [
                     TextButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => context.pop(),
                       child: const Text('Bekor qilish'),
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.pop(context);
+                        context.pop();
                         _verifyCode(); // Retry verify, or resend if needed, but for simplicity, retry verify
                       },
                       child: const Text('Qayta urinish'),

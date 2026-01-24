@@ -3,11 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
+import '../../../../core/utils/route_names.dart';
 import '../bloc/auth_bloc.dart';
 import '../../../../core/widgets/custom_button.dart';
-import 'login_screen.dart';
 import 'verify_code_screen.dart';
 
 /// Ro'yxatdan o'tish ekrani - Nabolen Style (3 bosqichli)
@@ -117,7 +118,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: Text(
               'auth.cancel'.tr(),
               style: TextStyle(color: AppColors.textSecondary),
@@ -125,13 +126,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(context);
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      const LoginScreen(isFromOnboarding: true),
-                ),
+              context.pop();
+              context.goNamed(
+                RouteNames.login,
+                queryParameters: {'fromOnboarding': 'true'},
               );
             },
             style: ElevatedButton.styleFrom(
@@ -211,7 +209,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             if (_currentStep > 1) {
               setState(() => _currentStep--);
             } else {
-              Navigator.pop(context);
+              context.pop();
             }
           },
           icon: Container(
@@ -233,15 +231,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         listener: (context, state) {
           if (state is AuthAuthenticated) {
             if (mounted) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => _SuccessScreen(
-                    title: 'auth.registration_success'.tr(),
-                    subtitle: 'auth.registration_success_subtitle'.tr(),
-                  ),
-                ),
-              );
+              context.goNamed(RouteNames.main);
             }
           } else if (state is AuthUserExists) {
             // 409 Conflict - Foydalanuvchi allaqachon mavjud
@@ -260,7 +250,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   onVerified: () {
                     // OTP tasdiqlanganda 2-bosqichga o'tish
                     if (mounted) {
-                      Navigator.pop(context);
+                      context.pop();
                       setState(() {
                         _currentStep = 2;
                       });
@@ -280,12 +270,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   content: const Text(noInternetMessage),
                   actions: [
                     TextButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => context.pop(),
                       child: const Text('Bekor qilish'),
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.pop(context);
+                        context.pop();
                         if (_currentStep == 1) {
                           _handleSendOtp();
                         } else {
@@ -383,12 +373,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
             GestureDetector(
               onTap: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        const LoginScreen(isFromOnboarding: true),
-                  ),
+                context.pushReplacementNamed(
+                  RouteNames.login,
+                  queryParameters: {'fromOnboarding': 'true'},
                 );
               },
               child: Text(
@@ -723,82 +710,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// Muvaffaqiyat ekrani
-class _SuccessScreen extends StatelessWidget {
-  final String title;
-  final String subtitle;
-
-  const _SuccessScreen({required this.title, required this.subtitle});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Spacer(),
-              // Success icon
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.check_circle_rounded,
-                  size: 80,
-                  color: AppColors.success,
-                ),
-              ).animate().scale(delay: 200.ms),
-              const SizedBox(height: 32),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-                textAlign: TextAlign.center,
-              ).animate().fadeIn(delay: 400.ms),
-              const SizedBox(height: 12),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: AppColors.textSecondary,
-                ),
-                textAlign: TextAlign.center,
-              ).animate().fadeIn(delay: 500.ms),
-              const Spacer(),
-              // Davom etish tugmasi
-              CustomButton(
-                text: 'Davom etish',
-                width: double.infinity,
-                onPressed: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const LoginScreen(isFromOnboarding: true),
-                    ),
-                    (route) => false,
-                  );
-                },
-              ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2),
-              const SizedBox(height: 40),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

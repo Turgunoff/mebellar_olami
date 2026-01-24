@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/route_names.dart';
 import '../../bloc/profile_bloc.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../../core/widgets/custom_button.dart';
-import '../../../auth/presentation/screens/login_screen.dart';
-import '../../../auth/presentation/screens/welcome_screen.dart';
-import 'edit_profile_screen.dart';
 import '../../../checkout/data/models/order_model.dart';
 
 /// Profil ekrani - Nabolen Style
@@ -133,19 +132,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         CustomButton(
           text: 'Kirish',
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const LoginScreen()),
-          ),
+          onPressed: () => context.pushNamed(RouteNames.login),
         ),
         const SizedBox(height: 12),
         CustomButton(
           text: 'Ro\'yxatdan o\'tish',
           isOutlined: true,
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-          ),
+          onPressed: () => context.pushNamed(RouteNames.welcome),
         ),
       ],
     );
@@ -582,10 +575,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   /// Tahrirlashga o'tish
   void _navigateToEditProfile(BuildContext context) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const EditProfileScreen()),
-    );
+    final result = await context.pushNamed<bool>(RouteNames.editProfile);
 
     // Agar profil yangilangan bo'lsa, ma'lumotlarni qayta yuklash
     if (result == true && mounted) {
@@ -609,12 +599,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: const Text('Bekor qilish'),
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(context); // Dialogni yopish
+              context.pop(); // Dialogni yopish
 
               // Loading dialog
               showDialog(
@@ -637,13 +627,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               await Future.delayed(const Duration(seconds: 2));
 
               if (mounted) {
-                Navigator.pop(context); // Loading dialog'ni yopish
+                context.pop(); // Loading dialog'ni yopish
 
                 final currentState = context.read<ProfileBloc>().state;
                 if (currentState.isDeleted) {
                   // Muvaffaqiyatli o'chirilgan bo'lsa, tizimdan chiqarish
                   context.read<AuthBloc>().add(AuthLogoutRequested());
-                  Navigator.pop(context);
                 } else {
                   // Xatolik bo'lsa, xabar berish
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -680,13 +669,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         content: const Text('Tizimdan chiqishni istaysizmi?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: const Text('Bekor qilish'),
           ),
           ElevatedButton(
             onPressed: () async {
               context.read<AuthBloc>().add(AuthLogoutRequested());
-              if (mounted) Navigator.pop(context);
+              if (mounted) context.pop();
             },
             child: const Text('Chiqish'),
           ),
@@ -711,7 +700,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: const Text('Bekor qilish'),
           ),
         ],
@@ -728,7 +717,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           : null,
       onTap: () {
         // Tilni o'zgartirish logikasi
-        Navigator.pop(context);
+        context.pop();
       },
     );
   }

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/route_names.dart';
 import '../../../../core/widgets/custom_button.dart';
-import '../../../main/presentation/screens/main_screen.dart';
-import 'login_screen.dart';
 
 /// Muvaffaqiyat ekrani - Nabolen Style
 class SuccessScreen extends StatelessWidget {
@@ -81,23 +81,13 @@ class SuccessScreen extends StatelessWidget {
                 onPressed: () {
                   if (isPasswordReset) {
                     // Parol tiklash - Login sahifasiga o'tish
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const LoginScreen(isFromOnboarding: true),
-                      ),
-                      (route) => false,
+                    context.goNamed(
+                      RouteNames.login,
+                      queryParameters: {'fromOnboarding': 'true'},
                     );
                   } else {
                     // Ro'yxatdan o'tish - Asosiy sahifaga o'tish
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const MainScreen(),
-                      ),
-                      (route) => false,
-                    );
+                    context.goNamed(RouteNames.main);
                   }
                 },
               ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.2),

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/route_names.dart';
 import '../../../../core/widgets/shimmer/product_card_skeleton.dart';
 import '../../../../core/widgets/product_card.dart';
-import '../../../products/presentation/screens/product_detail_screen.dart';
 import '../../../products/data/models/product_model.dart';
 import '../../../../core/widgets/custom_button.dart';
-import '../../../home/presentation/screens/home_screen.dart';
 import '../bloc/search_bloc.dart';
 
 /// Qidiruv ekran
@@ -49,7 +49,7 @@ class _SearchScreenState extends State<SearchScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -345,13 +345,11 @@ class _SearchScreenState extends State<SearchScreen> {
               return ProductCard(
                 product: ProductModel.fromJson(product),
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ProductDetailScreen(
-                        productId: ProductModel.fromJson(product).id,
-                      ),
-                    ),
+                  context.pushNamed(
+                    RouteNames.productDetail,
+                    pathParameters: {
+                      'productId': ProductModel.fromJson(product).id,
+                    },
                   );
                 },
               ).animate().fadeIn(delay: (50 * index).ms).slideY(begin: 0.1);
@@ -403,10 +401,7 @@ class _SearchScreenState extends State<SearchScreen> {
           CustomButton(
             text: 'Asosiyga qaytish',
             onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const HomeScreen()),
-              );
+              context.goNamed(RouteNames.main);
             },
           ),
         ],

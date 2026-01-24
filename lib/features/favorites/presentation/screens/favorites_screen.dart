@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/utils/localized_text_helper.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
+import '../../../../core/utils/route_names.dart';
 import '../../../products/data/models/product_model.dart';
 import '../bloc/favorites_bloc.dart';
 import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../../../core/widgets/product_card.dart';
 import '../../../../core/widgets/custom_button.dart';
-import '../../../products/presentation/screens/product_detail_screen.dart';
-import '../../../../features/auth/presentation/screens/login_screen.dart';
 
 /// Sevimlilar ekrani - Nabolen Style
 class FavoritesScreen extends StatelessWidget {
@@ -100,10 +100,7 @@ class FavoritesScreen extends StatelessWidget {
               icon: Icons.login_rounded,
               width: 200,
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                );
+                context.pushNamed(RouteNames.login);
               },
             ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2),
           ],
@@ -216,12 +213,9 @@ class FavoritesScreen extends StatelessWidget {
           child: ProductCard(
             product: product,
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      ProductDetailScreen(productId: product.id),
-                ),
+              context.pushNamed(
+                RouteNames.productDetail,
+                pathParameters: {'productId': product.id},
               );
             },
           ).animate().fadeIn(delay: (50 * index).ms),
@@ -244,13 +238,13 @@ class FavoritesScreen extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
+            onPressed: () => context.pop(),
             child: const Text('Bekor qilish'),
           ),
           ElevatedButton(
             onPressed: () {
               // TODO: ClearFavoritesEvent ni FavoritesBloc ga qo'shish kerak
-              Navigator.pop(dialogContext);
+              context.pop();
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text('O\'chirish'),

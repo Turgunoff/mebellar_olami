@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
+import '../../../../core/utils/route_names.dart';
 import '../../../../core/widgets/custom_button.dart';
 
 /// Buyurtma muvaffaqiyatli yaratilganda ko'rsatiladigan ekran
@@ -64,7 +66,7 @@ class OrderSuccessScreen extends StatelessWidget {
                 text: 'Asosiy sahifa',
                 width: double.infinity,
                 onPressed: () {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  context.goNamed(RouteNames.main);
                 },
               ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.2),
             ],

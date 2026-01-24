@@ -22,6 +22,12 @@
     "categories": "Categories",
     "subcategories": "subcategories"
   },
+  "home": {
+    "categories": "Categories",
+    "new_arrivals": "New Arrivals",
+    "popular_products": "Popular Products",
+    "products": "Products"
+  },
   "product": {
     "add_to_cart": "Add to Cart",
     "buy_now": "Buy Now",

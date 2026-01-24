@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/utils/localized_text_helper.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
 import '../../../../core/utils/extensions.dart';
+import '../../../../core/utils/route_names.dart';
 import '../bloc/product_detail_bloc.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/login_dialog.dart';
 import '../../data/models/product_model.dart';
-import '../../../checkout/presentation/screens/checkout_screen.dart';
 
 /// Mahsulot tafsilotlari ekrani - Nabolen Style
 /// Rang va miqdor tanlash bilan
@@ -88,15 +89,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             const LoginDialog(message: 'Sotib olish uchun tizimga kiring'),
       );
     } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CheckoutScreen(
-            product: state.product,
-            selectedColor: _selectedVariant?['colorCode'] as String?,
-            quantity: _quantity,
-          ),
-        ),
+      context.pushNamed(
+        RouteNames.checkout,
+        extra: {
+          'product': state.product,
+          'selectedColor': _selectedVariant?['colorCode'] as String?,
+          'quantity': _quantity,
+        },
       );
     }
   }
@@ -209,7 +208,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ],
                 ),
                 child: IconButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => context.pop(),
                   icon: const Icon(
                     Icons.arrow_back_ios_new_rounded,
                     size: 18,

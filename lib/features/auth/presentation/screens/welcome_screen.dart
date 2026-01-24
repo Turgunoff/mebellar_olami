@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
-import 'signup_screen.dart';
-import 'login_screen.dart';
-import '../../../main/presentation/screens/main_screen.dart';
+import '../../../../core/utils/route_names.dart';
 
 /// Welcome Screen - Auth Selection Screen
 /// Splash dan keyin, agar foydalanuvchi tizimga kirmagan bo'lsa ko'rsatiladi
@@ -104,12 +103,9 @@ class WelcomeScreen extends StatelessWidget {
                     height: 58,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const LoginScreen(isFromOnboarding: true),
-                          ),
+                        context.pushNamed(
+                          RouteNames.login,
+                          queryParameters: {'fromOnboarding': 'true'},
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -138,12 +134,7 @@ class WelcomeScreen extends StatelessWidget {
                     height: 58,
                     child: OutlinedButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SignUpScreen(),
-                          ),
-                        );
+                        context.pushNamed(RouteNames.signup);
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.white,
@@ -170,12 +161,7 @@ class WelcomeScreen extends StatelessWidget {
                   // Guest Mode - TextButton
                   TextButton(
                     onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MainScreen(),
-                        ),
-                      );
+                      context.goNamed(RouteNames.main);
                     },
                     child: Text(
                       'auth.guest_mode'.tr(),

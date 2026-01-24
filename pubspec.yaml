@@ -39,6 +39,7 @@ dependencies:
   shimmer: ^3.0.0
   cached_network_image: ^3.4.1
   fluttertoast: ^8.2.8
+  carousel_slider: ^5.0.0
 
   # Maps
   # yandex_mapkit_lite: ^2.0.2
@@ -57,6 +58,9 @@ dependencies:
 
   # Localization
   easy_localization: ^3.0.7
+
+  # Navigation
+  go_router: ^14.6.2
   # yandex_mapkit_lite: ^2.0.2
   yandex_mapkit: ^4.2.1
 

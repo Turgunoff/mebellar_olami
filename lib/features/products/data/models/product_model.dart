@@ -1,4 +1,6 @@
 import '../../../../core/utils/image_utils.dart';
+import '../../../../core/utils/localized_text_helper.dart';
+import 'package:flutter/material.dart';
 
 /// Mahsulot modeli (MVP uchun moslashuvchan)
 class ProductModel {
@@ -70,6 +72,16 @@ class ProductModel {
 
   /// Aktual narx (chegirmali yoki oddiy)
   double get actualPrice => hasDiscount ? discountPrice! : price;
+
+  /// Localized name helper
+  String getLocalizedName(BuildContext context) {
+    return LocalizedTextHelper.get(name, context);
+  }
+
+  /// Localized description helper
+  String getLocalizedDescription(BuildContext context) {
+    return LocalizedTextHelper.get(description, context);
+  }
 
   /// JSON dan model yaratish (Backend response)
   factory ProductModel.fromJson(Map<String, dynamic> json) {

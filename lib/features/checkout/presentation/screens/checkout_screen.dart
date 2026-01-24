@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 import 'package:yandex_mapkit/yandex_mapkit.dart';
 import '../../../../core/utils/localized_text_helper.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
 import '../../../../core/utils/extensions.dart';
+import '../../../../core/utils/route_names.dart';
 import '../../../products/data/models/product_model.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../bloc/checkout_bloc.dart';
@@ -161,7 +163,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 text: 'Asosiy sahifa',
                 width: double.infinity,
                 onPressed: () {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  context.goNamed(RouteNames.main);
                 },
               ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.2),
             ],
@@ -201,7 +203,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               backgroundColor: AppColors.background,
               surfaceTintColor: Colors.transparent,
               leading: IconButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => context.pop(),
                 icon: const Icon(Icons.arrow_back_ios_new_rounded),
               ),
             ),
@@ -603,9 +605,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   /// Xaritadan manzil tanlash
   Future<void> _selectLocationFromMap() async {
-    final result = await Navigator.pushNamed(context, '/map-selection');
+    final result = await context.pushNamed<Map<String, dynamic>>(
+      RouteNames.mapSelection,
+    );
 
-    if (result != null && result is Map<String, dynamic>) {
+    if (result != null) {
       final location = result['location'] as Point;
       final name = result['name'] as String;
 

@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
+import '../../../../core/utils/route_names.dart';
 import '../../../../core/widgets/shimmer/product_card_skeleton.dart';
 import '../../../../core/widgets/shimmer/category_skeleton.dart';
-import '../../../../core/widgets/product_card.dart';
 import '../../../products/data/models/product_model.dart';
 import '../bloc/home_bloc.dart';
 import '../widgets/home_banner_slider.dart';
 import '../widgets/home_section_title.dart';
-import '../widgets/home_category_list.dart';
-import '../../../products/presentation/screens/product_detail_screen.dart';
+import '../widgets/category_item.dart';
+import '../widgets/product_card_horizontal.dart';
+import '../widgets/product_card_vertical.dart';
 import '../../../catalog/data/models/category_model.dart';
 
 /// Asosiy ekran - Nabolen Style
@@ -41,11 +44,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _navigateToProduct(ProductModel product) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProductDetailScreen(productId: product.id),
-      ),
+    context.pushNamed(
+      RouteNames.productDetail,
+      pathParameters: {'productId': product.id},
     );
   }
 
@@ -63,22 +64,28 @@ class _HomeScreenState extends State<HomeScreen> {
               color: AppColors.primary,
               child: CustomScrollView(
                 slivers: [
+                  // Header
                   SliverToBoxAdapter(child: _buildHeader()),
+                  // Search Bar
                   SliverToBoxAdapter(child: _buildSearchBar()),
+                  // Banner Slider
                   const SliverToBoxAdapter(child: HomeBannerSlider()),
+                  // Categories Section
                   SliverToBoxAdapter(
-                    child: HomeSectionTitle(title: 'Yangi kelganlar'),
-                  ),
-                  SliverToBoxAdapter(child: _buildNewArrivalsRow(state)),
-                  SliverToBoxAdapter(
-                    child: HomeSectionTitle(title: 'Kategoriyalar'),
+                    child: HomeSectionTitle(title: 'home.categories'.tr()),
                   ),
                   SliverToBoxAdapter(child: _buildCategoriesRow(state)),
+                  // New Arrivals Section
+                  SliverToBoxAdapter(
+                    child: HomeSectionTitle(title: 'home.new_arrivals'.tr()),
+                  ),
+                  SliverToBoxAdapter(child: _buildNewArrivalsRow(state)),
+                  // Popular Products Section
                   SliverToBoxAdapter(
                     child: HomeSectionTitle(
                       title: _selectedCategoryId == null
-                          ? 'Ommabop'
-                          : 'Mahsulotlar',
+                          ? 'home.popular_products'.tr()
+                          : 'home.products'.tr(),
                       showAll: true,
                       onShowAllTap: () {
                         setState(() {
@@ -87,6 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
                   ),
+                  // Popular Products Grid
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     sliver: _buildProductsGrid(state),
@@ -283,7 +291,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildNewArrivalsRow(HomeState state) {
     if (state is HomeLoading) {
       return SizedBox(
-        height: 240,
+        height: 140,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -315,16 +323,15 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return SizedBox(
-      height: 260,
+      height: 140,
       child: ListView.builder(
         padding: const EdgeInsets.only(left: 20, right: 4),
         scrollDirection: Axis.horizontal,
         itemCount: newProducts.length,
         itemBuilder: (context, index) {
           final product = newProducts[index];
-          return HorizontalProductCard(
+          return ProductCardHorizontal(
             product: product,
-            width: 170,
             onTap: () => _navigateToProduct(product),
           ).animate().fadeIn(delay: (60 * index).ms).slideX(begin: 0.1);
         },
@@ -335,7 +342,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildCategoriesRow(HomeState state) {
     if (state is HomeLoading) {
       return SizedBox(
-        height: 100,
+        height: 120,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.only(left: 20),
@@ -358,14 +365,19 @@ class _HomeScreenState extends State<HomeScreen> {
       return const SizedBox(height: 20);
     }
 
-    return HomeCategoryList(
-      categories: categories,
-      selectedCategoryId: _selectedCategoryId,
-      onCategorySelected: (categoryId) {
-        setState(() {
-          _selectedCategoryId = categoryId;
-        });
-      },
+    return SizedBox(
+      height: 120,
+      child: ListView.builder(
+        padding: const EdgeInsets.only(left: 20),
+        scrollDirection: Axis.horizontal,
+        itemCount: categories.length,
+        itemBuilder: (context, index) {
+          final category = categories[index];
+          return CategoryItem(
+            category: category,
+          ).animate().fadeIn(delay: (60 * index).ms).slideX(begin: 0.1);
+        },
+      ),
     );
   }
 
@@ -430,7 +442,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       delegate: SliverChildBuilderDelegate((context, index) {
         final product = products[index];
-        return ProductCard(
+        return ProductCardVertical(
               product: product,
               onTap: () => _navigateToProduct(product),
             )

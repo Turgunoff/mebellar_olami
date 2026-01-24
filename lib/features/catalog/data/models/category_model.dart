@@ -1,4 +1,6 @@
 import '../../../../core/utils/image_utils.dart';
+import '../../../../core/utils/localized_text_helper.dart';
+import 'package:flutter/material.dart';
 
 /// Kategoriya modeli (Backend API bilan mos)
 class CategoryModel {
@@ -58,6 +60,11 @@ class CategoryModel {
 
   /// To'liq icon URL (base URL bilan)
   String get fullIconUrl => ImageUtils.getCategoryImageUrl(iconUrl);
+
+  /// Localized name helper
+  String getLocalizedName(BuildContext context) {
+    return LocalizedTextHelper.get(name, context);
+  }
 
   /// copyWith
   CategoryModel copyWith({

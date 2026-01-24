@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
+import '../../../../core/utils/route_names.dart';
 import '../bloc/auth_bloc.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../../../core/di/dependency_injection.dart' as di;
-import 'welcome_screen.dart';
 
 /// Onboarding ekrani - Nabolen Style
 /// Faqat rasm va rang scroll bo'ladi, matn va indikator fixed
@@ -22,23 +23,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<OnboardingData> _pages = [
     OnboardingData(
-      image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
+      image: 'assets/images/photo-1555041469-a586c61ea9bc.jpeg',
       title: 'onboarding.easy_shopping'.tr(),
       subtitle: 'onboarding.easy_shopping_subtitle'.tr(),
       backgroundColor: AppColors.secondary,
       isDark: false,
     ),
     OnboardingData(
-      image:
-          'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=800',
+      image: 'assets/images/photo-1567538096630-e0c55bd6374c.jpeg',
       title: 'onboarding.easy_design'.tr(),
       subtitle: 'onboarding.easy_design_subtitle'.tr(),
       backgroundColor: const Color(0xFF4A5043),
       isDark: true,
     ),
     OnboardingData(
-      image:
-          'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800',
+      image: 'assets/images/photo-1586023492125-27b2c045efd7.jpeg',
       title: 'onboarding.view_place'.tr(),
       subtitle: 'onboarding.view_place_subtitle'.tr(),
       backgroundColor: const Color(0xFF3D4A3A),
@@ -64,10 +63,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
 
     if (!mounted) return;
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-    );
+    context.goNamed(RouteNames.welcome);
   }
 
   @override
@@ -139,7 +135,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(24),
-                        child: Image.network(
+                        child: Image.asset(
                           _pages[index].image,
                           fit: BoxFit.cover,
                           width: double.infinity,
@@ -150,22 +146,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 Icons.image_outlined,
                                 size: 60,
                                 color: AppColors.textSecondary,
-                              ),
-                            );
-                          },
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Container(
-                              color: AppColors.surface,
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  value:
-                                      loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                            loadingProgress.expectedTotalBytes!
-                                      : null,
-                                  color: AppColors.primary,
-                                ),
                               ),
                             );
                           },

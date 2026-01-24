@@ -3,13 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
+import '../../../../core/utils/route_names.dart';
 import '../bloc/auth_bloc.dart';
 import '../../../../core/widgets/custom_button.dart';
-import '../../../main/presentation/screens/main_screen.dart';
-import 'signup_screen.dart';
-import 'forgot_password_screen.dart';
 
 /// Kirish ekrani - Nabolen Style
 class LoginScreen extends StatefulWidget {
@@ -58,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
         elevation: 0,
         leading: widget.isFromOnboarding
             ? IconButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => context.pop(),
                 icon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -73,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               )
             : IconButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => context.pop(),
                 icon: const Icon(
                   Icons.close_rounded,
                   color: AppColors.textPrimary,
@@ -85,11 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
         listener: (context, state) {
           if (state is AuthAuthenticated) {
             if (mounted) {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const MainScreen()),
-                (route) => false,
-              );
+              context.goNamed(RouteNames.main);
             }
           } else if (state is AuthFailure) {
             const noInternetMessage =
@@ -102,12 +97,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   content: const Text(noInternetMessage),
                   actions: [
                     TextButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => context.pop(),
                       child: const Text('Bekor qilish'),
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.pop(context);
+                        context.pop();
                         _handleLogin();
                       },
                       child: const Text('Qayta urinish'),
@@ -247,13 +242,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         // Forgot password
                         TextButton(
                           onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const ForgotPasswordScreen(),
-                              ),
-                            );
+                            context.pushNamed(RouteNames.forgotPassword);
                           },
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
@@ -327,12 +316,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         GestureDetector(
                           onTap: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const SignUpScreen(),
-                              ),
-                            );
+                            context.pushReplacementNamed(RouteNames.signup);
                           },
                           child: Text(
                             'auth.signup'.tr(),

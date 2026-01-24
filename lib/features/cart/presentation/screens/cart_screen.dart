@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../products/data/models/product_model.dart';
@@ -191,12 +192,12 @@ class CartScreen extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: const Text('Bekor qilish'),
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(context);
+              context.pop();
               // Clear cart after successful order
               context.read<CartBloc>().add(const ClearCart());
               ScaffoldMessenger.of(context).showSnackBar(

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_theme.dart';
-import '../../features/auth/presentation/screens/login_screen.dart';
-import '../../features/auth/presentation/screens/signup_screen.dart';
+import '../utils/route_names.dart';
 
 class LoginDialog extends StatelessWidget {
   final String message;
@@ -65,13 +65,8 @@ class LoginDialog extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SignUpScreen(),
-                        ),
-                      );
+                      context.pop();
+                      context.pushNamed(RouteNames.signup);
                     },
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -96,13 +91,10 @@ class LoginDialog extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              const LoginScreen(isFromOnboarding: true),
-                        ),
+                      context.pop();
+                      context.pushNamed(
+                        RouteNames.login,
+                        queryParameters: {'fromOnboarding': 'true'},
                       );
                     },
                     style: ElevatedButton.styleFrom(

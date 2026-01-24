@@ -22,6 +22,12 @@
     "categories": "Kategoriyalar",
     "subcategories": "ta turkum"
   },
+  "home": {
+    "categories": "Kategoriyalar",
+    "new_arrivals": "Yangi kelganlar",
+    "popular_products": "Ommabop",
+    "products": "Mahsulotlar"
+  },
   "product": {
     "add_to_cart": "Savatga qo'shish",
     "buy_now": "Hozir sotib olish",

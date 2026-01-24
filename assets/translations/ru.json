@@ -22,6 +22,12 @@
     "categories": "Категории",
     "subcategories": "подкатегорий"
   },
+  "home": {
+    "categories": "Категории",
+    "new_arrivals": "Новинки",
+    "popular_products": "Популярные",
+    "products": "Товары"
+  },
   "product": {
     "add_to_cart": "В корзину",
     "buy_now": "Купить сейчас",

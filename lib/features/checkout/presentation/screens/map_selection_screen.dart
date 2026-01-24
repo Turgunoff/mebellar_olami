@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:yandex_mapkit/yandex_mapkit.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -61,7 +62,7 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -377,7 +378,7 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
     if (_selectedLocation == null) return;
 
     // Natijani qaytarish
-    Navigator.pop(context, {
+    context.pop({
       'location': _selectedLocation,
       'name': _locationName.isNotEmpty ? _locationName : 'Tanlangan manzil',
     });

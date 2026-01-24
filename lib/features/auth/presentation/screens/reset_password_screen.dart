@@ -3,11 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
+import '../../../../core/utils/route_names.dart';
 import '../bloc/auth_bloc.dart';
 import '../../../../core/widgets/custom_button.dart';
-import 'login_screen.dart';
 
 /// Parolni yangilash ekrani - Nabolen Style
 /// 2 bosqich: OTP kiritish -> Yangi parol
@@ -189,7 +190,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             if (_currentStep > 1) {
               setState(() => _currentStep--);
             } else {
-              Navigator.pop(context);
+              context.pop();
             }
           },
           icon: Container(
@@ -224,13 +225,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             );
           } else if (state is AuthUnauthenticated && _currentStep == 2) {
             // Parol muvaffaqiyatli yangilandi
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (context) => _PasswordResetSuccessScreen(),
-              ),
-              (route) => false,
-            );
+            context.goNamed(RouteNames.success);
           } else if (state is AuthFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -612,78 +607,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Parol muvaffaqiyatli yangilandi ekrani
-class _PasswordResetSuccessScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Spacer(),
-              // Success icon
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.check_circle_rounded,
-                  size: 80,
-                  color: AppColors.success,
-                ),
-              ).animate().scale(delay: 200.ms),
-              const SizedBox(height: 32),
-              Text(
-                'auth.password_reset_success'.tr(),
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-                textAlign: TextAlign.center,
-              ).animate().fadeIn(delay: 400.ms),
-              const SizedBox(height: 12),
-              Text(
-                'auth.password_reset_success_subtitle'.tr(),
-                style: TextStyle(
-                  fontSize: 16,
-                  color: AppColors.textSecondary,
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ).animate().fadeIn(delay: 500.ms),
-              const Spacer(),
-              // Kirish tugmasi
-              CustomButton(
-                text: 'auth.login'.tr(),
-                width: double.infinity,
-                onPressed: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const LoginScreen(isFromOnboarding: true),
-                    ),
-                    (route) => false,
-                  );
-                },
-              ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2),
-              const SizedBox(height: 40),
-            ],
-          ),
-        ),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -145,7 +146,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
               title: const Text('Galeriyadan tanlash'),
               onTap: () {
-                Navigator.pop(context);
+                context.pop();
                 _pickImage();
               },
             ),
@@ -164,7 +165,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
               title: const Text('Kameraga olish'),
               onTap: () {
-                Navigator.pop(context);
+                context.pop();
                 _takePhoto();
               },
             ),
@@ -206,7 +207,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               backgroundColor: AppColors.success,
             ),
           );
-          Navigator.pop(context, true);
+          context.pop(true);
         } else if (profileState.hasError) {
           // Xatolik
           ScaffoldMessenger.of(context).showSnackBar(
@@ -234,7 +235,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
         actions: [
           TextButton(

@@ -3,11 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
+import '../../../../core/utils/route_names.dart';
 import '../bloc/auth_bloc.dart';
 import '../../../../core/widgets/custom_button.dart';
-import 'reset_password_screen.dart';
 
 /// Parolni unutdim ekrani - Nabolen Style
 /// 3 bosqichli: Telefon -> OTP -> Yangi parol
@@ -61,7 +62,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -83,12 +84,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         },
         listener: (context, state) {
           if (state is AuthUnauthenticated) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    ResetPasswordScreen(phone: _formattedPhone),
-              ),
+            context.pushNamed(
+              RouteNames.resetPassword,
+              queryParameters: {'phone': _formattedPhone},
             );
           } else if (state is AuthFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
