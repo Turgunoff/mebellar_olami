@@ -42,7 +42,8 @@ class FilterChips extends StatelessWidget {
         itemCount: filters.length,
         itemBuilder: (context, index) {
           final filter = filters[index];
-          final isSelected = selectedFilterId == filter.id ||
+          final isSelected =
+              selectedFilterId == filter.id ||
               (selectedFilterId == null && filter.isDefault);
 
           return Padding(
@@ -52,13 +53,14 @@ class FilterChips extends StatelessWidget {
               isSelected: isSelected,
               onTap: () {
                 // IN-PLACE FILTERING: Only calls callback, NO navigation
-                // If already selected, reset to "All"; otherwise select this filter
-                // The parent widget (CatalogScreen) handles state and BLoC events
+                // Prevent toggle behavior: If already selected, do nothing
+                // Only change selection when a different chip is tapped
                 if (isSelected) {
-                  onFilterSelected('all');
-                } else {
-                  onFilterSelected(filter.id);
+                  // Chip is already selected - do nothing, prevent deselection
+                  return;
                 }
+                // Different chip selected - proceed with selection
+                onFilterSelected(filter.id);
                 // NOTE: This widget never performs navigation - it only triggers the callback
               },
             ),
@@ -90,7 +92,8 @@ class _CustomFilterChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary // Selected: Primary (black) background
+              ? AppColors
+                    .primary // Selected: Primary (black) background
               : Colors.grey[200], // Unselected: Grey[200] background
           borderRadius: BorderRadius.circular(20),
         ),
@@ -99,7 +102,8 @@ class _CustomFilterChip extends StatelessWidget {
             label,
             style: TextStyle(
               color: isSelected
-                  ? Colors.white // Selected: White text
+                  ? Colors
+                        .white // Selected: White text
                   : Colors.black, // Unselected: Black text
               fontSize: 14,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,

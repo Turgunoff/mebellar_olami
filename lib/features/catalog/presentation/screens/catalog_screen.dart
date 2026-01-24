@@ -187,7 +187,14 @@ class _CatalogScreenState extends State<CatalogScreen> {
                           _showProducts = true;
                           _selectedFilterId = 'all'; // Default "Barchasi"
                         });
-                        // Parent ID orqali barcha sub-kategoriyalardagi mahsulotlarni yuklash
+                        // Netflix-style: Load preview products for ALL sub-categories immediately
+                        context.read<CatalogBloc>().add(
+                          LoadGroupedProductsPreview(
+                            parentId: category.id,
+                            limitPerCat: 10, // Preview batch size
+                          ),
+                        );
+                        // Also load "All" products (parent + all sub-categories)
                         context.read<CatalogBloc>().add(
                           LoadCategoryProducts(
                             categoryId: null,
@@ -274,18 +281,19 @@ class _CatalogScreenState extends State<CatalogScreen> {
                       _selectedFilterId = filterId ?? 'all';
                     });
 
-                    // Trigger BLoC event to refresh products IN-PLACE (no navigation)
+                    // Netflix-style instant switching: Use cache first, avoid redundant API calls
                     if (filterId != null && filterId != 'all') {
-                      // Sub-category selected - load products for this specific sub-category
+                      // Sub-category selected - use SwitchToSubCategory for smart cache checking
                       if (_parentCategory?.subCategories.any(
                             (sub) => sub.id == filterId,
                           ) ==
                           true) {
+                        // This will check cache first and only make API call if not cached
                         context.read<CatalogBloc>().add(
-                          LoadCategoryProducts(
+                          SwitchToSubCategory(
                             categoryId: filterId,
-                            parentId:
-                                null, // Sub-category selected, use categoryId
+                            useCache:
+                                true, // Use cache for instant switching (0ms latency)
                           ),
                         );
                       }
@@ -380,18 +388,18 @@ class _CatalogScreenState extends State<CatalogScreen> {
                     _selectedFilterId = filterId ?? 'all';
                   });
 
-                  // Trigger BLoC event to refresh products IN-PLACE (no navigation)
+                  // Netflix-style instant switching: Check cache first, then load if needed
                   if (filterId != null && filterId != 'all') {
-                    // Sub-category selected - load products for this specific sub-category
+                    // Sub-category selected - use cached products for instant display
                     if (_parentCategory?.subCategories.any(
                           (sub) => sub.id == filterId,
                         ) ==
                         true) {
+                      // Try instant switch using cache
                       context.read<CatalogBloc>().add(
-                        LoadCategoryProducts(
+                        SwitchToSubCategory(
                           categoryId: filterId,
-                          parentId:
-                              null, // Sub-category selected, use categoryId
+                          useCache: true, // Use cache for instant switching
                         ),
                       );
                     }

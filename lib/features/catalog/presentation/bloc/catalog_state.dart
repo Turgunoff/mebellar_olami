@@ -12,6 +12,14 @@ class CatalogState extends Equatable {
   final CategoryModel? selectedCategory;
   final bool showProducts;
   final String? errorMessage;
+  // Netflix-style caching: Map<categoryId, List<ProductModel>>
+  final Map<String, List<ProductModel>> cachedProducts;
+  // Track which categories have been fetched (even if empty) to avoid redundant API calls
+  final Set<String> fetchedCategories;
+  // Main category cache: Map<parentId, List<ProductModel>> for "All" tab data
+  final Map<String, List<ProductModel>> mainCategoryCache;
+  // Track which parent categories have been loaded for "All" tab
+  final Set<String> loadedMainCategories;
 
   const CatalogState({
     this.status = CatalogStatus.initial,
@@ -21,6 +29,10 @@ class CatalogState extends Equatable {
     this.selectedCategory,
     this.showProducts = false,
     this.errorMessage,
+    this.cachedProducts = const {},
+    this.fetchedCategories = const {},
+    this.mainCategoryCache = const {},
+    this.loadedMainCategories = const {},
   });
 
   bool get isLoading => status == CatalogStatus.loading;
@@ -36,6 +48,10 @@ class CatalogState extends Equatable {
     CategoryModel? selectedCategory,
     bool? showProducts,
     String? errorMessage,
+    Map<String, List<ProductModel>>? cachedProducts,
+    Set<String>? fetchedCategories,
+    Map<String, List<ProductModel>>? mainCategoryCache,
+    Set<String>? loadedMainCategories,
   }) {
     return CatalogState(
       status: status ?? this.status,
@@ -45,6 +61,10 @@ class CatalogState extends Equatable {
       selectedCategory: selectedCategory ?? this.selectedCategory,
       showProducts: showProducts ?? this.showProducts,
       errorMessage: errorMessage ?? this.errorMessage,
+      cachedProducts: cachedProducts ?? this.cachedProducts,
+      fetchedCategories: fetchedCategories ?? this.fetchedCategories,
+      mainCategoryCache: mainCategoryCache ?? this.mainCategoryCache,
+      loadedMainCategories: loadedMainCategories ?? this.loadedMainCategories,
     );
   }
 
@@ -57,5 +77,9 @@ class CatalogState extends Equatable {
     selectedCategory,
     showProducts,
     errorMessage,
+    cachedProducts,
+    fetchedCategories,
+    mainCategoryCache,
+    loadedMainCategories,
   ];
 }

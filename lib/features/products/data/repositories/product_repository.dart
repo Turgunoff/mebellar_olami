@@ -249,6 +249,42 @@ class ProductRepository {
     return await getProducts(search: query, page: page, limit: limit);
   }
 
+  /// Sub-kategoriyalar bo'yicha guruhlangan mahsulotlar (Netflix-style preview)
+  Future<Map<String, dynamic>> getProductsGroupedBySubcategory({
+    required String parentId,
+    int limitPerCat = 10,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{
+        'parent_id': parentId,
+        'limit_per_cat': limitPerCat,
+      };
+
+      final response = await _dioClient.get(
+        '/products/grouped-by-subcategory',
+        queryParameters: queryParams,
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data as Map<String, dynamic>;
+        return {
+          'success': true,
+          'groups': data['groups'] ?? [],
+          'count': data['count'] ?? 0,
+        };
+      } else {
+        throw Exception('Invalid response format');
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': e.toString().replaceAll('Exception: ', ''),
+        'groups': <Map<String, dynamic>>[],
+        'count': 0,
+      };
+    }
+  }
+
   /// Kategoriyalar ro'yxati
   Future<Map<String, dynamic>> getCategories() async {
     try {
