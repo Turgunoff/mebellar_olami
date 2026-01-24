@@ -40,9 +40,21 @@ class ProductDetailBloc extends Bloc<ProductDetailEvent, ProductDetailState> {
 
       // Get related products (recommended products from same category)
       List<ProductModel> relatedProducts = [];
-      if (product.category.isNotEmpty) {
+
+      // Safely check category
+      final dynamic category = product.category;
+      bool hasCategory = false;
+      if (category != null) {
+        if (category is String) {
+          hasCategory = category.isNotEmpty;
+        } else if (category is Map) {
+          hasCategory = category.isNotEmpty;
+        }
+      }
+
+      if (hasCategory && category is String) {
         final relatedResult = await _productRepository.getRecommendedProducts(
-          category: product.category,
+          category: category,
           limit: 8,
           excludeIds: [product.id],
         );

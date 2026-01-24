@@ -85,54 +85,32 @@ class ProductModel {
 
   /// JSON dan model yaratish (Backend response)
   factory ProductModel.fromJson(Map<String, dynamic> json) {
-    // Images massivini parse qilish
-    List<String> parseImages(dynamic imagesData) {
-      if (imagesData == null) return [];
-      if (imagesData is List) {
-        return imagesData.map((e) => e.toString()).toList();
-      }
-      return [];
-    }
-
-    // Specs parse qilish
-    Map<String, dynamic> parseSpecs(dynamic specsData) {
-      if (specsData == null) return {};
-      if (specsData is Map) {
-        return Map<String, dynamic>.from(specsData);
-      }
-      return {};
-    }
-
-    // Variants parse qilish
-    List<Map<String, dynamic>> parseVariants(dynamic variantsData) {
-      if (variantsData == null) return [];
-      if (variantsData is List) {
-        return variantsData
-            .map(
-              (v) =>
-                  v is Map ? Map<String, dynamic>.from(v) : <String, dynamic>{},
-            )
-            .toList();
-      }
-      return [];
-    }
-
     return ProductModel(
       id: json['id']?.toString() ?? '',
       categoryId: json['category_id']?.toString(),
       category: json['category'], // Map yoki String bo'lishi mumkin
-      shopId: json['shop_id']
-          ?.toString(), // Backend hozircha qaytarmaydi, lekin kelajakda bo'lishi mumkin
-      name:
-          json['name'], // Map yoki String bo'lishi mumkin, o'z holicha saqlaymiz
-      description: json['description'], // Map yoki String bo'lishi mumkin,
+      shopId: json['shop_id']?.toString(),
+      name: json['name'],
+      description: json['description'],
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       discountPrice: json['discount_price'] != null
           ? (json['discount_price'] as num?)?.toDouble()
           : null,
-      images: parseImages(json['images']),
-      specs: parseSpecs(json['specs']),
-      variants: parseVariants(json['variants']),
+      // Safely parse lists to ensure they are never null
+      images:
+          (json['images'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      specs: (json['specs'] is Map)
+          ? Map<String, dynamic>.from(json['specs'])
+          : {},
+      variants:
+          (json['variants'] as List?)
+              ?.map(
+                (v) => v is Map
+                    ? Map<String, dynamic>.from(v)
+                    : <String, dynamic>{},
+              )
+              .toList() ??
+          [],
       rating: (json['rating'] as num?)?.toDouble() ?? 4.5,
       isNew: json['is_new'] as bool? ?? false,
       isPopular: json['is_popular'] as bool? ?? false,

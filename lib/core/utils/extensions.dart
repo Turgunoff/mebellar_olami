@@ -5,8 +5,18 @@ import 'package:intl/intl.dart';
 extension StringExtension on String {
   /// Hex string ni Color ga aylantirish
   Color toColor() {
-    final hexCode = replaceAll('#', '').replaceAll('0x', '').replaceAll('0X', '');
+    final hexCode = replaceAll(
+      '#',
+      '',
+    ).replaceAll('0x', '').replaceAll('0X', '');
     return Color(int.parse('FF$hexCode', radix: 16));
+  }
+
+  /// Birinchi harfni katta qilish
+  String capitalize() {
+    if (isEmpty) return this;
+    if (length == 1) return toUpperCase();
+    return '${this[0].toUpperCase()}${substring(1).toLowerCase()}';
   }
 }
 

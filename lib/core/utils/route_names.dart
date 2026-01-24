@@ -16,6 +16,7 @@ class RouteNames {
   static const String main = 'main';
   static const String home = 'home';
   static const String catalog = 'catalog';
+  static const String cart = 'cart';
   static const String favorites = 'favorites';
   static const String profile = 'profile';
   static const String editProfile = 'edit-profile';
@@ -49,6 +50,7 @@ class RoutePaths {
   // Main routes
   static const String main = '/';
   static const String search = '/search';
+  static const String cart = '/cart';
 
   // Product routes
   static const String productDetail = '/product/:productId';

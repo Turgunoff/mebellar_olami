@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../di/dependency_injection.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../features/products/presentation/bloc/product_detail_bloc.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/onboarding_screen.dart';
@@ -10,6 +13,7 @@ import '../../features/auth/presentation/screens/signup_screen.dart';
 import '../../features/auth/presentation/screens/success_screen.dart';
 import '../../features/auth/presentation/screens/verify_code_screen.dart';
 import '../../features/auth/presentation/screens/welcome_screen.dart';
+import '../../features/cart/presentation/screens/cart_screen.dart';
 import '../../features/checkout/presentation/screens/checkout_screen.dart';
 import '../../features/checkout/presentation/screens/map_selection_screen.dart';
 import '../../features/checkout/presentation/screens/order_success_screen.dart';
@@ -177,7 +181,10 @@ class AppRouter {
           name: RouteNames.productDetail,
           builder: (context, state) {
             final productId = state.pathParameters['productId'] ?? '';
-            return ProductDetailScreen(productId: productId);
+            return BlocProvider(
+              create: (context) => sl<ProductDetailBloc>(),
+              child: ProductDetailScreen(productId: productId),
+            );
           },
         ),
 
@@ -186,6 +193,13 @@ class AppRouter {
           path: RoutePaths.search,
           name: RouteNames.search,
           builder: (context, state) => const SearchScreen(),
+        ),
+
+        // Cart
+        GoRoute(
+          path: RoutePaths.cart,
+          name: RouteNames.cart,
+          builder: (context, state) => const CartScreen(),
         ),
 
         // Edit profile

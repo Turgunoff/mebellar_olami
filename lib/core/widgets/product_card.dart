@@ -29,11 +29,11 @@ class ProductCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -42,7 +42,7 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image Section (Flex: 6)
+            // Top Section (Image Stack) - Flex: 6
             Expanded(
               flex: 6,
               child: Stack(
@@ -58,19 +58,19 @@ class ProductCard extends StatelessWidget {
                       height: double.infinity,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
-                        color: AppColors.secondary.withValues(alpha: 0.1),
+                        color: Colors.grey.shade100,
                         child: const Center(
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: AppColors.primary,
+                            color: Color(0xFF5D4037),
                           ),
                         ),
                       ),
                       errorWidget: (context, url, error) => Container(
-                        color: AppColors.secondary.withValues(alpha: 0.1),
+                        color: Colors.grey.shade100,
                         child: const Icon(
                           Icons.image_not_supported_outlined,
-                          color: AppColors.textSecondary,
+                          color: Colors.grey,
                           size: 32,
                         ),
                       ),
@@ -78,28 +78,24 @@ class ProductCard extends StatelessWidget {
                   ),
                   // "New" Badge (Top Left) - Green
                   if (product.isNew)
-                    Positioned(
-                      top: 8,
-                      left: 8,
-                      child: _buildNewBadge(),
-                    ),
-                  // Favorite Icon (Top Right) - No background, just icon
-                  if (showFavoriteButton)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: _FavoriteButton(product: product),
-                    ),
-                  // Color Swatches (Below Favorite Icon, Right)
+                    Positioned(top: 8, left: 8, child: _buildNewBadge()),
+                  // Color Swatches (Top Right)
                   Positioned(
-                    top: 36,
+                    top: 8,
                     right: 8,
                     child: _ColorSwatches(colors: product.colors),
                   ),
+                  // Favorite Icon (Below Swatches, Right) - No background
+                  if (showFavoriteButton)
+                    Positioned(
+                      top: 36,
+                      right: 8,
+                      child: _FavoriteButton(product: product),
+                    ),
                 ],
               ),
             ),
-            // Details Section (Flex: 4)
+            // Bottom Section (Details) - Flex: 4
             Expanded(
               flex: 4,
               child: Padding(
@@ -120,7 +116,7 @@ class ProductCard extends StatelessWidget {
                         Text(
                           product.rating.toStringAsFixed(1),
                           style: TextStyle(
-                            color: AppColors.textSecondary,
+                            color: Colors.grey.shade600,
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
@@ -128,27 +124,22 @@ class ProductCard extends StatelessWidget {
                       ],
                     ),
                     // Title
-                    Flexible(
-                      child: Text(
-                        LocalizedTextHelper.get(product.name, context),
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          height: 1.2,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                    Text(
+                      LocalizedTextHelper.get(product.name, context),
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        height: 1.2,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     // Price Row with Add Button
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Flexible(
-                          child: _buildPriceSection(),
-                        ),
+                        Expanded(child: _buildPriceSection()),
                         const SizedBox(width: 8),
                         _AddButton(product: product),
                       ],
@@ -182,19 +173,42 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildPriceSection() {
-    // Show discount price if available, otherwise regular price
-    final displayPrice = product.hasDiscount
-        ? product.discountPrice!
-        : product.price;
-
+    const brownColor = Color(0xFF5D4037);
+    if (product.hasDiscount) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            product.price.toCurrency(),
+            style: TextStyle(
+              color: Colors.grey.shade500,
+              fontSize: 11,
+              decoration: TextDecoration.lineThrough,
+              decorationColor: Colors.grey.shade500,
+            ),
+          ),
+          Text(
+            product.discountPrice!.toCurrency(),
+            style: const TextStyle(
+              color: brownColor,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      );
+    }
     return Text(
-      displayPrice.toCurrency(),
+      product.price.toCurrency(),
       style: const TextStyle(
-        color: AppColors.primary,
-        fontSize: 15,
+        color: brownColor,
+        fontSize: 14,
         fontWeight: FontWeight.bold,
       ),
-      maxLines: 2,
+      maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
   }
@@ -207,7 +221,7 @@ class _ColorSwatches extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // If no colors available, show mock colors or hide
+    // If no colors available, show mock colors
     final displayColors = colors.isNotEmpty
         ? colors.take(3).toList()
         : ['#9E9E9E', '#212121', '#E91E63']; // Mock: Grey, Black, Pink
@@ -217,24 +231,19 @@ class _ColorSwatches extends StatelessWidget {
       children: displayColors.map((colorCode) {
         Color color;
         try {
-          // Try to parse hex color
           color = Color(int.parse(colorCode.replaceFirst('#', '0xFF')));
         } catch (e) {
-          // Fallback to grey if parsing fails
           color = Colors.grey;
         }
 
         return Container(
-          width: 16,
-          height: 16,
+          width: 14,
+          height: 14,
           margin: const EdgeInsets.only(left: 4),
           decoration: BoxDecoration(
             color: color,
             shape: BoxShape.circle,
-            border: Border.all(
-              color: AppColors.white,
-              width: 1.5,
-            ),
+            border: Border.all(color: Colors.white, width: 1.5),
           ),
         );
       }).toList(),
@@ -295,15 +304,15 @@ class _FavoriteButton extends StatelessWidget {
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: AppColors.primary,
+                          color: Color(0xFF5D4037),
                         ),
                       )
                     : Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        Icons.favorite,
                         size: 20,
                         color: isFavorite
-                            ? AppColors.error // Red when favorited
-                            : AppColors.primary, // Brown when not favorited
+                            ? Colors.red
+                            : const Color(0xFF5D4037), // Brown
                       ),
               );
             },
@@ -324,39 +333,34 @@ class _AddButton extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         context.read<CartBloc>().add(
-              AddToCart(
-                product: {
-                  'id': product.id,
-                  'name': product.name,
-                  'price': product.price,
-                  'image_url': product.imageUrl,
-                  'has_discount': product.hasDiscount,
-                  'discount_price': product.discountPrice,
-                  'discount_percent': product.discountPercent,
-                  'is_new': product.isNew,
-                },
-                quantity: 1,
-              ),
-            );
+          AddToCart(
+            product: {
+              'id': product.id,
+              'name': product.name,
+              'price': product.price,
+              'image_url': product.imageUrl,
+              'has_discount': product.hasDiscount,
+              'discount_price': product.discountPrice,
+              'discount_percent': product.discountPercent,
+              'is_new': product.isNew,
+            },
+            quantity: 1,
+          ),
+        );
       },
       behavior: HitTestBehavior.opaque,
       child: Container(
-        width: 36,
-        height: 36,
+        width: 32,
+        height: 32,
         decoration: BoxDecoration(
-          color: AppColors.primary,
+          color: const Color(0xFF5D4037),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Icon(
-          Icons.add,
-          color: AppColors.white,
-          size: 20,
-        ),
+        child: const Icon(Icons.add, color: Colors.white, size: 20),
       ),
     );
   }
 }
-
 
 class HorizontalProductCard extends StatelessWidget {
   final ProductModel product;
