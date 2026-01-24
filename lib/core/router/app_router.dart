@@ -43,40 +43,53 @@ class AppRouter {
       // Auth redirect logic
       redirect: (BuildContext context, GoRouterState state) {
         final authState = authBloc.state;
-        final isAuthenticated = authState is AuthAuthenticated;
-        final isOnboardingCompleted = authState.isOnboardingCompleted;
-        final isLoading = authState is AuthLoading || authState is AuthInitial;
-
-        // Current location
         final currentLocation = state.matchedLocation;
 
-        // Auth-related paths
-        final isAuthRoute =
+        // Define route checks
+        final isGoingToOnboarding = currentLocation == RoutePaths.onboarding;
+        final isGoingToWelcome = currentLocation == RoutePaths.welcome;
+        final isGoingToLogin =
             currentLocation == RoutePaths.login ||
-            currentLocation == RoutePaths.signup ||
-            currentLocation == RoutePaths.welcome ||
-            currentLocation == RoutePaths.onboarding ||
+            currentLocation == RoutePaths.signup;
+        final isGoingToAuthFlow =
+            isGoingToLogin ||
             currentLocation == RoutePaths.forgotPassword ||
             currentLocation == RoutePaths.resetPassword ||
             currentLocation.startsWith('/verify-code');
 
         // If still loading auth state, don't redirect
-        if (isLoading) {
+        if (authState is AuthLoading || authState is AuthInitial) {
           return null;
         }
 
-        // If not completed onboarding and not on onboarding screen
-        if (!isOnboardingCompleted &&
-            currentLocation != RoutePaths.onboarding) {
-          return RoutePaths.onboarding;
+        // 1. Check Onboarding Required
+        if (authState is AuthOnboardingRequired) {
+          if (isGoingToOnboarding) return null; // Allow access to onboarding
+          return RoutePaths.onboarding; // Redirect to onboarding
         }
 
-        // If user is authenticated and on auth routes, redirect to main
-        if (isAuthenticated && isAuthRoute) {
-          return RoutePaths.main;
+        // 2. Check Unauthenticated (onboarding completed but not logged in)
+        if (authState is AuthUnauthenticated) {
+          // Allow access to onboarding (in case they want to see it again)
+          if (isGoingToOnboarding) return null;
+          // Allow access to welcome and auth flows
+          if (isGoingToWelcome || isGoingToAuthFlow) return null;
+          // Redirect to welcome for all other routes
+          return RoutePaths.welcome;
         }
 
-        // Allow access to all routes (guest mode supported)
+        // 3. Check Authenticated
+        if (authState is AuthAuthenticated) {
+          // If user is logged in but tries to go to auth/onboarding/welcome -> Send to Home
+          if (isGoingToLogin ||
+              isGoingToOnboarding ||
+              isGoingToWelcome ||
+              isGoingToAuthFlow) {
+            return RoutePaths.main;
+          }
+        }
+
+        // No redirect needed
         return null;
       },
 

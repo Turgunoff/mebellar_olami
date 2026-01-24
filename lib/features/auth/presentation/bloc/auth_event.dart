@@ -87,3 +87,7 @@ class AuthVerifyOtpRequested extends AuthEvent {
   @override
   List<Object?> get props => [phone, code];
 }
+
+class CompleteOnboardingEvent extends AuthEvent {
+  const CompleteOnboardingEvent();
+}

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
 import '../../../../core/utils/route_names.dart';
 import '../bloc/auth_bloc.dart';
-import '../../data/repositories/auth_repository.dart';
 import '../../../../core/di/dependency_injection.dart' as di;
 
 /// Onboarding ekrani - Nabolen Style
@@ -55,15 +55,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  void _goToWelcome() async {
-    final authRepository = di.sl<AuthRepository>();
-    await authRepository.setOnboardingCompleted();
-    if (mounted) {
-      di.sl<AuthBloc>().add(const AuthCheckStatus());
-    }
-
-    if (!mounted) return;
-    context.goNamed(RouteNames.welcome);
+  void _goToWelcome() {
+    // Dispatch event to complete onboarding
+    // Navigation will happen via BlocListener when state updates
+    di.sl<AuthBloc>().add(const CompleteOnboardingEvent());
   }
 
   @override
@@ -78,12 +73,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: AnimatedContainer(
-        duration: const Duration(milliseconds: 400),
-        color: _currentBgColor,
-        child: SafeArea(
-          child: Column(
+    return BlocListener<AuthBloc, AuthState>(
+      bloc: di.sl<AuthBloc>(),
+      listener: (context, state) {
+        // Navigate to welcome when onboarding is completed
+        if (state.isOnboardingCompleted && mounted) {
+          context.goNamed(RouteNames.welcome);
+        }
+      },
+      child: Scaffold(
+        body: AnimatedContainer(
+          duration: const Duration(milliseconds: 400),
+          color: _currentBgColor,
+          child: SafeArea(
+            child: Column(
             children: [
               // O'tkazish tugmasi (yuqori o'ng) - FIXED
               Padding(
@@ -291,6 +294,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
               ),
             ],
+            ),
           ),
         ),
       ),

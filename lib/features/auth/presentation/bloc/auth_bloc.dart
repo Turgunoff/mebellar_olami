@@ -21,6 +21,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthSendOtpRequested>(_onSendOtpRequested);
     on<AuthResetPasswordRequested>(_onResetPasswordRequested);
     on<AuthVerifyOtpRequested>(_onVerifyOtpRequested);
+    on<CompleteOnboardingEvent>(_onCompleteOnboarding);
   }
 
   final AuthRepository _repository;
@@ -33,6 +34,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading(isOnboardingCompleted: state.isOnboardingCompleted));
 
     final onboardingCompleted = await _repository.isOnboardingCompleted();
+
+    // If onboarding is not completed, emit AuthOnboardingRequired
+    if (!onboardingCompleted) {
+      emit(const AuthOnboardingRequired());
+      return;
+    }
+
     final token = await _repository.getSavedToken();
     final user = _getUserFromStorage();
 
@@ -230,6 +238,28 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         AuthUnauthenticated(isOnboardingCompleted: state.isOnboardingCompleted),
       ),
     );
+  }
+
+  Future<void> _onCompleteOnboarding(
+    CompleteOnboardingEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    // Save to repository first
+    await _repository.setOnboardingCompleted();
+
+    // Update state immediately with onboarding completed
+    final currentState = state;
+    if (currentState is AuthAuthenticated) {
+      emit(
+        AuthAuthenticated(
+          token: currentState.token,
+          user: currentState.user,
+          isOnboardingCompleted: true,
+        ),
+      );
+    } else {
+      emit(AuthUnauthenticated(isOnboardingCompleted: true));
+    }
   }
 
   Map<String, dynamic>? _getUserFromStorage() {

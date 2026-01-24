@@ -31,6 +31,10 @@ class AuthAuthenticated extends AuthState {
   List<Object?> get props => [token, user, isOnboardingCompleted];
 }
 
+class AuthOnboardingRequired extends AuthState {
+  const AuthOnboardingRequired() : super(isOnboardingCompleted: false);
+}
+
 class AuthUnauthenticated extends AuthState {
   const AuthUnauthenticated({required super.isOnboardingCompleted});
 }
