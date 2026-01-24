@@ -72,12 +72,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SliverToBoxAdapter(child: HomeBannerSlider()),
                   // Categories Section
                   SliverToBoxAdapter(
-                    child: HomeSectionTitle(title: 'home.categories'.tr()),
+                    child: _buildCategoriesHeader(),
                   ),
                   SliverToBoxAdapter(child: _buildCategoriesRow(state)),
                   // New Arrivals Section
                   SliverToBoxAdapter(
-                    child: HomeSectionTitle(title: 'home.new_arrivals'.tr()),
+                    child: _buildNewArrivalsHeader(),
                   ),
                   SliverToBoxAdapter(child: _buildNewArrivalsRow(state)),
                   // Popular Products Section
@@ -288,17 +288,77 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildNewArrivalsHeader() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 32, 20, 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 24,
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'home.new_arrivals'.tr(),
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ],
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.local_fire_department_rounded,
+                  size: 16,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Yangi',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(delay: 400.ms).slideX(begin: -0.1);
+  }
+
   Widget _buildNewArrivalsRow(HomeState state) {
     if (state is HomeLoading) {
       return SizedBox(
-        height: 140,
+        height: 180,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.only(left: 20, right: 4),
           itemCount: 3,
           itemBuilder: (context, index) {
             return const Padding(
-              padding: EdgeInsets.only(right: 16),
+              padding: EdgeInsets.only(right: 20),
               child: HorizontalProductCardSkeleton(),
             );
           },
@@ -311,45 +371,141 @@ class _HomeScreenState extends State<HomeScreen> {
         : <ProductModel>[];
 
     if (newProducts.isEmpty) {
-      return const SizedBox(
-        height: 100,
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: AppColors.lightGrey.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
         child: Center(
-          child: Text(
-            'Yangi mahsulotlar hozircha yo\'q',
-            style: TextStyle(color: AppColors.textSecondary),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.inventory_2_outlined,
+                size: 48,
+                color: AppColors.textSecondary.withValues(alpha: 0.4),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Yangi mahsulotlar hozircha yo\'q',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
         ),
       );
     }
 
-    return SizedBox(
-      height: 140,
-      child: ListView.builder(
-        padding: const EdgeInsets.only(left: 20, right: 4),
-        scrollDirection: Axis.horizontal,
-        itemCount: newProducts.length,
-        itemBuilder: (context, index) {
-          final product = newProducts[index];
-          return ProductCardHorizontal(
-            product: product,
-            onTap: () => _navigateToProduct(product),
-          ).animate().fadeIn(delay: (60 * index).ms).slideX(begin: 0.1);
-        },
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: SizedBox(
+        height: 180,
+        child: ListView.builder(
+          padding: const EdgeInsets.only(left: 20, right: 4),
+          scrollDirection: Axis.horizontal,
+          itemCount: newProducts.length,
+          itemBuilder: (context, index) {
+            final product = newProducts[index];
+            return ProductCardHorizontal(
+              product: product,
+              onTap: () => _navigateToProduct(product),
+            ).animate().fadeIn(delay: (80 * index).ms).slideX(begin: 0.2).scale(
+                  begin: const Offset(0.9, 0.9),
+                  duration: 400.ms,
+                );
+          },
+        ),
       ),
+    );
+  }
+
+  Widget _buildCategoriesHeader() {
+    return BlocBuilder<HomeBloc, HomeState>(
+      builder: (context, state) {
+        final categoryCount = state is HomeLoaded ? state.categories.length : 0;
+        return Container(
+          margin: const EdgeInsets.fromLTRB(20, 32, 20, 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 4,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'home.categories'.tr(),
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ],
+              ),
+              if (categoryCount > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.grid_view_rounded,
+                        size: 16,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '$categoryCount',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1);
+      },
     );
   }
 
   Widget _buildCategoriesRow(HomeState state) {
     if (state is HomeLoading) {
       return SizedBox(
-        height: 120,
+        height: 140,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.only(left: 20),
+          padding: const EdgeInsets.only(left: 20, right: 4),
           itemCount: 6,
           itemBuilder: (context, index) {
             return const Padding(
-              padding: EdgeInsets.only(right: 16),
+              padding: EdgeInsets.only(right: 20),
               child: CategorySkeleton(),
             );
           },
@@ -362,21 +518,59 @@ class _HomeScreenState extends State<HomeScreen> {
         : <CategoryModel>[];
 
     if (categories.isEmpty) {
-      return const SizedBox(height: 20);
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: AppColors.lightGrey.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.category_outlined,
+                size: 48,
+                color: AppColors.textSecondary.withValues(alpha: 0.4),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Kategoriyalar hozircha yo\'q',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
-    return SizedBox(
-      height: 120,
-      child: ListView.builder(
-        padding: const EdgeInsets.only(left: 20),
-        scrollDirection: Axis.horizontal,
-        itemCount: categories.length,
-        itemBuilder: (context, index) {
-          final category = categories[index];
-          return CategoryItem(
-            category: category,
-          ).animate().fadeIn(delay: (60 * index).ms).slideX(begin: 0.1);
-        },
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: SizedBox(
+        height: 140,
+        child: ListView.builder(
+          padding: const EdgeInsets.only(left: 20, right: 4),
+          scrollDirection: Axis.horizontal,
+          itemCount: categories.length,
+          itemBuilder: (context, index) {
+            final category = categories[index];
+            return CategoryItem(
+              category: category,
+            ).animate().fadeIn(delay: (70 * index).ms).slideX(begin: 0.2).scale(
+                  begin: const Offset(0.9, 0.9),
+                  duration: 400.ms,
+                );
+          },
+        ),
       ),
     );
   }

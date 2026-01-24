@@ -60,7 +60,10 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
 
   void _onSelectCategory(SelectCategory event, Emitter<CatalogState> emit) {
     emit(state.copyWith(selectedCategory: event.category, showProducts: true));
-    add(LoadCategoryProducts(categoryId: event.category.id));
+    add(LoadCategoryProducts(
+      categoryId: event.category.id,
+      parentId: null,
+    ));
   }
 
   Future<void> _onLoadCategoryProducts(
@@ -71,7 +74,8 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
 
     try {
       final result = await productRepository.getProducts(
-        category: event.categoryId,
+        categoryId: event.categoryId,
+        parentId: event.parentId,
       );
 
       if (result['success'] == true) {

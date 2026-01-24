@@ -8,7 +8,8 @@ class ProductRepository {
 
   /// Mahsulotlarni olish
   Future<Map<String, dynamic>> getProducts({
-    String? category,
+    String? categoryId,
+    String? parentId,
     int page = 1,
     int limit = 20,
     String? search,
@@ -16,7 +17,8 @@ class ProductRepository {
     try {
       final queryParams = <String, dynamic>{'page': page, 'limit': limit};
 
-      if (category != null) queryParams['category'] = category;
+      if (categoryId != null) queryParams['category_id'] = categoryId;
+      if (parentId != null) queryParams['parent_id'] = parentId;
       if (search != null) queryParams['search'] = search;
 
       final response = await _dioClient.get(

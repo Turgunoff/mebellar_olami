@@ -21,12 +21,16 @@ class SelectCategory extends CatalogEvent {
 }
 
 class LoadCategoryProducts extends CatalogEvent {
-  final String categoryId;
+  final String? categoryId;
+  final String? parentId;
 
-  const LoadCategoryProducts({required this.categoryId});
+  const LoadCategoryProducts({
+    this.categoryId,
+    this.parentId,
+  });
 
   @override
-  List<Object?> get props => [categoryId];
+  List<Object?> get props => [categoryId, parentId];
 }
 
 class GoBackToCategories extends CatalogEvent {
