@@ -31,7 +31,7 @@ class CategoryGridCard extends StatelessWidget {
     final imageMap = {
       // Furniture categories
       'wardrobe':
-          'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80',
+          'https://www.vecteezy.com/photo/72427487-modern-living-room-with-a-white-sofa-orange-accent-pillows-and-a-wooden-coffee-table-bathed-in-sunlight',
       'шкафы':
           'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80',
       'wardrobes':
