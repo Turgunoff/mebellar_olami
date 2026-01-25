@@ -169,14 +169,15 @@ class FavoritesScreen extends StatelessWidget {
             ),
           ),
           onDismissed: (direction) {
+            // Use toJson() to ensure all product fields are included
+            final productData = product.toJson();
+            productData['image_url'] = product.imageUrl;
+            productData['has_discount'] = product.hasDiscount;
+            productData['discount_percent'] = product.discountPercent;
+            
             context.read<FavoritesBloc>().add(
               ToggleFavoriteEvent(
-                product: {
-                  'id': product.id,
-                  'name': product.name,
-                  'price': product.price,
-                  'image_url': product.imageUrl,
-                },
+                product: productData,
               ),
             );
             ScaffoldMessenger.of(context).showSnackBar(
@@ -220,7 +221,7 @@ class FavoritesScreen extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              // TODO: ClearFavoritesEvent ni FavoritesBloc ga qo'shish kerak
+              context.read<FavoritesBloc>().add(const ClearFavorites());
               context.pop();
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),

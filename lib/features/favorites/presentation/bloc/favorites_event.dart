@@ -31,3 +31,7 @@ class SyncFavoritesEvent extends FavoritesEvent {
 class MergeFavorites extends FavoritesEvent {
   const MergeFavorites();
 }
+
+class ClearFavorites extends FavoritesEvent {
+  const ClearFavorites();
+}

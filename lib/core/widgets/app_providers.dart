@@ -11,6 +11,7 @@ import '../../features/profile/bloc/profile_bloc.dart';
 import '../../features/search/presentation/bloc/search_bloc.dart';
 import '../../features/products/data/repositories/product_repository.dart';
 import '../../features/checkout/presentation/bloc/checkout_bloc.dart';
+import '../../features/main/presentation/cubit/navigation_cubit.dart';
 
 class AppProviders extends StatelessWidget {
   final Widget child;
@@ -51,6 +52,7 @@ class AppProviders extends StatelessWidget {
             create: (_) => di.sl<SearchBloc>()..add(const LoadSearchHistory()),
           ),
           BlocProvider(create: (_) => di.sl<CheckoutBloc>()),
+          BlocProvider(create: (_) => NavigationCubit()),
         ],
         child: child,
       ),

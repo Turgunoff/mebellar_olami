@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/route_names.dart';
 import '../../../../core/widgets/custom_button.dart';
+import '../../../main/presentation/cubit/navigation_cubit.dart';
 
 /// Bo'sh savatcha widgeti
 class EmptyCartWidget extends StatelessWidget {
@@ -45,7 +47,8 @@ class EmptyCartWidget extends StatelessWidget {
           CustomButton(
             text: 'Katalogga o\'tish',
             onPressed: () {
-              // Navigate to catalog (main screen has catalog tab)
+              // Switch to Catalog tab (index 1) and navigate to main screen
+              context.read<NavigationCubit>().changeIndex(1);
               context.goNamed(RouteNames.main);
             },
           ),

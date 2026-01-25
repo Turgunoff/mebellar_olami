@@ -6,7 +6,6 @@ import 'app_colors.dart';
 class AppTheme {
   AppTheme._();
 
-  // Rasmda elementlar juda yumaloq, taxminan 16-20px
   static const double borderRadius = 16.0;
   static const double borderRadiusSmall = 12.0;
 
@@ -17,106 +16,118 @@ class AppTheme {
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: AppColors.background,
 
-      // Rang sxemasi
+      // Color Scheme
       colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
         onPrimary: AppColors.white,
-        secondary: AppColors.primaryDark,
+        secondary: AppColors.secondary,
         surface: AppColors.surface,
         onSurface: AppColors.textPrimary,
         error: AppColors.error,
         outline: AppColors.outline,
       ),
 
-      // Matnlar (Typography)
+      // Typography - Roboto Font Family
       textTheme: TextTheme(
-        displayLarge: GoogleFonts.poppins(
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
+        // Header (24px, SemiBold) -> headlineSmall
+        headlineSmall: GoogleFonts.roboto(
+          fontSize: 24,
+          fontWeight: FontWeight.w600,
+          color: AppColors.black,
         ),
-        displayMedium: GoogleFonts.poppins(
-          fontSize: 28,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
+        // Sub Header (22px, Medium) -> titleLarge
+        titleLarge: GoogleFonts.roboto(
+          fontSize: 22,
+          fontWeight: FontWeight.w500,
+          color: AppColors.black,
         ),
-        headlineMedium: GoogleFonts.poppins(
+        // Title (20px, Medium) -> titleMedium
+        titleMedium: GoogleFonts.roboto(
           fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
-        ), // Sarlavhalar uchun
-        titleLarge: GoogleFonts.poppins(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
+          fontWeight: FontWeight.w500,
+          color: AppColors.black,
         ),
+        // Body (18px, Regular) -> bodyLarge
         bodyLarge: GoogleFonts.roboto(
-          fontSize: 16,
-          fontWeight: FontWeight.normal,
-          color: AppColors.textPrimary,
+          fontSize: 18,
+          fontWeight: FontWeight.w400,
+          color: AppColors.black,
         ),
+        // Body 2 (16px, Regular) -> bodyMedium
         bodyMedium: GoogleFonts.roboto(
-          fontSize: 14,
-          fontWeight: FontWeight.normal,
-          color: AppColors.textSecondary,
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          color: AppColors.black,
         ),
-        labelLarge: GoogleFonts.poppins(
+        // Sub-Body (14px, Regular) -> bodySmall
+        bodySmall: GoogleFonts.roboto(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          color: AppColors.grey,
+        ),
+        // Sub-body 2 (13px, Regular) -> labelSmall
+        labelSmall: GoogleFonts.roboto(
+          fontSize: 13,
+          fontWeight: FontWeight.w400,
+          color: AppColors.grey,
+        ),
+        // Navbar (12px, Medium) -> labelMedium
+        labelMedium: GoogleFonts.roboto(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: AppColors.grey,
+        ),
+        // Button (16px, SemiBold) -> labelLarge
+        labelLarge: GoogleFonts.roboto(
           fontSize: 16,
           fontWeight: FontWeight.w600,
           color: AppColors.white,
-        ), // Tugma matni
-      ),
-
-      // AppBar (Toza oq)
-      appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        titleTextStyle: GoogleFonts.poppins(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
         ),
-        systemOverlayStyle:
-            SystemUiOverlayStyle.dark, // Status bar qora yozuvli
       ),
 
-      // Input Decoration (Rasmdagi kulrang fonli inputlar)
+      // AppBar Theme
+      appBarTheme: AppBarTheme(
+        backgroundColor: AppColors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: AppColors.black),
+        titleTextStyle: GoogleFonts.roboto(
+          fontSize: 20,
+          fontWeight: FontWeight.w500,
+          color: AppColors.black,
+        ),
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
+      ),
+
+      // Input Decoration Theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.inputBackground, // O'zgartirildi
+        fillColor: AppColors.inputBackground,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 20,
           vertical: 18,
         ),
-        hintStyle: GoogleFonts.roboto(
-          color: AppColors.textSecondary,
-          fontSize: 14,
-        ),
-        // Border umuman yo'q (Rasmda shunday) yoki juda bilinmas
+        hintStyle: GoogleFonts.roboto(color: AppColors.grey, fontSize: 14),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(borderRadius),
+          borderRadius: BorderRadius.circular(borderRadiusSmall),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(borderRadius),
+          borderRadius: BorderRadius.circular(borderRadiusSmall),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(borderRadius),
-          borderSide: const BorderSide(
-            color: AppColors.primary,
-            width: 1.5,
-          ), // Tanlanganda bilinadi
+          borderRadius: BorderRadius.circular(borderRadiusSmall),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(borderRadius),
+          borderRadius: BorderRadius.circular(borderRadiusSmall),
           borderSide: const BorderSide(color: AppColors.error),
         ),
       ),
 
-      // Asosiy Tugmalar (Jigarrang)
+      // ElevatedButton Theme - Primary (#633E33), Text White, Radius 12px
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
@@ -124,44 +135,81 @@ class AppTheme {
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(borderRadius),
+            borderRadius: BorderRadius.circular(borderRadiusSmall),
           ),
-          textStyle: GoogleFonts.poppins(
+          textStyle: GoogleFonts.roboto(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
         ),
       ),
 
-      // Oq Tugmalar (Masalan "Change" tugmasi)
+      // OutlinedButton Theme
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primary, // Yozuvi jigarrang
+          foregroundColor: AppColors.primary,
           backgroundColor: Colors.transparent,
-          side: const BorderSide(color: AppColors.outline), // Bilinmas border
+          side: const BorderSide(color: AppColors.outline),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadiusSmall),
           ),
-          textStyle: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
+          textStyle: GoogleFonts.roboto(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ),
 
-      // Checkbox va Radio (Rasmda dumaloq va jigarrang)
+      // BottomNavigationBar Theme
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: AppColors.white,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.grey,
+        selectedLabelStyle: GoogleFonts.roboto(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+        unselectedLabelStyle: GoogleFonts.roboto(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+        type: BottomNavigationBarType.fixed,
+        elevation: 0,
+      ),
+
+      // Radio Theme
       radioTheme: RadioThemeData(
         fillColor: WidgetStateProperty.all(AppColors.primary),
       ),
+
+      // Checkbox Theme
       checkboxTheme: CheckboxThemeData(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
         fillColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return AppColors.primary;
           }
-          return null; // Oq qoladi
+          return null;
         }),
+      ),
+
+      // Card Theme
+      cardTheme: CardThemeData(
+        color: AppColors.white,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(borderRadiusSmall),
+        ),
+      ),
+
+      // Icon Theme
+      iconTheme: const IconThemeData(color: AppColors.grey),
+
+      // Divider Theme
+      dividerTheme: const DividerThemeData(
+        color: AppColors.outline,
+        thickness: 1,
       ),
     );
   }

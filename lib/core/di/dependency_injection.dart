@@ -49,7 +49,10 @@ Future<void> setupDependencyInjection() async {
     () => FavoritesRepository(dioClient: sl<DioClient>()),
   );
   sl.registerLazySingleton<FavoritesBloc>(
-    () => FavoritesBloc(repository: sl<FavoritesRepository>()),
+    () => FavoritesBloc(
+      repository: sl<FavoritesRepository>(),
+      productRepository: sl<ProductRepository>(),
+    ),
   );
 
   // Features - Auth

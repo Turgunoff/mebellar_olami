@@ -240,6 +240,54 @@ class ProductRepository {
     }
   }
 
+  /// Get product by ID (returns product data directly)
+  Future<Map<String, dynamic>?> getProductById(String productId) async {
+    try {
+      final result = await getProductDetails(productId);
+      if (result['success'] == true && result['product'] != null) {
+        return result['product'] as Map<String, dynamic>;
+      }
+      // Log if product not found
+      if (result['success'] != true) {
+        print('⚠️ [ProductRepository] Failed to fetch product $productId: ${result['message']}');
+      }
+      return null;
+    } catch (e) {
+      print('❌ [ProductRepository] Error fetching product $productId: $e');
+      return null;
+    }
+  }
+
+  /// Get multiple products by IDs (fetches in parallel)
+  Future<List<Map<String, dynamic>>> getProductsByIds(
+    List<String> ids,
+  ) async {
+    try {
+      if (ids.isEmpty) return [];
+
+      // Fetch all products in parallel
+      final futures = ids.map((id) => getProductById(id)).toList();
+      final results = await Future.wait(futures);
+
+      // Filter out nulls and return valid products
+      final validProducts = results
+          .where((product) => product != null)
+          .cast<Map<String, dynamic>>()
+          .toList();
+
+      // Log if some products failed to load
+      if (validProducts.length < ids.length) {
+        final failedCount = ids.length - validProducts.length;
+        print('⚠️ [ProductRepository] Failed to load $failedCount out of ${ids.length} products');
+      }
+
+      return validProducts;
+    } catch (e) {
+      print('❌ [ProductRepository] Error fetching products by IDs: $e');
+      return []; // Return empty list on failure
+    }
+  }
+
   /// Mahsulot qidiruvi
   Future<Map<String, dynamic>> searchProducts({
     required String query,

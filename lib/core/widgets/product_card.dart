@@ -281,18 +281,17 @@ class _FavoriteButton extends StatelessWidget {
 
               return GestureDetector(
                 onTap: () {
+                  // Use toJson() to ensure ALL product fields are included
+                  // This prevents "0 so'm" and broken images in optimistic UI
+                  final productData = product.toJson();
+                  // Add computed properties that might be needed
+                  productData['image_url'] = product.imageUrl;
+                  productData['has_discount'] = product.hasDiscount;
+                  productData['discount_percent'] = product.discountPercent;
+                  
                   context.read<FavoritesBloc>().add(
                     ToggleFavoriteEvent(
-                      product: {
-                        'id': product.id,
-                        'name': product.name,
-                        'price': product.price,
-                        'image_url': product.imageUrl,
-                        'has_discount': product.hasDiscount,
-                        'discount_price': product.discountPrice,
-                        'discount_percent': product.discountPercent,
-                        'is_new': product.isNew,
-                      },
+                      product: productData,
                       showSuccessMessage: true,
                     ),
                   );
