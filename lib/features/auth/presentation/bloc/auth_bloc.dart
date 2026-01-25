@@ -244,12 +244,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     CompleteOnboardingEvent event,
     Emitter<AuthState> emit,
   ) async {
+    print('✅ AuthBloc: CompleteOnboarding event received');
+
     // Save to repository first
     await _repository.setOnboardingCompleted();
+    print('✅ AuthBloc: Onboarding saved to storage');
 
     // Update state immediately with onboarding completed
     final currentState = state;
     if (currentState is AuthAuthenticated) {
+      print('✅ AuthBloc: Emitting AuthAuthenticated with onboarding completed');
       emit(
         AuthAuthenticated(
           token: currentState.token,
@@ -258,6 +262,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         ),
       );
     } else {
+      print(
+        '✅ AuthBloc: Emitting AuthUnauthenticated with onboarding completed',
+      );
       emit(AuthUnauthenticated(isOnboardingCompleted: true));
     }
   }

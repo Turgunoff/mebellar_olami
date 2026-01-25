@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
-import '../../../../core/utils/route_names.dart';
 import '../bloc/auth_bloc.dart';
 import '../../../../core/di/dependency_injection.dart' as di;
 
@@ -56,8 +53,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _goToWelcome() {
-    // Dispatch event to complete onboarding
-    // Navigation will happen via BlocListener when state updates
+    print('🔘 Onboarding Finish Clicked');
     di.sl<AuthBloc>().add(const CompleteOnboardingEvent());
   }
 
@@ -73,20 +69,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
-      bloc: di.sl<AuthBloc>(),
-      listener: (context, state) {
-        // Navigate to welcome when onboarding is completed
-        if (state.isOnboardingCompleted && mounted) {
-          context.goNamed(RouteNames.welcome);
-        }
-      },
-      child: Scaffold(
-        body: AnimatedContainer(
-          duration: const Duration(milliseconds: 400),
-          color: _currentBgColor,
-          child: SafeArea(
-            child: Column(
+    return Scaffold(
+      body: AnimatedContainer(
+        duration: const Duration(milliseconds: 400),
+        color: _currentBgColor,
+        child: SafeArea(
+          child: Column(
             children: [
               // O'tkazish tugmasi (yuqori o'ng) - FIXED
               Padding(
@@ -294,7 +282,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
               ),
             ],
-            ),
           ),
         ),
       ),

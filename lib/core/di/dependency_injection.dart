@@ -56,7 +56,7 @@ Future<void> setupDependencyInjection() async {
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepository(dioClient: sl<DioClient>()),
   );
-  sl.registerFactory<AuthBloc>(
+  sl.registerLazySingleton<AuthBloc>(
     () => AuthBloc(
       repository: sl<AuthRepository>(),
       favoritesBloc: sl<FavoritesBloc>(),

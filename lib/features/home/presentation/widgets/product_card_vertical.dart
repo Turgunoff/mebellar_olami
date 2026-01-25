@@ -9,12 +9,14 @@ import '../../../products/data/models/product_model.dart';
 class ProductCardVertical extends StatelessWidget {
   final ProductModel product;
   final VoidCallback? onTap;
+  final VoidCallback? onAddToCart; // Qo'shildi
   final bool showFavoriteButton;
 
   const ProductCardVertical({
     super.key,
     required this.product,
     this.onTap,
+    this.onAddToCart, // Qo'shildi
     this.showFavoriteButton = true,
   });
 
@@ -26,246 +28,194 @@ class ProductCardVertical extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: AppColors.lightGrey.withValues(alpha: 0.3),
-            width: 1,
-          ),
+          // Chegara (border) shart emas, soya yetarli
           boxShadow: [
             BoxShadow(
-              color: AppColors.textPrimary.withValues(alpha: 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize:
+              MainAxisSize.min, // Muhim: O'z ichidagi narsachalik joy oladi
           children: [
-            // Image Section
-            Expanded(
-              flex: 3,
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(16),
-                    ),
-                    child: CachedNetworkImage(
-                      imageUrl: product.imageUrl,
-                      width: double.infinity,
-                      height: double.infinity,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Shimmer.fromColors(
-                        baseColor: AppColors.secondary.withValues(alpha: 0.3),
-                        highlightColor: AppColors.secondary.withValues(
-                          alpha: 0.1,
-                        ),
-                        child: Container(
-                          color: AppColors.secondary.withValues(alpha: 0.3),
-                        ),
+            // 1. Rasm Qismi
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
+                  child: CachedNetworkImage(
+                    imageUrl: product.imageUrl,
+                    fit: BoxFit.cover,
+                    // Staggered effekt uchun rasm o'lchami har xil bo'lishi kerak.
+                    // Lekin hozircha chiroyli ko'rinishi uchun fixed height bermaymiz.
+                    // Placeholder kvadrat bo'lib turadi.
+                    placeholder: (context, url) => AspectRatio(
+                      aspectRatio: 1, // Kvadrat
+                      child: Shimmer.fromColors(
+                        baseColor: Colors.grey[300]!,
+                        highlightColor: Colors.grey[100]!,
+                        child: Container(color: Colors.white),
                       ),
-                      errorWidget: (context, url, error) => Container(
-                        color: AppColors.secondary.withValues(alpha: 0.3),
-                        child: const Icon(
-                          Icons.image_not_supported_outlined,
-                          color: AppColors.textSecondary,
+                    ),
+                    errorWidget: (_, __, ___) => const SizedBox(
+                      height: 150,
+                      child: Center(
+                        child: Icon(Icons.broken_image, color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Badge
+                if (product.hasDiscount || product.isNew)
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: product.hasDiscount
+                            ? AppColors.error
+                            : AppColors.primary,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        product.hasDiscount
+                            ? '-${product.discountPercent}%'
+                            : 'Yangi',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                   ),
-                  // Badge
-                  Positioned(top: 8, left: 8, child: _buildBadge()),
-                  // Favorite Button
-                  if (showFavoriteButton)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: _buildFavoriteButton(context),
-                    ),
-                ],
-              ),
-            ),
-            // Content Section
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Title
-                    Expanded(
-                      child: Text(
-                        LocalizedTextHelper.get(product.name, context),
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          height: 1.2,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+
+                // Favorite
+                if (showFavoriteButton)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: CircleAvatar(
+                      radius: 14,
+                      backgroundColor: Colors.white.withValues(alpha: 0.9),
+                      child: const Icon(
+                        Icons.favorite_border_rounded,
+                        size: 16,
+                        color: AppColors.textSecondary,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    // Rating
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.star_rounded,
-                          color: Colors.amber,
-                          size: 14,
-                        ),
-                        const SizedBox(width: 2),
-                        Text(
-                          product.rating.toStringAsFixed(1),
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '(23)',
-                          style: TextStyle(
-                            color: AppColors.textSecondary.withValues(
-                              alpha: 0.7,
-                            ),
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
+                  ),
+              ],
+            ),
+
+            // 2. Ma'lumot Qismi
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Nomi
+                  Text(
+                    LocalizedTextHelper.get(product.name, context),
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      height: 1.2,
                     ),
-                    const SizedBox(height: 8),
-                    // Price and Cart Button
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(child: _buildPriceSection()),
-                        Container(
-                          width: 28,
-                          height: 28,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+
+                  // Reyting
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.star_rounded,
+                        color: Colors.amber,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        product.rating.toStringAsFixed(1),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        "(12)", // review count
+                        style: TextStyle(color: Colors.grey[500], fontSize: 10),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Narx va Tugma
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (product.hasDiscount)
+                            Text(
+                              product.price.toCurrency(),
+                              style: TextStyle(
+                                color: AppColors.textSecondary.withValues(
+                                  alpha: 0.5,
+                                ),
+                                fontSize: 11,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ),
+                          Text(
+                            product.actualPrice.toCurrency(),
+                            style: const TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      // Kichik "Add" tugmasi
+                      InkWell(
+                        onTap: onAddToCart,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(6),
+                            color: AppColors.textPrimary,
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Icon(
-                            Icons.add_rounded,
-                            color: AppColors.white,
+                            Icons.add,
+                            color: Colors.white,
                             size: 16,
                           ),
                         ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBadge() {
-    if (product.hasDiscount) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-        decoration: BoxDecoration(
-          color: AppColors.error,
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Text(
-          '-${product.discountPercent}%',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      );
-    }
-
-    if (product.isNew) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-        decoration: BoxDecoration(
-          color: AppColors.primary,
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: const Text(
-          'Yangi',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 9,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      );
-    }
-
-    return const SizedBox.shrink();
-  }
-
-  Widget _buildPriceSection() {
-    if (product.hasDiscount) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            product.price.toCurrency(),
-            style: TextStyle(
-              color: AppColors.textSecondary.withValues(alpha: 0.7),
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              decoration: TextDecoration.lineThrough,
-              decorationColor: AppColors.textSecondary.withValues(alpha: 0.7),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            product.discountPrice!.toCurrency(),
-            style: const TextStyle(
-              color: AppColors.error,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      );
-    }
-
-    return Text(
-      product.price.toCurrency(),
-      style: const TextStyle(
-        color: AppColors.primary,
-        fontSize: 14,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-  }
-
-  Widget _buildFavoriteButton(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // TODO: Implement favorite functionality
-      },
-      child: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.9),
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: AppColors.lightGrey.withValues(alpha: 0.5),
-            width: 1,
-          ),
-        ),
-        child: const Icon(
-          Icons.favorite_border_rounded,
-          size: 14,
-          color: AppColors.textSecondary,
         ),
       ),
     );

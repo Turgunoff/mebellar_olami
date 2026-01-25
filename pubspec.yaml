@@ -63,11 +63,39 @@ dependencies:
   go_router: ^14.6.2
   # yandex_mapkit_lite: ^2.0.2
   yandex_mapkit: ^4.2.1
+  flutter_staggered_grid_view: ^0.7.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_native_splash: ^2.4.4
+
+flutter_native_splash:
+  # Premium Soft Warm Cream/Off-White background
+  color: "#f3f2ee"
+
+  # App logo centered
+  # image: assets/logo/app_logo.png
+
+  # Branding image at bottom (optional)
+  # branding: assets/logo/branding.png
+
+  # Fullscreen mode
+  # fullscreen: true
+
+  # Android 12+ specific settings
+  android_12:
+    color: "#f3f2ee"
+    # image: assets/logo/app_logo.png
+    # Icon background color for adaptive icons
+    # icon_background_color: "#FFFFFF"
+
+  # iOS settings
+  ios: true
+
+  # Web settings
+  # web: false
 
 flutter:
   uses-material-design: true
@@ -76,3 +104,4 @@ flutter:
     - .env
     - assets/images/
     - assets/translations/
+    - assets/logo/

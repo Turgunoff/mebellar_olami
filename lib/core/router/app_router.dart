@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -45,6 +47,10 @@ class AppRouter {
         final authState = authBloc.state;
         final currentLocation = state.matchedLocation;
 
+        print(
+          '🔀 GoRouter redirect: currentLocation=$currentLocation, authState=${authState.runtimeType}, isOnboardingCompleted=${authState.isOnboardingCompleted}',
+        );
+
         // Define route checks
         final isGoingToOnboarding = currentLocation == RoutePaths.onboarding;
         final isGoingToWelcome = currentLocation == RoutePaths.welcome;
@@ -59,22 +65,30 @@ class AppRouter {
 
         // If still loading auth state, don't redirect
         if (authState is AuthLoading || authState is AuthInitial) {
+          print('🔀 GoRouter: Auth still loading, no redirect');
           return null;
         }
 
         // 1. Check Onboarding Required
-        if (authState is AuthOnboardingRequired) {
-          if (isGoingToOnboarding) return null; // Allow access to onboarding
+        // If onboarding is not completed, redirect to onboarding (unless already there)
+        if (!authState.isOnboardingCompleted) {
+          if (isGoingToOnboarding) {
+            print('🔀 GoRouter: Already on onboarding, no redirect');
+            return null; // Allow access to onboarding
+          }
+          print('🔀 GoRouter: Redirecting to onboarding');
           return RoutePaths.onboarding; // Redirect to onboarding
         }
 
         // 2. Check Unauthenticated (onboarding completed but not logged in)
         if (authState is AuthUnauthenticated) {
-          // Allow access to onboarding (in case they want to see it again)
-          if (isGoingToOnboarding) return null;
           // Allow access to welcome and auth flows
-          if (isGoingToWelcome || isGoingToAuthFlow) return null;
-          // Redirect to welcome for all other routes
+          if (isGoingToWelcome || isGoingToAuthFlow) {
+            print('🔀 GoRouter: Allowing access to welcome/auth flow');
+            return null;
+          }
+          // Redirect to welcome for all other routes (including onboarding after completion)
+          print('🔀 GoRouter: Redirecting to welcome');
           return RoutePaths.welcome;
         }
 
@@ -85,11 +99,13 @@ class AppRouter {
               isGoingToOnboarding ||
               isGoingToWelcome ||
               isGoingToAuthFlow) {
+            print('🔀 GoRouter: User authenticated, redirecting to main');
             return RoutePaths.main;
           }
         }
 
         // No redirect needed
+        print('🔀 GoRouter: No redirect needed');
         return null;
       },
 
@@ -283,17 +299,22 @@ class AppRouter {
 
 /// GoRouter refresh stream for auth state changes
 class GoRouterRefreshStream extends ChangeNotifier {
+  late final StreamSubscription<dynamic> _subscription;
+
   GoRouterRefreshStream(Stream<dynamic> stream) {
+    print('🔄 GoRouterRefreshStream: Initialized');
     notifyListeners();
-    _subscription = stream.asBroadcastStream().listen((_) {
+    _subscription = stream.asBroadcastStream().listen((event) {
+      print(
+        '🔄 GoRouterRefreshStream: Stream event received, notifying listeners. Event: $event',
+      );
       notifyListeners();
     });
   }
 
-  late final dynamic _subscription;
-
   @override
   void dispose() {
+    print('🔄 GoRouterRefreshStream: Disposing');
     _subscription.cancel();
     super.dispose();
   }

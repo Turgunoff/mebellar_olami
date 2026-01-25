@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -64,21 +65,144 @@ class _HomeScreenState extends State<HomeScreen> {
               color: AppColors.primary,
               child: CustomScrollView(
                 slivers: [
-                  // Header
-                  SliverToBoxAdapter(child: _buildHeader()),
+                  // Floating AppBar with Header
+                  SliverAppBar(
+                    floating: true,
+                    snap: true,
+                    pinned: false,
+                    backgroundColor: AppColors.background,
+                    elevation: 10,
+                    surfaceTintColor: Colors.transparent,
+                    toolbarHeight: 70,
+                    title: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: AppColors.lightGrey,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.asset(
+                                    'assets/logo/app_logo_removebg.png',
+                                    width: 40,
+                                    height: 40,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primary,
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.chair_outlined,
+                                          color: AppColors.white,
+                                          size: 24,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              const Text(
+                                'Mebellar Olami',
+                                style: TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: AppColors.lightGrey,
+                                width: 1,
+                              ),
+                            ),
+                            child: IconButton(
+                              onPressed: () {},
+                              icon: const Icon(
+                                Icons.notifications_none_rounded,
+                                color: AppColors.textPrimary,
+                                size: 22,
+                              ),
+                              padding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // bottom: PreferredSize(
+                    //   preferredSize: const Size.fromHeight(50),
+                    //   child: Padding(
+                    //     padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+                    //     child: GestureDetector(
+                    //       onTap: () {},
+                    //       child: Container(
+                    //         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    //         decoration: BoxDecoration(
+                    //           color: AppColors.surface,
+                    //           borderRadius: BorderRadius.circular(12),
+                    //           border: Border.all(color: AppColors.lightGrey, width: 1),
+                    //         ),
+                    //         child: Row(
+                    //           mainAxisSize: MainAxisSize.min,
+                    //           children: [
+                    //             const Icon(
+                    //               Icons.location_on_outlined,
+                    //               color: AppColors.primary,
+                    //               size: 18,
+                    //             ),
+                    //             const SizedBox(width: 6),
+                    //             const Text(
+                    //               'Deliver to Tashkent, Uzbekistan',
+                    //               style: TextStyle(
+                    //                 color: AppColors.textSecondary,
+                    //                 fontSize: 13,
+                    //                 fontWeight: FontWeight.w500,
+                    //               ),
+                    //             ),
+                    //             const SizedBox(width: 4),
+                    //             const Icon(
+                    //               Icons.keyboard_arrow_down_rounded,
+                    //               color: AppColors.textSecondary,
+                    //               size: 18,
+                    //             ),
+                    //           ],
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                  ),
                   // Search Bar
                   SliverToBoxAdapter(child: _buildSearchBar()),
                   // Banner Slider
                   const SliverToBoxAdapter(child: HomeBannerSlider()),
                   // Categories Section
-                  SliverToBoxAdapter(
-                    child: _buildCategoriesHeader(),
-                  ),
+                  SliverToBoxAdapter(child: _buildCategoriesHeader()),
                   SliverToBoxAdapter(child: _buildCategoriesRow(state)),
                   // New Arrivals Section
-                  SliverToBoxAdapter(
-                    child: _buildNewArrivalsHeader(),
-                  ),
+                  SliverToBoxAdapter(child: _buildNewArrivalsHeader()),
                   SliverToBoxAdapter(child: _buildNewArrivalsRow(state)),
                   // Popular Products Section
                   SliverToBoxAdapter(
@@ -109,126 +233,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.chair_outlined,
-                      color: AppColors.white,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Mebellar Olami',
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.lightGrey, width: 1),
-                    ),
-                    child: IconButton(
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.favorite_border_rounded,
-                        color: AppColors.textPrimary,
-                        size: 22,
-                      ),
-                      padding: EdgeInsets.zero,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.lightGrey, width: 1),
-                    ),
-                    child: IconButton(
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.notifications_none_rounded,
-                        color: AppColors.textPrimary,
-                        size: 22,
-                      ),
-                      padding: EdgeInsets.zero,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          GestureDetector(
-            onTap: () {},
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.lightGrey, width: 1),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.location_on_outlined,
-                    color: AppColors.primary,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 6),
-                  const Text(
-                    'Deliver to Tashkent, Uzbekistan',
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: AppColors.textSecondary,
-                    size: 18,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1);
-  }
-
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
@@ -240,6 +244,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: TextField(
           controller: _searchController,
+          readOnly: true,
+          onTap: () {
+            context.pushNamed(RouteNames.search);
+          },
           decoration: InputDecoration(
             hintText: 'What are you looking for?',
             hintStyle: const TextStyle(
@@ -251,32 +259,24 @@ class _HomeScreenState extends State<HomeScreen> {
               color: AppColors.textSecondary,
               size: 22,
             ),
-            suffixIcon: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.camera_alt_outlined,
-                    color: AppColors.textSecondary,
-                    size: 22,
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(right: 8),
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.tune_rounded,
-                    color: AppColors.white,
-                    size: 18,
-                  ),
-                ),
-              ],
-            ),
+            // suffixIcon: Row(
+            //   mainAxisSize: MainAxisSize.min,
+            //   children: [
+            //     Container(
+            //       margin: const EdgeInsets.only(right: 8),
+            //       padding: const EdgeInsets.all(8),
+            //       decoration: BoxDecoration(
+            //         color: AppColors.primary,
+            //         borderRadius: BorderRadius.circular(10),
+            //       ),
+            //       child: const Icon(
+            //         Icons.tune_rounded,
+            //         color: AppColors.white,
+            //         size: 18,
+            //       ),
+            //     ),
+            //   ],
+            // ),
             border: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 20,
@@ -289,58 +289,58 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildNewArrivalsHeader() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 32, 20, 20),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 32, 20, 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // Chap taraf: Sarlavha + Kichik Ikonka
           Row(
             children: [
-              Container(
-                width: 4,
-                height: 24,
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(width: 12),
               Text(
                 'home.new_arrivals'.tr(),
                 style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 22,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: -0.5,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(width: 8),
+              // "Hot/New" ekanligini bildiruvchi vizual element
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(
+                    0.1,
+                  ), // Juda och olovrang fon
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.local_fire_department_rounded,
+                  size: 16,
+                  color: Colors.orange, // Olovrang
                 ),
               ),
             ],
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
+
+          // O'ng taraf: Harakat tugmasi
+          TextButton(
+            onPressed: () {
+              // Yangi mahsulotlar sahifasiga o'tish
+            },
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.local_fire_department_rounded,
-                  size: 16,
-                  color: AppColors.primary,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  'Yangi',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
+            child: const Text(
+              "Barchasi", // Yoki 'home.see_all'.tr()
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary,
+              ),
             ),
           ),
         ],
@@ -417,12 +417,13 @@ class _HomeScreenState extends State<HomeScreen> {
           itemBuilder: (context, index) {
             final product = newProducts[index];
             return ProductCardHorizontal(
-              product: product,
-              onTap: () => _navigateToProduct(product),
-            ).animate().fadeIn(delay: (80 * index).ms).slideX(begin: 0.2).scale(
-                  begin: const Offset(0.9, 0.9),
-                  duration: 400.ms,
-                );
+                  product: product,
+                  onTap: () => _navigateToProduct(product),
+                )
+                .animate()
+                .fadeIn(delay: (80 * index).ms)
+                .slideX(begin: 0.2)
+                .scale(begin: const Offset(0.9, 0.9), duration: 400.ms);
           },
         ),
       ),
@@ -430,85 +431,54 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCategoriesHeader() {
-    return BlocBuilder<HomeBloc, HomeState>(
-      builder: (context, state) {
-        final categoryCount = state is HomeLoaded ? state.categories.length : 0;
-        return Container(
-          margin: const EdgeInsets.fromLTRB(20, 32, 20, 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 4,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'home.categories'.tr(),
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                ],
-              ),
-              if (categoryCount > 0)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.grid_view_rounded,
-                        size: 16,
-                        color: AppColors.primary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '$categoryCount',
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 32, 20, 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'home.categories'.tr(), // Yoki tr()
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
           ),
-        ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1);
-      },
+          TextButton(
+            onPressed: () {
+              // Kategoriyalar sahifasiga o'tish logikasi
+            },
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const Text(
+              "Barchasi",
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary, // Asosiy rangda
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildCategoriesRow(HomeState state) {
+    // Loading State
     if (state is HomeLoading) {
       return SizedBox(
-        height: 140,
-        child: ListView.builder(
+        height: 120,
+        child: ListView.separated(
           scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.only(left: 20, right: 4),
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           itemCount: 6,
-          itemBuilder: (context, index) {
-            return const Padding(
-              padding: EdgeInsets.only(right: 20),
-              child: CategorySkeleton(),
-            );
-          },
+          separatorBuilder: (context, index) => const SizedBox(width: 16),
+          itemBuilder: (context, index) => const CategorySkeleton(),
         ),
       );
     }
@@ -517,133 +487,92 @@ class _HomeScreenState extends State<HomeScreen> {
         ? state.categories
         : <CategoryModel>[];
 
+    // Empty State (Minimalist)
     if (categories.isEmpty) {
-      return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-        padding: const EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: AppColors.lightGrey.withValues(alpha: 0.3),
-            width: 1,
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.category_outlined,
-                size: 48,
-                color: AppColors.textSecondary.withValues(alpha: 0.4),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Kategoriyalar hozircha yo\'q',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
+      return Center(
+        child: TextButton.icon(
+          onPressed: () =>
+              context.read<HomeBloc>().add(const RefreshHomeData()),
+          icon: const Icon(Icons.refresh, size: 18),
+          label: const Text('Kategoriyalarni yuklash'),
         ),
       );
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: SizedBox(
-        height: 140,
-        child: ListView.builder(
-          padding: const EdgeInsets.only(left: 20, right: 4),
-          scrollDirection: Axis.horizontal,
-          itemCount: categories.length,
-          itemBuilder: (context, index) {
-            final category = categories[index];
-            return CategoryItem(
-              category: category,
-            ).animate().fadeIn(delay: (70 * index).ms).slideX(begin: 0.2).scale(
-                  begin: const Offset(0.9, 0.9),
-                  duration: 400.ms,
-                );
-          },
-        ),
+    // Loaded State
+    return SizedBox(
+      height: 120,
+      child: ListView.separated(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        scrollDirection: Axis.horizontal,
+        itemCount: categories.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 16),
+        itemBuilder: (context, index) {
+          return CategoryItem(category: categories[index])
+              .animate()
+              .fadeIn(delay: (50 * index).ms)
+              .slideX(begin: 0.1, curve: Curves.easeOut);
+        },
       ),
     );
   }
 
   Widget _buildProductsGrid(HomeState state) {
+    // Loading holati uchun oddiy grid qoldiramiz (Masonry skeleton qiyinroq)
     if (state is HomeLoading) {
       return SliverGrid(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
-          childAspectRatio: 0.75,
+          childAspectRatio: 0.70,
         ),
         delegate: SliverChildBuilderDelegate(
           (context, index) => const ProductCardSkeleton(),
-          childCount: 6,
+          childCount: 4,
         ),
       );
     }
 
-    final products = _selectedCategoryId == null
-        ? (state is HomeLoaded ? state.popularProducts : <ProductModel>[])
-        : (state is HomeLoaded
-              ? state.popularProducts
-                    .where((p) => p.categoryId == _selectedCategoryId)
-                    .toList()
-              : <ProductModel>[]);
+    // Filtrlash shart emas dedingiz, shunchaki borini olamiz
+    final products = state is HomeLoaded
+        ? state.popularProducts
+        : <ProductModel>[];
 
     if (products.isEmpty) {
       return SliverToBoxAdapter(
         child: SizedBox(
           height: 200,
           child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.inventory_2_outlined,
-                  size: 48,
-                  color: AppColors.textSecondary.withValues(alpha: 0.5),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Mahsulotlar topilmadi',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
+            child: Text("Mahsulotlar topilmadi"), // Soddalashtirilgan
           ),
         ),
       );
     }
 
-    return SliverGrid(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        childAspectRatio: 0.72,
+    // 🔥 Masonry Grid (Staggered)
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 16,
+      ), // Yonlardan joy
+      sliver: SliverMasonryGrid.count(
+        crossAxisCount: 2, // 2 ta ustun
+        mainAxisSpacing: 16, // Vertikal oraliq
+        crossAxisSpacing: 16, // Gorizontal oraliq
+        childCount: products.length,
+        itemBuilder: (context, index) {
+          final product = products[index];
+          return ProductCardVertical(
+            product: product,
+            onTap: () => _navigateToProduct(product),
+            onAddToCart: () {
+              // TODO: Savatga qo'shish logikasi
+            },
+          ).animate().fadeIn(delay: (50 * index).ms).slideY(begin: 0.1);
+        },
       ),
-      delegate: SliverChildBuilderDelegate((context, index) {
-        final product = products[index];
-        return ProductCardVertical(
-              product: product,
-              onTap: () => _navigateToProduct(product),
-            )
-            .animate()
-            .fadeIn(delay: (80 * index).ms)
-            .scale(begin: const Offset(0.95, 0.95));
-      }, childCount: products.length),
     );
   }
 }
