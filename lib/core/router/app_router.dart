@@ -249,9 +249,11 @@ class AppRouter {
             final categoryId = state.pathParameters['categoryId'] ?? '';
             final extra = state.extra as Map<String, dynamic>?;
             final categoryName = extra?['categoryName']?.toString() ?? '';
+            final categoryIconUrl = extra?['categoryIconUrl']?.toString() ?? '';
             return SubCategoryScreen(
               categoryId: categoryId,
               categoryName: categoryName,
+              categoryIconUrl: categoryIconUrl,
             );
           },
         ),

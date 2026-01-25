@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mebellar_olami/core/constants/app_colors.dart';
-import 'package:mebellar_olami/core/constants/app_theme.dart';
-import 'package:mebellar_olami/features/cart/presentation/bloc/cart_bloc.dart';
-import 'package:mebellar_olami/features/favorites/presentation/bloc/favorites_bloc.dart';
-import 'package:mebellar_olami/features/home/presentation/screens/home_screen.dart';
-import 'package:mebellar_olami/features/catalog/presentation/screens/catalog_screen.dart';
-import 'package:mebellar_olami/features/favorites/presentation/screens/favorites_screen.dart';
-import 'package:mebellar_olami/features/cart/presentation/screens/cart_screen.dart';
-import 'package:mebellar_olami/features/profile/presentation/screens/profile_screen.dart';
+import 'package:mebel_customer/core/constants/app_colors.dart';
+import 'package:mebel_customer/core/constants/app_theme.dart';
+import 'package:mebel_customer/features/cart/presentation/bloc/cart_bloc.dart';
+import 'package:mebel_customer/features/favorites/presentation/bloc/favorites_bloc.dart';
+import 'package:mebel_customer/features/home/presentation/screens/home_screen.dart';
+import 'package:mebel_customer/features/catalog/presentation/screens/catalog_screen.dart';
+import 'package:mebel_customer/features/favorites/presentation/screens/favorites_screen.dart';
+import 'package:mebel_customer/features/cart/presentation/screens/cart_screen.dart';
+import 'package:mebel_customer/features/profile/presentation/screens/profile_screen.dart';
 import '../cubit/navigation_cubit.dart';
 
 /// Asosiy ekran - Bottom Navigation - Nabolen Style

@@ -247,39 +247,18 @@ class _CatalogScreenState extends State<CatalogScreen> {
                     category: category,
                     index: index,
                     onTap: () {
-                      if (category.hasSubCategories) {
-                        setState(() {
-                          _selectedCategory = category;
-                          _parentCategory = category;
-                          _showProducts = true;
-                          _selectedFilterId = 'all';
-                        });
-                        context.read<CatalogBloc>().add(
-                          LoadGroupedProductsPreview(
-                            parentId: category.id,
-                            limitPerCat: 10,
+                      // Navigate to SubCategoryScreen to show sub-categories grid
+                      context.pushNamed(
+                        RouteNames.subCategories,
+                        pathParameters: {'categoryId': category.id},
+                        extra: {
+                          'categoryName': LocalizedTextHelper.get(
+                            category.name,
+                            context,
                           ),
-                        );
-                        context.read<CatalogBloc>().add(
-                          LoadCategoryProducts(
-                            categoryId: null,
-                            parentId: category.id,
-                          ),
-                        );
-                      } else {
-                        setState(() {
-                          _selectedCategory = category;
-                          _parentCategory = category;
-                          _showProducts = true;
-                          _selectedFilterId = 'all';
-                        });
-                        context.read<CatalogBloc>().add(
-                          LoadCategoryProducts(
-                            categoryId: category.id,
-                            parentId: null,
-                          ),
-                        );
-                      }
+                          'categoryIconUrl': category.iconUrl,
+                        },
+                      );
                     },
                   )
                   .animate()

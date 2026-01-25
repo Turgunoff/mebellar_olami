@@ -8,7 +8,7 @@
 PRODUCT_NAME = mebellar_olami
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = dev.mebellar.mebellarOlami
+PRODUCT_BUNDLE_IDENTIFIER = dev.eldor.mebel_customer
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2026 dev.mebellar. All rights reserved.

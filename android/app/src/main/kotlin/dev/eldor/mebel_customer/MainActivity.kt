@@ -1,4 +1,4 @@
-package dev.mebellar.mebellar_olami
+package dev.eldor.mebel_customer
 
 import io.flutter.embedding.android.FlutterActivity
 

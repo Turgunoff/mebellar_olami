@@ -5,18 +5,22 @@ import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/dependency_injection.dart' as di;
+import '../../../../core/utils/localized_text_helper.dart';
 import '../../../../core/utils/route_names.dart';
+import '../../data/models/category_model.dart';
 import '../cubit/sub_category_cubit.dart';
 import '../widgets/sub_category_grid_card.dart';
 
 class SubCategoryScreen extends StatelessWidget {
   final String categoryId;
   final String categoryName;
+  final String categoryIconUrl;
 
   const SubCategoryScreen({
     super.key,
     required this.categoryId,
     required this.categoryName,
+    this.categoryIconUrl = '',
   });
 
   @override
@@ -26,6 +30,7 @@ class SubCategoryScreen extends StatelessWidget {
       child: _SubCategoryScreenContent(
         categoryId: categoryId,
         categoryName: categoryName,
+        categoryIconUrl: categoryIconUrl,
       ),
     );
   }
@@ -34,10 +39,12 @@ class SubCategoryScreen extends StatelessWidget {
 class _SubCategoryScreenContent extends StatelessWidget {
   final String categoryId;
   final String categoryName;
+  final String categoryIconUrl;
 
   const _SubCategoryScreenContent({
     required this.categoryId,
     required this.categoryName,
+    this.categoryIconUrl = '',
   });
 
   @override
@@ -146,6 +153,17 @@ class _SubCategoryScreenContent extends StatelessWidget {
 
           final subCategories = state.subCategories;
 
+          // Create "All" card as first item (using parent category's icon)
+          final allCategory = CategoryModel(
+            id: categoryId,
+            name: {'uz': 'Barchasi', 'ru': 'Все', 'en': 'All'},
+            parentId: null,
+            iconUrl: categoryIconUrl,
+          );
+
+          // Total item count = "All" card + sub-categories
+          final totalItems = subCategories.length + 1;
+
           return RefreshIndicator(
             onRefresh: () async {
               await context.read<SubCategoryCubit>().refresh(categoryId);
@@ -159,23 +177,47 @@ class _SubCategoryScreenContent extends StatelessWidget {
                 crossAxisSpacing: 16,
                 childAspectRatio: 1.0,
               ),
-              itemCount: subCategories.length,
+              itemCount: totalItems,
               itemBuilder: (context, index) {
-                final subCategory = subCategories[index];
+                // First item is "All" card
+                if (index == 0) {
+                  return SubCategoryGridCard(
+                        category: allCategory,
+                        onTap: () {
+                          // Navigate to show ALL products from parent category
+                          context.pushNamed(
+                            RouteNames.categoryProducts,
+                            pathParameters: {'categoryId': categoryId},
+                            extra: {
+                              'categoryName': categoryName,
+                              'isAllProducts': true,
+                            },
+                          );
+                        },
+                      )
+                      .animate()
+                      .fadeIn(delay: (60 * index).ms)
+                      .scale(
+                        begin: const Offset(0.95, 0.95),
+                        curve: Curves.easeOut,
+                      );
+                }
+
+                // Remaining items are sub-categories (index - 1)
+                final subCategory = subCategories[index - 1];
 
                 return SubCategoryGridCard(
                       category: subCategory,
                       onTap: () {
-                        // TODO: Navigate to ProductListScreen
-                        // For now, navigate to product detail or print
-                        debugPrint(
-                          'SubCategory tapped: ${subCategory.id} - ${subCategory.name}',
-                        );
-                        // Placeholder navigation - will be updated when ProductListScreen is ready
                         context.pushNamed(
                           RouteNames.categoryProducts,
                           pathParameters: {'categoryId': subCategory.id},
-                          extra: {'categoryName': subCategory.name},
+                          extra: {
+                            'categoryName': LocalizedTextHelper.get(
+                              subCategory.name,
+                              context,
+                            ),
+                          },
                         );
                       },
                     )

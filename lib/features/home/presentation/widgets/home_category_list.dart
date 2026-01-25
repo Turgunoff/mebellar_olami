@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../catalog/data/models/category_model.dart';
-import '../../../../features/catalog/presentation/widgets/category_card.dart';
+import 'horizontal_category_item.dart';
 
 class HomeCategoryList extends StatelessWidget {
   final List<CategoryModel> categories;
