@@ -30,7 +30,14 @@ class AppProviders extends StatelessWidget {
             create: (_) => di.sl<AuthBloc>()..add(const AuthCheckStatus()),
           ),
           BlocProvider(
-            create: (_) => di.sl<FavoritesBloc>()..add(const LoadFavorites()),
+            create: (context) {
+              final favoritesBloc = di.sl<FavoritesBloc>();
+              final authBloc = context.read<AuthBloc>();
+              // Set AuthBloc reference in FavoritesBloc
+              favoritesBloc.setAuthBloc(authBloc);
+              favoritesBloc.add(const LoadFavorites());
+              return favoritesBloc;
+            },
           ),
           BlocProvider(create: (_) => di.sl<CartBloc>()..add(const LoadCart())),
           BlocProvider(

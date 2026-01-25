@@ -91,3 +91,7 @@ class AuthVerifyOtpRequested extends AuthEvent {
 class CompleteOnboardingEvent extends AuthEvent {
   const CompleteOnboardingEvent();
 }
+
+class LoginAsGuest extends AuthEvent {
+  const LoginAsGuest();
+}

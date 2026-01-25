@@ -22,6 +22,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthResetPasswordRequested>(_onResetPasswordRequested);
     on<AuthVerifyOtpRequested>(_onVerifyOtpRequested);
     on<CompleteOnboardingEvent>(_onCompleteOnboarding);
+    on<LoginAsGuest>(_onLoginAsGuest);
   }
 
   final AuthRepository _repository;
@@ -63,6 +64,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading(isOnboardingCompleted: state.isOnboardingCompleted));
 
+    // Check if transitioning from Guest/Unauthenticated to Authenticated
+    final wasGuest = state is AuthGuest || state is AuthUnauthenticated;
+
     final result = await _repository.login(
       phone: event.phone,
       password: event.password,
@@ -84,10 +88,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       ),
     );
 
-    // Trigger favorites sync after successful login if result is Right
+    // Trigger favorites merge if transitioning from guest, otherwise sync
     result.fold(
       (failure) => null,
-      (response) => _favoritesBloc?.add(const SyncFavoritesEvent()),
+      (response) {
+        if (wasGuest) {
+          // Merge guest favorites to server
+          _favoritesBloc?.add(const MergeFavorites());
+        } else {
+          // Sync existing favorites
+          _favoritesBloc?.add(const SyncFavoritesEvent());
+        }
+      },
     );
   }
 
@@ -96,6 +108,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading(isOnboardingCompleted: state.isOnboardingCompleted));
+
+    // Check if transitioning from Guest/Unauthenticated to Authenticated
+    final wasGuest = state is AuthGuest || state is AuthUnauthenticated;
 
     final result = await _repository.register(
       fullName: event.fullName,
@@ -117,6 +132,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           isOnboardingCompleted: true,
         ),
       ),
+    );
+
+    // Trigger favorites merge if transitioning from guest
+    result.fold(
+      (failure) => null,
+      (response) {
+        if (wasGuest) {
+          // Merge guest favorites to server
+          _favoritesBloc?.add(const MergeFavorites());
+        }
+      },
     );
   }
 
@@ -267,6 +293,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       emit(AuthUnauthenticated(isOnboardingCompleted: true));
     }
+  }
+
+  Future<void> _onLoginAsGuest(
+    LoginAsGuest event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading(isOnboardingCompleted: state.isOnboardingCompleted));
+    await Future.delayed(const Duration(milliseconds: 300));
+    emit(const AuthGuest(isOnboardingCompleted: true));
   }
 
   Map<String, dynamic>? _getUserFromStorage() {

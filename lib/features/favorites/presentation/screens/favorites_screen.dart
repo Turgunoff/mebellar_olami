@@ -9,9 +9,7 @@ import '../../../../core/constants/app_theme.dart';
 import '../../../../core/utils/route_names.dart';
 import '../../../products/data/models/product_model.dart';
 import '../bloc/favorites_bloc.dart';
-import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../../../core/widgets/product_card.dart';
-import '../../../../core/widgets/custom_button.dart';
 
 /// Sevimlilar ekrani - Nabolen Style
 class FavoritesScreen extends StatelessWidget {
@@ -78,77 +76,17 @@ class FavoritesScreen extends StatelessWidget {
                 ),
             ],
           ),
-          body: BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, authState) {
-              final isGuest = authState is! AuthAuthenticated;
-
-              if (isGuest) return _buildGuestView(context);
-              if (favoritesState.favorites.isEmpty) return _buildEmptyView();
-              return _buildFavoritesList(context, favoritesState);
-            },
-          ),
+          body: favoritesState.status == FavoritesStatus.loading
+              ? const Center(child: CircularProgressIndicator())
+              : favoritesState.favorites.isEmpty
+              ? _buildEmptyView()
+              : _buildFavoritesList(context, favoritesState),
         );
       },
     );
   }
 
-  /// Mehmon ko'rinishi
-  Widget _buildGuestView(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(36),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: AppColors.secondary.withValues(alpha: 0.5),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.favorite_outline_rounded,
-                size: 56,
-                color: AppColors.primary,
-              ),
-            ).animate().scale(curve: Curves.elasticOut),
-            const SizedBox(height: 28),
-            const Text(
-              'Sevimli mahsulotlaringiz',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ).animate().fadeIn(delay: 100.ms),
-            const SizedBox(height: 12),
-            const Text(
-              'Sevimli mahsulotlaringizni saqlash va\nkeyinroq ko\'rish uchun tizimga kiring',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 14,
-                height: 1.6,
-              ),
-              textAlign: TextAlign.center,
-            ).animate().fadeIn(delay: 200.ms),
-            const SizedBox(height: 36),
-            CustomButton(
-              text: 'Tizimga kirish',
-              icon: Icons.login_rounded,
-              width: 200,
-              onPressed: () {
-                context.pushNamed(RouteNames.login);
-              },
-            ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Bo'sh ko'rinish
+  /// Bo'sh ko'rinish (for both Guest and Authenticated users)
   Widget _buildEmptyView() {
     return Center(
       child: Padding(

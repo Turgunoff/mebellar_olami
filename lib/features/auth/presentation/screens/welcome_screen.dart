@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
 import '../../../../core/utils/route_names.dart';
+import '../bloc/auth_bloc.dart';
 
 /// Welcome Screen - Auth Selection Screen
 /// Splash dan keyin, agar foydalanuvchi tizimga kirmagan bo'lsa ko'rsatiladi
@@ -161,7 +163,7 @@ class WelcomeScreen extends StatelessWidget {
                   // Guest Mode - TextButton
                   TextButton(
                     onPressed: () {
-                      context.goNamed(RouteNames.main);
+                      context.read<AuthBloc>().add(const LoginAsGuest());
                     },
                     child: Text(
                       'auth.guest_mode'.tr(),

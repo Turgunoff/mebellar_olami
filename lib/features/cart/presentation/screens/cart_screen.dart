@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/extensions.dart';
+import '../../../../core/utils/route_names.dart';
+import '../../../../core/widgets/guest_view.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../products/data/models/product_model.dart';
 import '../bloc/cart_bloc.dart';
 import '../../../products/data/repositories/product_repository.dart';
@@ -18,117 +21,150 @@ class CartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CartBloc, CartState>(
-      builder: (context, state) {
-        final itemCount = state.itemCount;
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          appBar: AppBar(
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, authState) {
+        // Check if user is a Guest
+        if (authState is AuthGuest) {
+          return Scaffold(
             backgroundColor: AppColors.background,
-            surfaceTintColor: Colors.transparent,
-            elevation: 0,
-            centerTitle: true,
-
-            // 1. Sarlavha va Jami miqdor (Subtitle)
-            title: Column(
-              children: [
-                const Text(
-                  'Savatcha',
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 20, // 24 dan 20 ga tushirdik (elegantroq)
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.5,
-                  ),
+            appBar: AppBar(
+              backgroundColor: AppColors.background,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              centerTitle: true,
+              title: const Text(
+                'Savatcha',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.5,
                 ),
-                // Agar savat bo'sh bo'lmasa, sonini ko'rsatamiz
-                if (itemCount > 0)
-                  Text(
-                    '$itemCount ta mahsulot',
-                    style: TextStyle(
-                      color: AppColors.textSecondary.withValues(alpha: 0.7),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-              ],
+              ),
             ),
+            body: GuestPlaceholder(
+              title: "Savatchangiz bo'sh",
+              message: "Mahsulotlarni saqlash va buyurtma berish uchun tizimga kiring",
+              onLoginTap: () => context.pushNamed(RouteNames.login),
+              icon: Iconsax.shopping_cart,
+            ),
+          );
+        }
 
-            // 2. O'ng taraf (Action Buttons)
-            actions: [
-              if (itemCount > 0)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: IconButton(
-                    onPressed: () {
-                      // Savatni tozalash funksiyasi (Dialog chiqarish tavsiya etiladi)
-                      // _showClearCartDialog(context);
-                    },
-                    style: IconButton.styleFrom(
-                      backgroundColor: AppColors.error.withValues(
-                        alpha: 0.1,
-                      ), // Yumshoq qizil fon
-                      shape: const CircleBorder(), // Dumaloq tugma
+        // Authenticated users see the normal cart
+        return BlocBuilder<CartBloc, CartState>(
+          builder: (context, state) {
+            final itemCount = state.itemCount;
+            return Scaffold(
+              backgroundColor: AppColors.background,
+              appBar: AppBar(
+                backgroundColor: AppColors.background,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                centerTitle: true,
+
+                // 1. Sarlavha va Jami miqdor (Subtitle)
+                title: Column(
+                  children: [
+                    const Text(
+                      'Savatcha',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 20, // 24 dan 20 ga tushirdik (elegantroq)
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.5,
+                      ),
                     ),
-                    icon: Icon(
-                      Iconsax.trash, // Iconsax trash
-                      color: AppColors.error,
-                      size: 20,
-                    ),
-                    tooltip: 'Savatni tozalash',
-                  ),
+                    // Agar savat bo'sh bo'lmasa, sonini ko'rsatamiz
+                    if (itemCount > 0)
+                      Text(
+                        '$itemCount ta mahsulot',
+                        style: TextStyle(
+                          color: AppColors.textSecondary.withValues(alpha: 0.7),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                  ],
                 ),
-            ],
-          ),
-          body: BlocConsumer<CartBloc, CartState>(
-            listener: (context, state) {
-              if (state.status == CartStatus.error &&
-                  state.errorMessage != null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.errorMessage!),
-                    backgroundColor: AppColors.error,
-                  ),
-                );
-              }
-              if (state.status == CartStatus.loaded &&
-                  state.successMessage != null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.successMessage!),
-                    backgroundColor: AppColors.success,
-                  ),
-                );
-              }
-            },
-            builder: (context, state) {
-              if (state.status == CartStatus.loading) {
-                return const Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.primary,
-                    strokeWidth: 3,
-                  ),
-                );
-              }
 
-              if (state.isEmpty) {
-                return _buildEmptyCart(context);
-              }
-
-              return Column(
-                children: [
-                  // Cart Items
-                  Expanded(flex: 3, child: _buildCartItems(context, state)),
-
-                  // Total and Checkout
-                  _buildCheckoutSection(context, state),
-
-                  // Cross-selling
-                  Expanded(flex: 1, child: _buildCrossSelling(context, state)),
+                // 2. O'ng taraf (Action Buttons)
+                actions: [
+                  if (itemCount > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: IconButton(
+                        onPressed: () {
+                          // Savatni tozalash funksiyasi (Dialog chiqarish tavsiya etiladi)
+                          // _showClearCartDialog(context);
+                        },
+                        style: IconButton.styleFrom(
+                          backgroundColor: AppColors.error.withValues(
+                            alpha: 0.1,
+                          ), // Yumshoq qizil fon
+                          shape: const CircleBorder(), // Dumaloq tugma
+                        ),
+                        icon: Icon(
+                          Iconsax.trash, // Iconsax trash
+                          color: AppColors.error,
+                          size: 20,
+                        ),
+                        tooltip: 'Savatni tozalash',
+                      ),
+                    ),
                 ],
-              );
-            },
-          ),
+              ),
+              body: BlocConsumer<CartBloc, CartState>(
+                listener: (context, state) {
+                  if (state.status == CartStatus.error &&
+                      state.errorMessage != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(state.errorMessage!),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                  }
+                  if (state.status == CartStatus.loaded &&
+                      state.successMessage != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(state.successMessage!),
+                        backgroundColor: AppColors.success,
+                      ),
+                    );
+                  }
+                },
+                builder: (context, state) {
+                  if (state.status == CartStatus.loading) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                        strokeWidth: 3,
+                      ),
+                    );
+                  }
+
+                  if (state.isEmpty) {
+                    return _buildEmptyCart(context);
+                  }
+
+                  return Column(
+                    children: [
+                      // Cart Items
+                      Expanded(flex: 3, child: _buildCartItems(context, state)),
+
+                      // Total and Checkout
+                      _buildCheckoutSection(context, state),
+
+                      // Cross-selling
+                      Expanded(flex: 1, child: _buildCrossSelling(context, state)),
+                    ],
+                  );
+                },
+              ),
+            );
+          },
         );
       },
     );

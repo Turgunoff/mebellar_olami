@@ -6,9 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/route_names.dart';
+import '../../../../core/widgets/guest_view.dart';
 import '../../bloc/profile_bloc.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../../core/widgets/custom_button.dart';
 import '../../../checkout/data/models/order_model.dart';
 
 /// Profil ekrani - Nabolen Style
@@ -93,8 +93,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       body: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, authState) {
-          if (authState is AuthUnauthenticated) {
-            return _buildGuestView(context);
+          // Show guest placeholder for both AuthGuest and AuthUnauthenticated
+          if (authState is AuthGuest || authState is AuthUnauthenticated) {
+            return GuestPlaceholder(
+              title: "Profil",
+              message: "Mahsulotlarni saqlash va buyurtma berish uchun tizimga kiring",
+              onLoginTap: () => context.pushNamed(RouteNames.login),
+              icon: Iconsax.user,
+            );
           }
 
           if (authState is AuthAuthenticated) {
@@ -109,87 +115,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           );
         },
       ),
-    );
-  }
-
-  /// Mehmon ko'rinishi
-  Widget _buildGuestView(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          // Mehmon kartasi
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(30),
-            decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(40),
-                  ),
-                  child: const Icon(
-                    Icons.person_outline,
-                    size: 40,
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Mehmon',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.white,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Tizimga kirishingiz kerak',
-                  style: TextStyle(fontSize: 14, color: AppColors.white),
-                ),
-              ],
-            ),
-          ).animate().fadeIn().slideY(begin: -0.1),
-
-          const SizedBox(height: 30),
-
-          // Kirish tugmalari
-          _buildAuthButtons(context).animate().fadeIn(delay: 200.ms),
-        ],
-      ),
-    );
-  }
-
-  /// Avtorizatsiya tugmalari
-  Widget _buildAuthButtons(BuildContext context) {
-    return Column(
-      children: [
-        CustomButton(
-          text: 'Kirish',
-          onPressed: () => context.pushNamed(RouteNames.login),
-        ),
-        const SizedBox(height: 12),
-        CustomButton(
-          text: 'Ro\'yxatdan o\'tish',
-          isOutlined: true,
-          onPressed: () => context.pushNamed(RouteNames.welcome),
-        ),
-      ],
     );
   }
 

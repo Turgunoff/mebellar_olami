@@ -72,3 +72,10 @@ class AuthUserExists extends AuthState {
 class AuthCodeResent extends AuthState {
   const AuthCodeResent({required super.isOnboardingCompleted});
 }
+
+class AuthGuest extends AuthState {
+  const AuthGuest({super.isOnboardingCompleted = true});
+
+  @override
+  List<Object?> get props => [isOnboardingCompleted];
+}

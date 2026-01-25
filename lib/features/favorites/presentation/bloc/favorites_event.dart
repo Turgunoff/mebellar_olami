@@ -27,3 +27,7 @@ class ToggleFavoriteEvent extends FavoritesEvent {
 class SyncFavoritesEvent extends FavoritesEvent {
   const SyncFavoritesEvent();
 }
+
+class MergeFavorites extends FavoritesEvent {
+  const MergeFavorites();
+}

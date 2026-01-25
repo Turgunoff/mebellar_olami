@@ -54,11 +54,11 @@ class AppRouter {
         // Define route checks
         final isGoingToOnboarding = currentLocation == RoutePaths.onboarding;
         final isGoingToWelcome = currentLocation == RoutePaths.welcome;
-        final isGoingToLogin =
-            currentLocation == RoutePaths.login ||
-            currentLocation == RoutePaths.signup;
+        final isGoingToLogin = currentLocation == RoutePaths.login;
+        final isGoingToSignup = currentLocation == RoutePaths.signup;
+        final isGoingToLoginOrSignup = isGoingToLogin || isGoingToSignup;
         final isGoingToAuthFlow =
-            isGoingToLogin ||
+            isGoingToLoginOrSignup ||
             currentLocation == RoutePaths.forgotPassword ||
             currentLocation == RoutePaths.resetPassword ||
             currentLocation.startsWith('/verify-code');
@@ -92,14 +92,28 @@ class AppRouter {
           return RoutePaths.welcome;
         }
 
-        // 3. Check Authenticated
+        // 3. Check Authenticated (fully logged in users)
         if (authState is AuthAuthenticated) {
-          // If user is logged in but tries to go to auth/onboarding/welcome -> Send to Home
-          if (isGoingToLogin ||
+          // If user is authenticated but tries to go to auth/onboarding/welcome -> Send to Home
+          if (isGoingToLoginOrSignup ||
               isGoingToOnboarding ||
               isGoingToWelcome ||
               isGoingToAuthFlow) {
             print('🔀 GoRouter: User authenticated, redirecting to main');
+            return RoutePaths.main;
+          }
+        }
+
+        // 4. Check Guest (guests can browse but need login for some features)
+        if (authState is AuthGuest) {
+          // Guests MUST be allowed to access /login and /signup to upgrade their account
+          if (isGoingToLoginOrSignup) {
+            print('🔀 GoRouter: Guest accessing login/signup, allowing access');
+            return null; // Allow access to login/signup
+          }
+          // If guest tries to go to other auth flows (onboarding/welcome) -> Send to Home
+          if (isGoingToOnboarding || isGoingToWelcome) {
+            print('🔀 GoRouter: Guest accessing onboarding/welcome, redirecting to main');
             return RoutePaths.main;
           }
         }

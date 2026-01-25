@@ -1,11 +1,16 @@
 import '../../../../core/local/hive_service.dart';
 import '../../../../core/network/dio_client.dart';
+import '../datasources/local_favorites_source.dart';
 
 class FavoritesRepository {
   final DioClient _dioClient;
+  final LocalFavoritesSource _localFavoritesSource;
 
-  FavoritesRepository({DioClient? dioClient})
-    : _dioClient = dioClient ?? DioClient();
+  FavoritesRepository({
+    DioClient? dioClient,
+    LocalFavoritesSource? localFavoritesSource,
+  })  : _dioClient = dioClient ?? DioClient(),
+        _localFavoritesSource = localFavoritesSource ?? LocalFavoritesSource();
 
   /// Sevimli mahsulotlarni olish (Guest Mode qo'llab-quvvatlaydi)
   Future<List<Map<String, dynamic>>> getFavorites() async {
@@ -223,6 +228,62 @@ class FavoritesRepository {
       await HiveService.favoritesBox.clear();
     } catch (e) {
       // Xatolikni log qilish mumkin
+    }
+  }
+
+  /// Merge guest favorites (from SharedPreferences) to server
+  /// This is called when user logs in/registers
+  Future<Map<String, dynamic>> mergeGuestFavorites() async {
+    try {
+      final hasToken = HiveService.hasToken;
+
+      if (!hasToken) {
+        return {'success': false, 'message': 'No authentication token'};
+      }
+
+      // Read guest favorite IDs from SharedPreferences
+      final guestFavoriteIds = await _localFavoritesSource.getFavoriteIds();
+
+      if (guestFavoriteIds.isEmpty) {
+        return {'success': true, 'message': 'No guest favorites to merge'};
+      }
+
+      // Add each product ID to server favorites
+      final syncResults = <Map<String, dynamic>>[];
+      int successCount = 0;
+
+      for (final productId in guestFavoriteIds) {
+        try {
+          final response = await _dioClient.post(
+            '/favorites/add',
+            data: {'product_id': productId},
+          );
+
+          if (response.statusCode == 200) {
+            syncResults.add({'product_id': productId, 'success': true});
+            successCount++;
+          } else {
+            syncResults.add({'product_id': productId, 'success': false});
+          }
+        } catch (e) {
+          syncResults.add({'product_id': productId, 'success': false});
+        }
+      }
+
+      // If at least some favorites were synced, clear SharedPreferences
+      if (successCount > 0) {
+        await _localFavoritesSource.clearFavorites();
+      }
+
+      return {
+        'success': true,
+        'synced_count': successCount,
+        'total_count': guestFavoriteIds.length,
+        'message':
+            'Merged $successCount out of ${guestFavoriteIds.length} favorites',
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Merge failed: ${e.toString()}'};
     }
   }
 }
