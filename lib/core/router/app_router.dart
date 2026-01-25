@@ -24,6 +24,7 @@ import '../../features/products/data/models/product_model.dart';
 import '../../features/products/presentation/screens/product_detail_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/search/presentation/screens/search_screen.dart';
+import '../../features/catalog/presentation/screens/sub_category_screen.dart';
 import '../utils/navigation_observer.dart';
 import '../utils/route_names.dart';
 
@@ -113,7 +114,9 @@ class AppRouter {
           }
           // If guest tries to go to other auth flows (onboarding/welcome) -> Send to Home
           if (isGoingToOnboarding || isGoingToWelcome) {
-            print('🔀 GoRouter: Guest accessing onboarding/welcome, redirecting to main');
+            print(
+              '🔀 GoRouter: Guest accessing onboarding/welcome, redirecting to main',
+            );
             return RoutePaths.main;
           }
         }
@@ -236,6 +239,21 @@ class AppRouter {
           path: RoutePaths.search,
           name: RouteNames.search,
           builder: (context, state) => const SearchScreen(),
+        ),
+
+        // Sub-categories
+        GoRoute(
+          path: RoutePaths.subCategories,
+          name: RouteNames.subCategories,
+          builder: (context, state) {
+            final categoryId = state.pathParameters['categoryId'] ?? '';
+            final extra = state.extra as Map<String, dynamic>?;
+            final categoryName = extra?['categoryName']?.toString() ?? '';
+            return SubCategoryScreen(
+              categoryId: categoryId,
+              categoryName: categoryName,
+            );
+          },
         ),
 
         // Cart

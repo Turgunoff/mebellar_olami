@@ -13,6 +13,8 @@ import '../../features/search/presentation/bloc/search_bloc.dart';
 import '../../features/search/data/repositories/search_repository.dart';
 import '../../features/catalog/data/repositories/category_repository.dart';
 import '../../features/catalog/presentation/bloc/catalog_bloc.dart';
+import '../../features/catalog/presentation/cubit/category_cubit.dart';
+import '../../features/catalog/presentation/cubit/sub_category_cubit.dart';
 import '../../features/home/presentation/bloc/home_bloc.dart';
 import '../../features/home/data/repositories/banner_repository.dart';
 import '../../features/home/presentation/bloc/banner_cubit.dart';
@@ -44,6 +46,12 @@ Future<void> setupDependencyInjection() async {
       productRepository: sl<ProductRepository>(),
       categoryRepository: sl<CategoryRepository>(),
     ),
+  );
+  sl.registerFactory<CategoryCubit>(
+    () => CategoryCubit(categoryRepository: sl<CategoryRepository>()),
+  );
+  sl.registerFactory<SubCategoryCubit>(
+    () => SubCategoryCubit(categoryRepository: sl<CategoryRepository>()),
   );
 
   // Features - Favorites

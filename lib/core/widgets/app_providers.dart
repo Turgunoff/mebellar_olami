@@ -7,6 +7,7 @@ import '../../features/favorites/presentation/bloc/favorites_bloc.dart';
 import '../../features/cart/presentation/bloc/cart_bloc.dart';
 import '../../features/home/presentation/bloc/home_bloc.dart';
 import '../../features/catalog/presentation/bloc/catalog_bloc.dart';
+import '../../features/catalog/presentation/cubit/category_cubit.dart';
 import '../../features/profile/bloc/profile_bloc.dart';
 import '../../features/search/presentation/bloc/search_bloc.dart';
 import '../../features/products/data/repositories/product_repository.dart';
@@ -48,6 +49,7 @@ class AppProviders extends StatelessWidget {
           BlocProvider(
             create: (_) => di.sl<CatalogBloc>()..add(const LoadCategories()),
           ),
+          BlocProvider(create: (_) => di.sl<CategoryCubit>()),
           BlocProvider(create: (_) => di.sl<ProfileBloc>()),
           BlocProvider(
             create: (_) => di.sl<SearchBloc>()..add(const LoadSearchHistory()),

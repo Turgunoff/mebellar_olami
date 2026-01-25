@@ -25,6 +25,7 @@ class RouteNames {
   // Product routes
   static const String productDetail = 'product-detail';
   static const String categoryProducts = 'category-products';
+  static const String subCategories = 'sub-categories';
   static const String checkout = 'checkout';
   static const String orderSuccess = 'order-success';
   static const String mapSelection = 'map-selection';
@@ -54,6 +55,8 @@ class RoutePaths {
 
   // Product routes
   static const String productDetail = '/product/:productId';
+  static const String subCategories = '/sub-categories/:categoryId';
+  static const String categoryProducts = '/category-products/:categoryId';
   static const String checkout = '/checkout';
   static const String orderSuccess = '/order-success';
   static const String mapSelection = '/map-selection';

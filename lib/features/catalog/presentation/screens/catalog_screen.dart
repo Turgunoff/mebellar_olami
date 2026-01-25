@@ -3,14 +3,14 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:mebellar_olami/features/catalog/presentation/widgets/category_big_card.dart';
 import '../../../../core/utils/localized_text_helper.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/route_names.dart';
 import '../../../../core/widgets/product_card.dart';
 import '../../../products/data/models/product_model.dart';
 import '../bloc/catalog_bloc.dart';
-import '../widgets/category_grid_card.dart';
+import '../cubit/category_cubit.dart';
+import '../widgets/category_list_card.dart';
 import '../widgets/filter_chips.dart';
 import '../../data/models/category_model.dart';
 
@@ -32,7 +32,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CatalogBloc>().add(const LoadCategories());
+      context.read<CategoryCubit>().loadMainCategories();
     });
   }
 
@@ -158,9 +158,9 @@ class _CatalogScreenState extends State<CatalogScreen> {
     );
   }
 
-  /// Kategoriyalar ro'yxati (Zamonaviy Grid View)
+  /// Kategoriyalar ro'yxati (List Layout with alternating pattern)
   Widget _buildCategoryList() {
-    return BlocBuilder<CatalogBloc, CatalogState>(
+    return BlocBuilder<CategoryCubit, CategoryState>(
       builder: (context, state) {
         if (state.isLoading) {
           return const Center(
@@ -168,8 +168,38 @@ class _CatalogScreenState extends State<CatalogScreen> {
           );
         }
 
+        if (state.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: AppColors.error.withValues(alpha: 0.7),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  state.errorMessage ?? 'Xatolik yuz berdi',
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 16,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                TextButton.icon(
+                  onPressed: () =>
+                      context.read<CategoryCubit>().loadMainCategories(),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Qayta yuklash'),
+                ),
+              ],
+            ),
+          );
+        }
+
         if (state.categories.isEmpty) {
-          // ... (Empty state kodi o'zgarishsiz qoladi) ...
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -190,7 +220,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 const SizedBox(height: 16),
                 TextButton.icon(
                   onPressed: () =>
-                      context.read<CatalogBloc>().add(const LoadCategories()),
+                      context.read<CategoryCubit>().loadMainCategories(),
                   icon: const Icon(Icons.refresh),
                   label: const Text('Qayta yuklash'),
                 ),
@@ -199,28 +229,24 @@ class _CatalogScreenState extends State<CatalogScreen> {
           );
         }
 
-        final categoriesWithProducts = state.categories;
-        // .where((category) => category.productCount > 0) // Agar xohlasangiz filtrlash
-        // .toList();
+        final mainCategories = state.categories;
 
         return RefreshIndicator(
           onRefresh: () async {
-            context.read<CatalogBloc>().add(const LoadCategories());
+            await context.read<CategoryCubit>().refresh();
           },
           color: AppColors.primary,
-          child: ListView.builder(
-            // ⚠️ GridView o'rniga ListView
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            itemCount: categoriesWithProducts.length,
+          child: ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: mainCategories.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 16),
             itemBuilder: (context, index) {
-              final category = categoriesWithProducts[index];
+              final category = mainCategories[index];
 
-              // ✨ YANGI VIDJET
-              return CategoryBigCard(
+              return CategoryListCard(
                     category: category,
-                    index: index, // Zig-zag logika uchun index kerak
+                    index: index,
                     onTap: () {
-                      // ... (Eski navigatsiya logikasi o'zgarishsiz qoladi) ...
                       if (category.hasSubCategories) {
                         setState(() {
                           _selectedCategory = category;
@@ -257,11 +283,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
                     },
                   )
                   .animate()
-                  .fadeIn(delay: (100 * index).ms) // Har biri sekin chiqadi
-                  .slideY(
-                    begin: 0.2,
-                    curve: Curves.easeOut,
-                  ); // Pastdan chiqish effekti
+                  .fadeIn(delay: (80 * index).ms)
+                  .slideY(begin: 0.15, curve: Curves.easeOut);
             },
           ),
         );
