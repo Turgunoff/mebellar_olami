@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iconsax/iconsax.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/extensions.dart';
 import '../../../products/data/models/product_model.dart';
@@ -17,69 +18,119 @@ class CartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          'Savatcha',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: BlocConsumer<CartBloc, CartState>(
-        listener: (context, state) {
-          if (state.status == CartStatus.error && state.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage!),
-                backgroundColor: AppColors.error,
-              ),
-            );
-          }
-          if (state.status == CartStatus.loaded &&
-              state.successMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.successMessage!),
-                backgroundColor: AppColors.success,
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          if (state.status == CartStatus.loading) {
-            return const Center(
-              child: CircularProgressIndicator(
-                color: AppColors.primary,
-                strokeWidth: 3,
-              ),
-            );
-          }
+    return BlocBuilder<CartBloc, CartState>(
+      builder: (context, state) {
+        final itemCount = state.itemCount;
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.background,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            centerTitle: true,
 
-          if (state.isEmpty) {
-            return _buildEmptyCart(context);
-          }
+            // 1. Sarlavha va Jami miqdor (Subtitle)
+            title: Column(
+              children: [
+                const Text(
+                  'Savatcha',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 20, // 24 dan 20 ga tushirdik (elegantroq)
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                // Agar savat bo'sh bo'lmasa, sonini ko'rsatamiz
+                if (itemCount > 0)
+                  Text(
+                    '$itemCount ta mahsulot',
+                    style: TextStyle(
+                      color: AppColors.textSecondary.withValues(alpha: 0.7),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+              ],
+            ),
 
-          return Column(
-            children: [
-              // Cart Items
-              Expanded(flex: 3, child: _buildCartItems(context, state)),
-
-              // Total and Checkout
-              _buildCheckoutSection(context, state),
-
-              // Cross-selling
-              Expanded(flex: 1, child: _buildCrossSelling(context, state)),
+            // 2. O'ng taraf (Action Buttons)
+            actions: [
+              if (itemCount > 0)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: IconButton(
+                    onPressed: () {
+                      // Savatni tozalash funksiyasi (Dialog chiqarish tavsiya etiladi)
+                      // _showClearCartDialog(context);
+                    },
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppColors.error.withValues(
+                        alpha: 0.1,
+                      ), // Yumshoq qizil fon
+                      shape: const CircleBorder(), // Dumaloq tugma
+                    ),
+                    icon: Icon(
+                      Iconsax.trash, // Iconsax trash
+                      color: AppColors.error,
+                      size: 20,
+                    ),
+                    tooltip: 'Savatni tozalash',
+                  ),
+                ),
             ],
-          );
-        },
-      ),
+          ),
+          body: BlocConsumer<CartBloc, CartState>(
+            listener: (context, state) {
+              if (state.status == CartStatus.error &&
+                  state.errorMessage != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.errorMessage!),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+              }
+              if (state.status == CartStatus.loaded &&
+                  state.successMessage != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.successMessage!),
+                    backgroundColor: AppColors.success,
+                  ),
+                );
+              }
+            },
+            builder: (context, state) {
+              if (state.status == CartStatus.loading) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.primary,
+                    strokeWidth: 3,
+                  ),
+                );
+              }
+
+              if (state.isEmpty) {
+                return _buildEmptyCart(context);
+              }
+
+              return Column(
+                children: [
+                  // Cart Items
+                  Expanded(flex: 3, child: _buildCartItems(context, state)),
+
+                  // Total and Checkout
+                  _buildCheckoutSection(context, state),
+
+                  // Cross-selling
+                  Expanded(flex: 1, child: _buildCrossSelling(context, state)),
+                ],
+              );
+            },
+          ),
+        );
+      },
     );
   }
 

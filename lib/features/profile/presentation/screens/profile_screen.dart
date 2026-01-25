@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iconsax/iconsax.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/route_names.dart';
 import '../../bloc/profile_bloc.dart';
@@ -37,10 +38,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Profil'),
         backgroundColor: AppColors.background,
         surfaceTintColor: Colors.transparent,
+        elevation: 0,
         centerTitle: true,
+
+        // 1. Sarlavha
+        title: const Text(
+          'Mening Profilim',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 20, // Ixcham va zamonaviy
+            fontWeight: FontWeight.bold,
+            letterSpacing: -0.5,
+          ),
+        ),
+
+        // 2. O'ng taraf (Sozlamalar)
+        actions: [
+          // AuthBloc holatini tekshiramiz
+          BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              // Faqat ro'yxatdan o'tganlar uchun Sozlamalar tugmasini ko'rsatish
+              if (state is AuthAuthenticated) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12.0),
+                  child: IconButton(
+                    onPressed: () {
+                      // Sozlamalar sahifasiga o'tish
+                      // context.pushNamed(RouteNames.settings);
+
+                      // Yoki vaqtincha Logout dialogini shu yerdan chaqirish mumkin
+                      // _showLogoutDialog(context);
+                    },
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppColors.surface, // Oq fon
+                      shape: const CircleBorder(), // Dumaloq
+                      shadowColor: Colors.black.withOpacity(0.05),
+                      elevation: 2,
+                    ),
+                    icon: Icon(
+                      Iconsax.setting_2, // Iconsax paketi
+                      color: AppColors.textPrimary,
+                      size: 22,
+                    ),
+                    tooltip: 'Sozlamalar',
+                  ),
+                );
+              }
+              return const SizedBox.shrink(); // Mehmonlar uchun bo'sh joy
+            },
+          ),
+        ],
       ),
       body: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, authState) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iconsax/iconsax.dart';
 import '../../../../core/utils/localized_text_helper.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_theme.dart';
@@ -23,18 +24,56 @@ class FavoritesScreen extends StatelessWidget {
         return Scaffold(
           backgroundColor: AppColors.background,
           appBar: AppBar(
-            title: const Text('Sevimlilar'),
             backgroundColor: AppColors.background,
             surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            centerTitle: true, // Sarlavha markazda
+            // 1. Sarlavha va Soni (Subtitle)
+            title: Column(
+              children: [
+                const Text(
+                  'Sevimlilar',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                // Agar ro'yxat bo'sh bo'lmasa, sonini ko'rsatamiz
+                if (favoritesState.favorites.isNotEmpty)
+                  Text(
+                    '${favoritesState.favorites.length} ta mahsulot',
+                    style: TextStyle(
+                      color: AppColors.textSecondary.withOpacity(0.7),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+              ],
+            ),
+
+            // 2. Tozalash tugmasi (Trash Icon)
             actions: [
               if (favoritesState.favorites.isNotEmpty)
-                TextButton(
-                  onPressed: () {
-                    _showClearConfirmation(context);
-                  },
-                  child: const Text(
-                    'Tozalash',
-                    style: TextStyle(color: AppColors.primary),
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: IconButton(
+                    onPressed: () {
+                      _showClearConfirmation(context);
+                    },
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppColors.error.withOpacity(
+                        0.1,
+                      ), // Orqa fon (och qizil)
+                      highlightColor: AppColors.error.withOpacity(0.2),
+                    ),
+                    icon: Icon(
+                      Iconsax.trash, // Iconsax paketi
+                      color: AppColors.error, // Qizil rang (xavfli amal)
+                      size: 20,
+                    ),
+                    tooltip: 'Ro\'yxatni tozalash',
                   ),
                 ),
             ],

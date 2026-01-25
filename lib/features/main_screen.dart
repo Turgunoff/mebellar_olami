@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:iconsax/iconsax.dart';
 import '../core/constants/app_colors.dart';
 import '../core/constants/app_theme.dart';
 import 'cart/presentation/bloc/cart_bloc.dart';
@@ -59,8 +60,8 @@ class _MainScreenState extends State<MainScreen> {
             children: [
               _buildNavItem(
                 index: 0,
-                icon: Icons.home_outlined,
-                activeIcon: Icons.home_rounded,
+                icon: Iconsax.home_1,
+                activeIcon: Iconsax.home_2,
                 label: 'main.home'.tr(),
               ),
               _buildNavItem(

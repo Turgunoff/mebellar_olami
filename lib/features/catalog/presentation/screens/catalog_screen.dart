@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iconsax/iconsax.dart';
+import 'package:mebellar_olami/features/catalog/presentation/widgets/category_big_card.dart';
 import '../../../../core/utils/localized_text_helper.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/route_names.dart';
@@ -71,22 +73,87 @@ class _CatalogScreenState extends State<CatalogScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(
-          _showProducts
-              ? (_selectedCategory != null
-                    ? LocalizedTextHelper.get(_selectedCategory!.name, context)
-                    : 'Katalog')
-              : 'Katalog',
-        ),
         backgroundColor: AppColors.background,
-        surfaceTintColor: Colors.transparent,
+        surfaceTintColor: Colors
+            .transparent, // Scroll bo'lganda rang o'zgarishini oldini oladi
+        elevation: 0,
+        centerTitle: true, // Sarlavhani markazlashtirish
+        // 1. CHAP TARAF (Back Button)
         leading: _showProducts
-            ? IconButton(
-                onPressed: _goBack,
-                icon: const Icon(Icons.arrow_back_ios_new_rounded),
+            ? Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surface, // Oq fon
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: IconButton(
+                    onPressed: _goBack,
+                    icon: Icon(Iconsax.arrow_left_2, size: 18),
+                    color: AppColors.textPrimary,
+                    padding: EdgeInsets.zero, // Ikonkani markazga to'g'irlash
+                  ),
+                ),
               )
-            : null,
+            : null, // Asosiy katalogda orqaga tugmasi yo'q
+        // 2. SARLAVHA (Title)
+        title: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: Text(
+            _showProducts
+                ? (_selectedCategory != null
+                      ? LocalizedTextHelper.get(
+                          _selectedCategory!.name,
+                          context,
+                        )
+                      : 'Katalog')
+                : 'Katalog',
+            key: ValueKey(_showProducts), // Animatsiya uchun kalit
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: _showProducts ? 18 : 22, // Katalogda kattaroq
+              fontWeight: _showProducts ? FontWeight.w600 : FontWeight.bold,
+              letterSpacing: -0.5,
+            ),
+          ),
+        ),
+
+        // 3. O'NG TARAF (Actions)
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: _showProducts
+                ? IconButton(
+                    onPressed: () {
+                      // Filter menyusini ochish (Keyinchalik qo'shamiz)
+                      // _showFilterModal();
+                    },
+                    icon: Icon(Iconsax.filter, size: 22), // Filter ikonka
+                    color: AppColors.textPrimary,
+                  )
+                : IconButton(
+                    onPressed: () {
+                      // Qidiruv sahifasiga o'tish
+                      context.pushNamed(RouteNames.search);
+                    },
+                    icon: Icon(
+                      Iconsax.search_normal_1,
+                      size: 22,
+                    ), // Qidiruv ikonka
+                    color: AppColors.textPrimary,
+                    iconSize: 26,
+                  ),
+          ),
+        ],
       ),
+
       body: _showProducts ? _buildProductsList() : _buildCategoryList(),
     );
   }
@@ -102,6 +169,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
         }
 
         if (state.categories.isEmpty) {
+          // ... (Empty state kodi o'zgarishsiz qoladi) ...
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -131,70 +199,41 @@ class _CatalogScreenState extends State<CatalogScreen> {
           );
         }
 
-        // Faqat mahsulotlari bo'lgan kategoriyalarni ko'rsatish (productCount > 0)
-        final categoriesWithProducts = state.categories
-            .where((category) => category.productCount > 0)
-            .toList();
-
-        if (categoriesWithProducts.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.category_outlined,
-                  size: 64,
-                  color: AppColors.textSecondary.withValues(alpha: 0.5),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Kategoriyalar topilmadi',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 16,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
+        final categoriesWithProducts = state.categories;
+        // .where((category) => category.productCount > 0) // Agar xohlasangiz filtrlash
+        // .toList();
 
         return RefreshIndicator(
           onRefresh: () async {
             context.read<CatalogBloc>().add(const LoadCategories());
           },
           color: AppColors.primary,
-          child: GridView.builder(
-            padding: const EdgeInsets.all(16),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.85,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-            ),
+          child: ListView.builder(
+            // ⚠️ GridView o'rniga ListView
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
             itemCount: categoriesWithProducts.length,
             itemBuilder: (context, index) {
               final category = categoriesWithProducts[index];
-              return CategoryGridCard(
+
+              // ✨ YANGI VIDJET
+              return CategoryBigCard(
                     category: category,
+                    index: index, // Zig-zag logika uchun index kerak
                     onTap: () {
-                      // Agar sub-kategoriyalar bo'lsa, parent kategoriya sifatida saqlash
+                      // ... (Eski navigatsiya logikasi o'zgarishsiz qoladi) ...
                       if (category.hasSubCategories) {
                         setState(() {
                           _selectedCategory = category;
-                          _parentCategory =
-                              category; // Asosiy kategoriya sifatida saqlash
+                          _parentCategory = category;
                           _showProducts = true;
-                          _selectedFilterId = 'all'; // Default "Barchasi"
+                          _selectedFilterId = 'all';
                         });
-                        // Netflix-style: Load preview products for ALL sub-categories immediately
                         context.read<CatalogBloc>().add(
                           LoadGroupedProductsPreview(
                             parentId: category.id,
-                            limitPerCat: 10, // Preview batch size
+                            limitPerCat: 10,
                           ),
                         );
-                        // Also load "All" products (parent + all sub-categories)
                         context.read<CatalogBloc>().add(
                           LoadCategoryProducts(
                             categoryId: null,
@@ -202,26 +241,27 @@ class _CatalogScreenState extends State<CatalogScreen> {
                           ),
                         );
                       } else {
-                        // Sub-kategoriyalar yo'q bo'lsa, to'g'ridan-to'g'ri mahsulotlarni ko'rsatish
                         setState(() {
                           _selectedCategory = category;
-                          _parentCategory =
-                              category; // Asosiy kategoriya sifatida saqlash
+                          _parentCategory = category;
                           _showProducts = true;
-                          _selectedFilterId = 'all'; // Default "Barchasi"
+                          _selectedFilterId = 'all';
                         });
                         context.read<CatalogBloc>().add(
                           LoadCategoryProducts(
                             categoryId: category.id,
-                            parentId: null, // To'g'ridan-to'g'ri kategoriya
+                            parentId: null,
                           ),
                         );
                       }
                     },
                   )
                   .animate()
-                  .fadeIn(delay: (60 * index).ms)
-                  .scale(begin: const Offset(0.9, 0.9), duration: 400.ms);
+                  .fadeIn(delay: (100 * index).ms) // Har biri sekin chiqadi
+                  .slideY(
+                    begin: 0.2,
+                    curve: Curves.easeOut,
+                  ); // Pastdan chiqish effekti
             },
           ),
         );
@@ -360,12 +400,6 @@ class _CatalogScreenState extends State<CatalogScreen> {
                     color: AppColors.textSecondary,
                     fontSize: 16,
                   ),
-                ),
-                const SizedBox(height: 16),
-                TextButton.icon(
-                  onPressed: _goBack,
-                  icon: const Icon(Icons.arrow_back),
-                  label: const Text('Kategoriyalarga qaytish'),
                 ),
               ],
             ),

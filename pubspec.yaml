@@ -64,6 +64,7 @@ dependencies:
   # yandex_mapkit_lite: ^2.0.2
   yandex_mapkit: ^4.2.1
   flutter_staggered_grid_view: ^0.7.0
+  iconsax: ^0.0.8
 
 dev_dependencies:
   flutter_test:
