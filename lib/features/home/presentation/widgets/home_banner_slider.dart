@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../data/models/banner_model.dart';
+import '../bloc/banner_cubit.dart';
 
 class HomeBannerSlider extends StatefulWidget {
   const HomeBannerSlider({super.key});
@@ -17,33 +21,110 @@ class _HomeBannerSliderState extends State<HomeBannerSlider> {
   final CarouselSliderController _carouselController =
       CarouselSliderController();
 
-  static const List<Map<String, String>> _banners = [
-    {
-      'image':
-          'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800',
-      'title': 'Yangi Kolleksiya',
-      'subtitle': '30% gacha chegirma',
-    },
-    {
-      'image':
-          'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=800',
-      'title': 'Premium Divanlar',
-      'subtitle': 'Maxsus narxlarda',
-    },
-    {
-      'image':
-          'https://images.unsplash.com/photo-1538688525198-9b88f6f53126?w=800',
-      'title': 'Yotoqxona to\'plami',
-      'subtitle': 'Bepul yetkazib berish',
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<BannerCubit, BannerState>(
+      builder: (context, state) {
+        if (state is BannerLoading || state is BannerInitial) {
+          return _buildShimmerLoading();
+        }
+
+        if (state is BannerError) {
+          return _buildErrorState(state.message);
+        }
+
+        if (state is BannerLoaded) {
+          if (state.banners.isEmpty) {
+            return const SizedBox.shrink();
+          }
+          return _buildBannerSlider(state.banners);
+        }
+
+        return const SizedBox.shrink();
+      },
+    );
+  }
+
+  Widget _buildShimmerLoading() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Column(
+        children: [
+          Container(
+            height: 180,
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              3,
+              (index) => Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                width: index == 0 ? 24.0 : 8.0,
+                height: 8.0,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String message) {
+    return Container(
+      height: 180,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, color: Colors.grey[400], size: 48),
+            const SizedBox(height: 8),
+            Text(
+              'Bannerlarni yuklashda xatolik',
+              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: () {
+                context.read<BannerCubit>().loadBanners();
+              },
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Qayta urinish'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBannerSlider(List<BannerModel> banners) {
     return Column(
           children: [
             CarouselSlider(
-              items: _banners.map((banner) {
+              items: banners.map((banner) {
                 return _buildBannerItem(banner);
               }).toList(),
               carouselController: _carouselController,
@@ -53,9 +134,8 @@ class _HomeBannerSliderState extends State<HomeBannerSlider> {
                 autoPlayInterval: const Duration(seconds: 5),
                 autoPlayAnimationDuration: const Duration(milliseconds: 800),
                 autoPlayCurve: Curves.fastOutSlowIn,
-                enlargeCenterPage: true, // Markaziy bannerni kattalashtirish
-                viewportFraction:
-                    0.92, // Yon tomonlar biroz ko'rinib turishi uchun
+                enlargeCenterPage: true,
+                viewportFraction: 0.92,
                 onPageChanged: (index, reason) {
                   setState(() {
                     _currentBannerIndex = index;
@@ -64,7 +144,7 @@ class _HomeBannerSliderState extends State<HomeBannerSlider> {
               ),
             ),
             const SizedBox(height: 12),
-            _buildIndicator(),
+            _buildIndicator(banners.length),
           ],
         )
         .animate()
@@ -72,14 +152,11 @@ class _HomeBannerSliderState extends State<HomeBannerSlider> {
         .slideY(begin: 0.1, curve: Curves.easeOut);
   }
 
-  Widget _buildBannerItem(Map<String, String> banner) {
+  Widget _buildBannerItem(BannerModel banner) {
     return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: 4,
-      ), // 8 dan 4 ga tushirildi (zichroq bo'lishi uchun)
+      margin: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        // Soya faqat pastga tushsin
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -94,7 +171,7 @@ class _HomeBannerSliderState extends State<HomeBannerSlider> {
           children: [
             // 1. Asosiy Rasm
             CachedNetworkImage(
-              imageUrl: banner['image']!,
+              imageUrl: banner.imageUrl,
               width: double.infinity,
               height: double.infinity,
               fit: BoxFit.cover,
@@ -110,25 +187,21 @@ class _HomeBannerSliderState extends State<HomeBannerSlider> {
               ),
             ),
 
-            // 2. Gradient (Tuzatilgan qism)
+            // 2. Gradient
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    // MUHIM: stops orqali gradient qayerdan boshlanishini hal qilamiz
                     stops: const [0.4, 1.0],
-                    colors: [
-                      Colors.transparent, // Tepa 40% butunlay shaffof
-                      Colors.black.withOpacity(0.8), // Pastki qism to'q
-                    ],
+                    colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
                   ),
                 ),
               ),
             ),
 
-            // 3. Matnlar
+            // 3. Matnlar (lokalizatsiya bilan)
             Positioned(
               bottom: 20,
               left: 20,
@@ -137,10 +210,10 @@ class _HomeBannerSliderState extends State<HomeBannerSlider> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    banner['title']!,
+                    banner.getLocalizedTitle(context),
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 22, // Biroz kattalashtirildi
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,
                       shadows: [
@@ -153,24 +226,25 @@ class _HomeBannerSliderState extends State<HomeBannerSlider> {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      banner['subtitle']!,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                  if (banner.getLocalizedSubtitle(context).isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        banner.getLocalizedSubtitle(context),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -180,28 +254,26 @@ class _HomeBannerSliderState extends State<HomeBannerSlider> {
     );
   }
 
-  Widget _buildIndicator() {
+  Widget _buildIndicator(int count) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: _banners.asMap().entries.map((entry) {
-        final isSelected = _currentBannerIndex == entry.key;
+      children: List.generate(count, (index) {
+        final isSelected = _currentBannerIndex == index;
 
         return AnimatedContainer(
-          duration: const Duration(milliseconds: 350), // Animatsiya davomiyligi
-          curve: Curves.fastOutSlowIn, // Silliq harakat effekti
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.fastOutSlowIn,
           margin: const EdgeInsets.symmetric(horizontal: 4),
-          width: isSelected ? 24.0 : 8.0, // Tanlanganda 4 barobar uzunlashadi
+          width: isSelected ? 24.0 : 8.0,
           height: 8.0,
           decoration: BoxDecoration(
             color: isSelected
                 ? AppColors.primary
-                : AppColors.lightGrey.withOpacity(
-                    0.5,
-                  ), // Rang ham silliq o'zgaradi
-            borderRadius: BorderRadius.circular(4), // Doimiy aylana burchaklar
+                : AppColors.lightGrey.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(4),
           ),
         );
-      }).toList(),
+      }),
     );
   }
 }

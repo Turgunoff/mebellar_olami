@@ -12,6 +12,7 @@ import '../../features/search/presentation/bloc/search_bloc.dart';
 import '../../features/products/data/repositories/product_repository.dart';
 import '../../features/checkout/presentation/bloc/checkout_bloc.dart';
 import '../../features/main/presentation/cubit/navigation_cubit.dart';
+import '../../features/home/presentation/bloc/banner_cubit.dart';
 
 class AppProviders extends StatelessWidget {
   final Widget child;
@@ -53,6 +54,7 @@ class AppProviders extends StatelessWidget {
           ),
           BlocProvider(create: (_) => di.sl<CheckoutBloc>()),
           BlocProvider(create: (_) => NavigationCubit()),
+          BlocProvider(create: (_) => di.sl<BannerCubit>()..loadBanners()),
         ],
         child: child,
       ),

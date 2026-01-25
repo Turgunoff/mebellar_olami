@@ -14,6 +14,8 @@ import '../../features/search/data/repositories/search_repository.dart';
 import '../../features/catalog/data/repositories/category_repository.dart';
 import '../../features/catalog/presentation/bloc/catalog_bloc.dart';
 import '../../features/home/presentation/bloc/home_bloc.dart';
+import '../../features/home/data/repositories/banner_repository.dart';
+import '../../features/home/presentation/bloc/banner_cubit.dart';
 import '../../features/profile/data/repositories/profile_repository.dart';
 import '../../features/profile/bloc/profile_bloc.dart';
 import '../../features/checkout/data/repositories/order_repository.dart';
@@ -87,6 +89,14 @@ Future<void> setupDependencyInjection() async {
       productRepository: sl<ProductRepository>(),
       categoryRepository: sl<CategoryRepository>(),
     ),
+  );
+
+  // Features - Banner
+  sl.registerLazySingleton<BannerRepository>(
+    () => BannerRepository(dioClient: sl<DioClient>()),
+  );
+  sl.registerFactory<BannerCubit>(
+    () => BannerCubit(repository: sl<BannerRepository>()),
   );
 
   // Features - Profile
