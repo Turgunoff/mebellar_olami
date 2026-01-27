@@ -106,3 +106,4 @@ flutter:
     - assets/images/
     - assets/translations/
     - assets/logo/
+    - shorebird.yaml
